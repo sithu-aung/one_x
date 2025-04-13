@@ -1,0 +1,1468 @@
+{
+	"info": {
+		"_postman_id": "af1aca6b-3aa4-4d82-9165-0c4f3b2ace33",
+		"name": "1x-King",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43762545",
+		"_collection_link": "https://martian-rocket-862073.postman.co/workspace/1X-King~ca3b30a2-6064-4108-8277-ff32917680e1/collection/12419025-af1aca6b-3aa4-4d82-9165-0c4f3b2ace33?action=share&source=collection_link&creator=43762545"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"login\":\"User69\",\r\n    \"password\":\"password\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:800/api/login",
+					"host": [
+						"localhost"
+					],
+					"port": "800",
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Reigster",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 21|SmyEHkTFtl5piaVRKs1SF9sh56GcYrCY5p0HdylLdb3cf4c2",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"User69\",\r\n    \"phone\":\"098642176\",\r\n    \"date_of_birth\":\"1996-03-13\",\r\n    \"policy\":1,\r\n    \"password\":\"password\",\r\n    \"password_confirmation\":\"password\",\r\n    \"referral\":\"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/register",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Forgot-Password",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 15|PUZLDKL0UKSqq6X20DRC9oCJqvO3tBrrEu2TOLYd0e3efb44",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"phone\":\"0912345678\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/forgot-password",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"forgot-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Provider",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 15|PUZLDKL0UKSqq6X20DRC9oCJqvO3tBrrEu2TOLYd0e3efb44",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/api-provider",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"api-provider"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Home",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 29|UOvvaEXAfK0qjZXuOSIeNba9jv4oxQHpmRYmziQpc784f8fd",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Notification",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 32|vums92bRrHDdfVFGyRQr4W2RtuHwWMZy9aJk51Vd79911f18",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8000/api/notification",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"notification"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Read Notification",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 32|vums92bRrHDdfVFGyRQr4W2RtuHwWMZy9aJk51Vd79911f18",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8000/api/notifications/3cf1265f-341e-448a-b165-982f5a28c95d/read",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"notifications",
+						"3cf1265f-341e-448a-b165-982f5a28c95d",
+						"read"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Show Slip",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/show_slip/9",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"show_slip",
+						"9"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ThreeD-Play",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ThreeD Winning Nums",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/history/three_history",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"history",
+						"three_history"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3D History",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 29|UOvvaEXAfK0qjZXuOSIeNba9jv4oxQHpmRYmziQpc784f8fd",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/history/three",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"history",
+						"three"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-3D",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-3d",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-3d"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-3D Manual",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-three-manual",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-three-manual"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-3D Copy Paste",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-3d/copypaste",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-3d",
+						"copypaste"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-3D Confirm Store",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 36|2AbzH1DEqdVjIfXFwFxZLO79lbkR5bNB23onyfFIcf1a80e6",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"selections\":[\r\n        {\r\n            \"permanent_number\":\"091\",\r\n            \"amount\":1500,\"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"019\",\r\n            \"amount\":1500,\"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"901\",\r\n            \"amount\":1500,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"910\",\r\n            \"amount\":1500,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"109\",\r\n            \"amount\":1500,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"190\",\r\n            \"amount\":1500,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        }\r\n    ],\r\n    \"digits\":\"091,019,901,910,109,190\",\r\n    \"bet_time\":\"morning\",\r\n    \"totalAmount\":9000,\r\n    \"user_id\":8,\r\n    \"name\":\"three\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-3d/confirm/store",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-3d",
+						"confirm",
+						"store"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-3D History Daily Record",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/history/daily/record",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"history",
+						"daily",
+						"record"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-3D History Daily",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/history/three/daily",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"history",
+						"three",
+						"daily"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-3D History Monthly",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/history/three/monthly",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"history",
+						"three",
+						"monthly"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-3D History First Half Monthly",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/history/three/first-half-monthly",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"history",
+						"three",
+						"first-half-monthly"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-3D History SecondHalf Monthly",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/history/three/second-half-monthly",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"history",
+						"three",
+						"second-half-monthly"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D Session Status",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 36|2AbzH1DEqdVjIfXFwFxZLO79lbkR5bNB23onyfFIcf1a80e6",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-2d/session-status",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-2d",
+						"session-status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D Confirm Store",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 36|2AbzH1DEqdVjIfXFwFxZLO79lbkR5bNB23onyfFIcf1a80e6",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"selections\":\r\n    [\r\n        {\r\n            \"permanent_number\":\"02\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\" \r\n        },\r\n        {\r\n            \"permanent_number\":\"19\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"20\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"21\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        }\r\n    ],\r\n    \"digits\":\"02,19,20,21\",\r\n    \"bet_time\":\"morning\",\r\n    \"totalAmount\":20000,\r\n    \"user_id\":8,\r\n    \"name\":\"twod\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-2d/confirm/store",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-2d",
+						"confirm",
+						"store"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D Two Calendar",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"selections\":\r\n    [\r\n        {\r\n            \"permanent_number\":\"02\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\" \r\n        },\r\n        {\r\n            \"permanent_number\":\"19\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"20\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"21\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        }\r\n    ],\r\n    \"digits\":\"02,19,20,21\",\r\n    \"bet_time\":\"morning\",\r\n    \"totalAmount\":20000,\r\n    \"user_id\":8,\r\n    \"name\":\"twod\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/two/calendar",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"two",
+						"calendar"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D History",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"selections\":\r\n    [\r\n        {\r\n            \"permanent_number\":\"02\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\" \r\n        },\r\n        {\r\n            \"permanent_number\":\"19\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"20\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        },\r\n        {\r\n            \"permanent_number\":\"21\",\r\n            \"amount\":5000,\r\n            \"is_tape\":\"inactive\",\r\n            \"is_hot\":\"inactive\"\r\n        }\r\n    ],\r\n    \"digits\":\"02,19,20,21\",\r\n    \"bet_time\":\"morning\",\r\n    \"totalAmount\":20000,\r\n    \"user_id\":8,\r\n    \"name\":\"twod\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-2d/history",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-2d",
+						"history"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D  Morning Session",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session\":\"morning\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-2d/play_morning_session",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-2d",
+						"play_morning_session"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D  Morning Session Manual",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session\":\"morning\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-2d/play_morning_manual",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-2d",
+						"play_morning_manual"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D  Evening Session",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session\":\"evening\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-2d/play_evening_session",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-2d",
+						"play_evening_session"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D  Evening Session Manual",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session\":\"evening\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-2d/play_evening_manual",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-2d",
+						"play_evening_manual"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D  Morning Copy Paste",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session\":\"morning\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/copy-paste",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"copy-paste"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D  Evening Copy Paste",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session\":\"evening\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/copy-paste/evening",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"copy-paste",
+						"evening"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D Morning Confirm",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session\":\"morning\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/morning/confirm",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"morning",
+						"confirm"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D Evening Confirm",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"session\":\"evening\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/evening/confirm",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"evening",
+						"confirm"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D Holiday",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-2d/holiday",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-2d",
+						"holiday"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play-2D Winners",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 33|bxM4YAWyiT6RXGjR340JJ9Rg3aBbWW8gBQaphXrp2d1ab184",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/user/play-2d/winners",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"play-2d",
+						"winners"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

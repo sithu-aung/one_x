@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "generatedAt": "2025-04-08T18:35:01.403Z",
+    "tasksAnalyzed": 13,
+    "thresholdScore": 5,
+    "projectName": "Your Project Name",
+    "usedResearch": true
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Setup Project Structure for 2D/3D Lottery Betting",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the task into subtasks for setting up navigation, creating placeholder screens, configuring project architecture, and implementing shared widgets.",
+      "reasoning": "This task involves a moderate level of complexity because it requires implementing foundational navigation and UI components, aligning with architectural guidelines, and setting up placeholders."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Implement Data Models for Lottery Betting",
+      "complexityScore": 8,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the task into extending existing models, creating betting formula models, implementing sales period logic, adding numeral support, and ensuring validation rules.",
+      "reasoning": "This task is complex due to the need to design multiple models, handle diverse numeral formats, and implement validation logic while ensuring compatibility with existing architecture."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Develop Number Input and Validation System",
+      "complexityScore": 7,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Split the task into implementing input fields, creating parsers, building validation logic, and integrating real-time error messages.",
+      "reasoning": "This task is moderately complex because it involves handling diverse input formats, ensuring real-time feedback, and supporting multiple numeral systems."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Implement Core 2D Formula Calculation Logic",
+      "complexityScore": 9,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break the task into implementing individual formulas, designing a factory pattern, testing formula outputs, optimizing performance, and documenting logic.",
+      "reasoning": "This task is highly complex due to the need for a robust calculation engine supporting multiple formula types and ensuring correctness and scalability."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Implement Core 3D Formula Calculation Logic",
+      "complexityScore": 9,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Segment the task into implementing individual 3D formulas, optimizing for large datasets, enabling pagination, testing outputs, and documenting edge cases.",
+      "reasoning": "The complexity is high because of the advanced permutations involved, performance optimization needs, and handling large result sets."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Integrate Wallet System with Betting Functionality",
+      "complexityScore": 8,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the task into integrating wallet APIs, implementing balance checks, creating transaction logic, handling errors, and testing the integration.",
+      "reasoning": "This task is complex because it involves secure API integration, real-time updates, and ensuring atomicity in financial transactions."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Implement Countdown Timer and Sales Period Management",
+      "complexityScore": 7,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the task into creating timers, implementing deadline logic, building connection handling, and testing updates.",
+      "reasoning": "The task involves medium complexity due to the need for real-time synchronization, deadline enforcement, and offline handling features."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Develop Betting Submission and API Integration",
+      "complexityScore": 9,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Split the task into integrating submission APIs, implementing validation, adding retry logic, creating confirmation screens, and testing edge cases.",
+      "reasoning": "This task is highly complex because it requires end-to-end handling of betting submissions, robust validation, and retry mechanisms for failed submissions."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Implement Copy & Paste Betting Functionality",
+      "complexityScore": 7,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Divide the task into implementing paste detection, creating parsers, validating content, and adding feedback mechanisms.",
+      "reasoning": "The complexity arises from the need to parse and validate multi-line inputs while ensuring usability and clear error reporting."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Implement Hot Numbers and Betting History Features",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break the task into integrating APIs, creating displays, implementing history filters, and adding caching mechanisms.",
+      "reasoning": "This task has a moderate complexity level due to the integration of APIs and the need to implement user-friendly data presentation."
+    },
+    {
+      "taskId": 11,
+      "taskTitle": "Implement Statistical Analysis and Visualization of Lottery Results",
+      "complexityScore": 9,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Segment the task into data processing, pattern recognition, visualization design, performance optimization, and documentation.",
+      "reasoning": "This task is highly complex because it involves advanced data analytics, visualization, and performance considerations for processing large datasets."
+    },
+    {
+      "taskId": 12,
+      "taskTitle": "Implement Favorites and Saved Bet Combinations Feature",
+      "complexityScore": 7,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Divide the task into creating save/load functionality, implementing organization features, ensuring data persistence, and designing the UI.",
+      "reasoning": "This task has moderate complexity due to the need for robust data management, user-friendly organization options, and cross-device synchronization."
+    },
+    {
+      "taskId": 13,
+      "taskTitle": "Implement Social Sharing Functionality for Winning Bets and Results",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the task into designing sharable content, integrating sharing APIs, adding privacy controls, and implementing analytics tracking.",
+      "reasoning": "The complexity is moderate because of the need to integrate multiple sharing APIs and ensure compliance with platform-specific content requirements."
+    }
+  ]
+}
