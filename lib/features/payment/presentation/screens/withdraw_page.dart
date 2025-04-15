@@ -1,10 +1,12 @@
+// DEPRECATED: This file is no longer needed as we're now using the WithdrawAmountDefineScreen
+// directly instead of this intermediate page. This file should be removed after
+// all references are updated to use the new screen.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/payment/application/payment_provider.dart';
-import 'package:one_x/features/payment/domain/models/payment_model.dart';
-import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/payment/presentation/screens/amount_define_screen.dart';
 
 class WithdrawPage extends ConsumerStatefulWidget {

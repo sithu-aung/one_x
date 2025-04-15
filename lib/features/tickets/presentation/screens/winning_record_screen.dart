@@ -1,9 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:one_x/core/constants/app_constants.dart';
+import 'package:one_x/core/services/storage_service.dart';
 import 'package:one_x/core/theme/app_theme.dart';
+import 'package:one_x/core/utils/api_service.dart';
 import 'package:intl/intl.dart';
 import 'package:one_x/features/bet/presentation/screens/bet_slip_screen.dart';
-import 'package:one_x/features/bet/presentation/screens/amount_entry_screen.dart';
+import 'package:one_x/features/tickets/data/repositories/ticket_repository.dart';
+import 'package:one_x/features/tickets/domain/models/winning_record_list_response.dart';
+import 'package:one_x/features/tickets/domain/models/three_d_live_result_response.dart';
+
+// Repository provider
+final ticketRepositoryProvider = Provider<TicketRepository>((ref) {
+  final apiService = ApiService(storageService: StorageService());
+  final storageService = StorageService();
+  return TicketRepository(
+    apiService: apiService,
+    storageService: storageService,
+  );
+});
+
+// Filter state providers
+final lotteryTypeProvider = StateProvider<String>((ref) => '2D');
+final dateRangeProvider = StateProvider<DateTimeRange>((ref) {
+  final today = DateTime.now();
+  return DateTimeRange(start: today, end: today);
+});
+
+// Winning records provider that depends on filter state
+final winningRecordProvider = FutureProvider<WinningRecordListResponse>((
+  ref,
+) async {
+  // Watch the filter state providers to rebuild only when they change
+  final type = ref.watch(lotteryTypeProvider);
+  final dateRange = ref.watch(dateRangeProvider);
+
+  final repository = ref.watch(ticketRepositoryProvider);
+  return repository.getWinningRecords(
+    type: type,
+    startDate: dateRange.start,
+    endDate: dateRange.end,
+  );
+});
+
+// 3D Live results provider
+final threeDLiveResultProvider = FutureProvider<ThreeDLiveResultResponse>((
+  ref,
+) async {
+  final repository = ref.watch(ticketRepositoryProvider);
+  return repository.getThreeDLiveResults();
+});
 
 class WinningRecordScreen extends ConsumerStatefulWidget {
   const WinningRecordScreen({super.key});
@@ -16,68 +62,6 @@ class WinningRecordScreen extends ConsumerStatefulWidget {
 class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  String _selectedLotteryType = '2D ထွက်ဂဏန်း';
-  DateTime _selectedDate = DateTime.now();
-
-  final List<Map<String, dynamic>> _pendingRecords = [
-    {
-      'number': '04',
-      'ticket_no': 'Tk_No - 00001',
-      'user_name': 'User Name',
-      'date': '23.09.2024-10:00AM',
-      'bet': '80/10',
-      'amount': '2,000 ks',
-      'winning_amount': '160,000 ks',
-    },
-    {
-      'number': '04',
-      'ticket_no': 'Tk_No - 00001',
-      'user_name': 'User Name',
-      'date': '23.09.2024-10:00AM',
-      'bet': '80/10',
-      'amount': '2,000 ks',
-      'winning_amount': '160,000 ks',
-    },
-    {
-      'number': '04',
-      'ticket_no': 'Tk_No - 00001',
-      'user_name': 'User Name',
-      'date': '23.09.2024-10:00AM',
-      'bet': '80/10',
-      'amount': '2,000 ks',
-      'winning_amount': '160,000 ks',
-    },
-    {
-      'number': '04',
-      'ticket_no': 'Tk_No - 00001',
-      'user_name': 'User Name',
-      'date': '23.09.2024-10:00AM',
-      'bet': '80/10',
-      'amount': '2,000 ks',
-      'winning_amount': '160,000 ks',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _completedRecords = [
-    {
-      'number': '04',
-      'ticket_no': 'Tk_No - 00001',
-      'user_name': 'User Name',
-      'date': '23.09.2024-10:00AM',
-      'bet': '80/10',
-      'amount': '2,000 ks',
-      'winning_amount': '160,000 ks',
-    },
-    {
-      'number': '04',
-      'ticket_no': 'Tk_No - 00001',
-      'user_name': 'User Name',
-      'date': '23.09.2024-10:00AM',
-      'bet': '80/10',
-      'amount': '2,000 ks',
-      'winning_amount': '160,000 ks',
-    },
-  ];
 
   @override
   void initState() {
@@ -91,8 +75,46 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
     super.dispose();
   }
 
+  void _onLotteryTypeChanged(String? newType) {
+    if (newType != null) {
+      ref.read(lotteryTypeProvider.notifier).state = newType;
+    }
+  }
+
+  void _onDateRangeChanged(DateTimeRange? newRange) {
+    if (newRange != null) {
+      ref.read(dateRangeProvider.notifier).state = newRange;
+    }
+  }
+
+  void _navigateToSlipDetail(WinningRecord record) {
+    if (record.lotteryId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => BetSlipScreen(
+                invoiceId: record.lotteryId,
+                fromWinningRecords: true,
+              ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invoice details not available'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Read these values without watching them to avoid unnecessary rebuilds
+    final selectedLotteryType = ref.read(lotteryTypeProvider);
+    final selectedDateRange = ref.read(dateRangeProvider);
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: Column(
@@ -106,19 +128,15 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
               labelColor: AppTheme.primaryColor,
               unselectedLabelColor: Colors.grey,
               tabs: const [Tab(text: 'ရရန်ရှိ'), Tab(text: 'ရရှိပြီး')],
-              onTap: (index) {
-                setState(() {});
-              },
             ),
           ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                // Pending Tab (ရရန်ရှိ)
+                // Pending Tab (ရရန်ရှိ) - always empty
                 _buildPendingTab(),
-
-                // Completed Tab (ရရှိပြီး)
+                // Completed Tab (ရရှိပြီး) - fetch from API
                 _buildCompletedTab(),
               ],
             ),
@@ -129,171 +147,161 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
   }
 
   Widget _buildPendingTab() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: _buildDropdownFilter(),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            itemCount: _pendingRecords.length,
-            itemBuilder: (context, index) {
-              return _buildRecordItem(_pendingRecords[index]);
-            },
-          ),
-        ),
-      ],
-    );
+    return const Center(child: Text('No pending records.'));
   }
 
   Widget _buildCompletedTab() {
+    // Read values to display them, but don't watch to avoid rebuilds
+    final selectedLotteryType = ref.read(lotteryTypeProvider);
+    final selectedDateRange = ref.read(dateRangeProvider);
+
+    // Only watch the async value to avoid unnecessary API calls
+    final winningRecordAsync = ref.watch(winningRecordProvider);
+
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Expanded(child: _buildDropdownFilter()),
-              const SizedBox(width: 12),
-              Expanded(child: _buildDatePicker()),
-            ],
-          ),
+          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
+          child: _buildFilterSection(selectedLotteryType, selectedDateRange),
         ),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            itemCount: _completedRecords.length,
-            itemBuilder: (context, index) {
-              return _buildRecordItem(_completedRecords[index]);
+          child: winningRecordAsync.when(
+            data: (response) {
+              final records = response.winningRecord ?? [];
+              if (records.isEmpty) {
+                return const Center(child: Text('No records found.'));
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 0,
+                ),
+                itemCount: records.length,
+                itemBuilder: (context, index) {
+                  return _buildRecordItem(records[index]);
+                },
+              );
             },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Error: $e')),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDropdownFilter() {
+  Widget _buildFilterSection(String selectedType, DateTimeRange dateRange) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Filter Records',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildDropdownFilter(selectedType)),
+              const SizedBox(width: 12),
+              Expanded(flex: 2, child: _buildDateRangePicker(dateRange)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdownFilter(String selectedType) {
     return Container(
       height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
       decoration: BoxDecoration(
         color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
-          value: _selectedLotteryType,
+          value: selectedType,
           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
           style: TextStyle(color: AppTheme.textColor),
           dropdownColor: AppTheme.cardColor,
           items:
-              ['2D ထွက်ဂဏန်း', '3D ထွက်ဂဏန်း'].map((String value) {
+              ['2D', '3D'].map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
                 );
               }).toList(),
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              setState(() {
-                _selectedLotteryType = newValue;
-              });
-            }
-          },
+          onChanged: _onLotteryTypeChanged,
         ),
       ),
     );
   }
 
-  Widget _buildDatePicker() {
-    return Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: InkWell(
-        onTap: () => _showDatePicker(),
+  Widget _buildDateRangePicker(DateTimeRange dateRange) {
+    final dateFormat = DateFormat('yyyy-MM-dd');
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showDateRangePicker(
+          context: context,
+          initialDateRange: dateRange,
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now(),
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: ColorScheme.light(primary: AppTheme.primaryColor),
+              ),
+              child: child!,
+            );
+          },
+        );
+        if (picked != null) {
+          _onDateRangeChanged(picked);
+        }
+      },
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Choose Date', style: TextStyle(color: AppTheme.textColor)),
-            Icon(Icons.calendar_month, color: AppTheme.primaryColor),
+            Expanded(
+              child: Text(
+                '${dateFormat.format(dateRange.start)} ~ ${dateFormat.format(dateRange.end)}',
+                style: TextStyle(color: AppTheme.textColor),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(Icons.date_range, color: Colors.grey),
           ],
         ),
       ),
     );
   }
 
-  void _showDatePicker() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2025),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: AppTheme.primaryColor,
-              onPrimary: Colors.white,
-              surface: AppTheme.cardColor,
-              onSurface: AppTheme.textColor,
-            ),
-            dialogTheme: DialogThemeData(
-              backgroundColor: AppTheme.backgroundColor,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
+  Widget _buildRecordItem(WinningRecord record) {
+    final formatter = NumberFormat('#,###');
 
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  Widget _buildRecordItem(Map<String, dynamic> record) {
-    return Card(
-      color: AppTheme.cardColor,
-      margin: const EdgeInsets.only(bottom: 16.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: InkWell(
-        onTap: () {
-          // Convert the record data to BetItem format
-          final List<BetItem> betItems = [
-            BetItem(
-              number: record['number'],
-              betType: record['bet'],
-              amount: record['amount'].replaceAll(' ks', ''),
-            ),
-          ];
-
-          // Extract the total amount from the amount
-          final int totalAmount = int.parse(
-            record['amount'].replaceAll(',', '').replaceAll(' ks', ''),
-          );
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => BetSlipScreen(
-                    betItems: betItems,
-                    totalAmount: totalAmount,
-                    userName: record['user_name'],
-                  ),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(8.0),
+    return InkWell(
+      onTap: () => _navigateToSlipDetail(record),
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        color: AppTheme.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -302,145 +310,75 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Number
                   Text(
-                    record['number'],
+                    '${record.type ?? ""} - ${record.winnerNumber ?? ""}',
                     style: const TextStyle(
-                      color: Colors.amber,
-                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4.0),
+                    ),
+                    child: Text(
+                      record.prize ?? "",
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const Text(
+                    'ထိုးငွေ: ',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  Text(
+                    '${formatter.format(int.tryParse(record.amount ?? '0') ?? 0)} Ks',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Text(
+                    'ဆုငွေ: ',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  Text(
+                    '${formatter.format(int.tryParse(record.prizeAmount ?? '0') ?? 0)} Ks',
+                    style: TextStyle(
+                      color: AppTheme.primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  // Date
-                  Text(
-                    record['date'],
-                    style: TextStyle(
-                      color: AppTheme.textSecondaryColor,
-                      fontSize: 12,
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 8),
-              // Ticket number and user name
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${record['ticket_no']} ',
-                    style: TextStyle(color: AppTheme.textColor, fontSize: 13),
-                  ),
-                  Text(
-                    record['user_name'],
+                    'Date: ${record.createdAt != null ? DateFormat('yyyy-MM-dd').format(DateTime.parse(record.createdAt!)) : ""}',
                     style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontSize: 13,
+                      color: AppTheme.textColor.withOpacity(0.7),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Bet and winning amounts - top row
-              Row(
-                children: [
-                  // Left side - Bet
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Text(
-                          'ဆုငွေ အဆ',
-                          style: TextStyle(
-                            color: AppTheme.textSecondaryColor,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          record['bet'],
-                          style: TextStyle(
-                            color: Colors.amber,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Right side - Result
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'ဆုအမျိုးအစား',
-                          style: TextStyle(
-                            color: AppTheme.textSecondaryColor,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'တည့်',
-                          style: TextStyle(
-                            color: Colors.amber,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Bet and winning amounts - bottom row
-              Row(
-                children: [
-                  // Left side - Amount
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Text(
-                          'ထိုးငွေ',
-                          style: TextStyle(
-                            color: AppTheme.textSecondaryColor,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          record['amount'],
-                          style: TextStyle(
-                            color: AppTheme.textColor,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Right side - Prize money
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'ဆုငွေ',
-                          style: TextStyle(
-                            color: AppTheme.textSecondaryColor,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          record['winning_amount'],
-                          style: TextStyle(
-                            color: AppTheme.textColor,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey,
                   ),
                 ],
               ),

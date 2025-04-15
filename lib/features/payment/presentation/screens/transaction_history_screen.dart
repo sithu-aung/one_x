@@ -334,7 +334,7 @@ class _TransactionHistoryScreenState
                 _buildFilterTab(TransactionFilter.all, 'ALL'),
                 _buildFilterTab(TransactionFilter.deposit, 'ငွေသွင်း'),
                 _buildFilterTab(TransactionFilter.withdraw, 'ငွေထုတ်'),
-                _buildFilterTab(TransactionFilter.other, 'ဆုငွေ'),
+                _buildFilterTab(TransactionFilter.other, 'အခြား'),
               ],
             ),
           ),
@@ -615,23 +615,28 @@ class _TransactionHistoryScreenState
                                               ? AppTheme.primaryColor
                                                   .withOpacity(0.1)
                                               : Colors.orange.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
+                                      shape: BoxShape.circle,
                                     ),
-                                    child:
-                                        isPlay2D || isPlay3D
-                                            ? Image.asset(
-                                              'assets/images/ticket.png',
-                                            )
-                                            : Icon(
-                                              isWithdraw
-                                                  ? Icons.north_east
-                                                  : Icons.south_west,
-                                              color:
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child:
+                                          isPlay2D || isPlay3D
+                                              ? Image.asset(
+                                                'assets/images/ticket.png',
+                                                fit: BoxFit.contain,
+                                              )
+                                              : Padding(
+                                                padding: const EdgeInsets.all(
+                                                  2,
+                                                ),
+                                                child: Image.asset(
                                                   isWithdraw
-                                                      ? AppTheme.primaryColor
-                                                      : Colors.orange,
-                                              size: 20,
-                                            ),
+                                                      ? 'assets/images/cash_out.png'
+                                                      : 'assets/images/cash_in.png',
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                    ),
                                   ),
                                   const SizedBox(width: 12),
 

@@ -21,6 +21,7 @@ class BetSlipScreen extends ConsumerStatefulWidget {
   final String? userName;
   final int? invoiceId;
   final Map<String, dynamic>? invoiceData;
+  final bool fromWinningRecords;
 
   const BetSlipScreen({
     super.key,
@@ -29,6 +30,7 @@ class BetSlipScreen extends ConsumerStatefulWidget {
     this.userName,
     this.invoiceId,
     this.invoiceData,
+    this.fromWinningRecords = false,
   });
 
   @override
@@ -650,16 +652,26 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
   }
 
   Widget _buildBottomButtons(BuildContext context) {
+    // Adjust padding for iOS to account for the home indicator
     final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    final bottomPadding = isIOS ? MediaQuery.of(context).padding.bottom : 0;
+    final EdgeInsets padding = EdgeInsets.only(
+      left: 16,
+      right: 16,
+      bottom: isIOS ? 24.0 : 16.0,
+      top: 16,
+    );
 
     return Container(
-      color: AppTheme.backgroundColor,
-      padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 10.0,
-        bottom: 10.0 + bottomPadding,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -669,34 +681,23 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
               child: Container(
                 height: 50,
                 decoration: BoxDecoration(
-                  color:
-                      _isSaving
-                          ? AppTheme.primaryColor.withOpacity(0.7)
-                          : AppTheme.primaryColor,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.primaryColor),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _isSaving
-                        ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                        : Icon(
-                          Icons.file_download_outlined,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                    Icon(
+                      _isSaving ? Icons.hourglass_empty : Icons.save_alt,
+                      color: AppTheme.primaryColor,
+                      size: 20,
+                    ),
                     SizedBox(width: 8),
                     Text(
-                      _isSaving ? 'သိမ်းနေသည်...' : 'သိမ်းထားရန်',
+                      _isSaving ? 'Saving...' : 'သိမ်းဆည်းရန်',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppTheme.primaryColor,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -725,10 +726,14 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.home, color: Colors.white, size: 20),
+                    Icon(
+                      widget.fromWinningRecords ? Icons.arrow_back : Icons.home,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     SizedBox(width: 8),
                     Text(
-                      'ပင်မစာမျက်နှာ',
+                      widget.fromWinningRecords ? 'နောက်သို့' : 'ပင်မစာမျက်နှာ',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,

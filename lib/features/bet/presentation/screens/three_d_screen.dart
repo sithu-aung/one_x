@@ -8,6 +8,8 @@ import 'package:one_x/core/utils/api_service.dart';
 import 'package:one_x/core/services/storage_service.dart';
 import 'package:one_x/features/bet/domain/models/winner_list_response.dart';
 import 'package:intl/intl.dart';
+import 'package:one_x/features/tickets/data/repositories/ticket_repository.dart';
+import 'package:one_x/features/tickets/domain/models/three_d_live_result_response.dart';
 
 class ThreeDScreen extends StatefulWidget {
   const ThreeDScreen({super.key});
@@ -25,6 +27,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
   // API data
   bool _isLoading = true;
   bool _isWinnersLoading = false;
+  bool _isLiveResultsLoading = false;
   Map<String, dynamic> _apiData = {};
   String _currentResult = '--';
   List<dynamic> _activeSessions = [];
@@ -32,13 +35,17 @@ class _ThreeDScreenState extends State<ThreeDScreen>
   // Winners data
   WinnerListResponse? _winnersData;
 
-  // Repository
+  // 3D Live Results data
+  ThreeDLiveResultResponse? _liveResultsData;
+
+  // Repositories
   late BetRepository _betRepository;
+  late TicketRepository _ticketRepository;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return; // Skip if still animating
 
@@ -55,6 +62,8 @@ class _ThreeDScreenState extends State<ThreeDScreen>
           // Reset loading states for the new tab to ensure fresh data fetch
           if (newIndex == 2) {
             _isWinnersLoading = false;
+          } else if (newIndex == 3) {
+            _isLiveResultsLoading = false;
           }
         });
 
@@ -63,20 +72,32 @@ class _ThreeDScreenState extends State<ThreeDScreen>
           print('Switching to Winners tab - triggering data fetch');
           // Slight delay to allow setState to complete before fetching
           Future.delayed(Duration(milliseconds: 50), () => _fetchWinnersData());
+        } else if (newIndex == 3) {
+          print('Switching to Live Results tab - triggering data fetch');
+          // Slight delay to allow setState to complete before fetching
+          Future.delayed(
+            Duration(milliseconds: 50),
+            () => _fetchLiveResultsData(),
+          );
         }
       }
     });
 
-    // Initialize repository directly
+    // Initialize repositories
     final storageService = StorageService();
     final apiService = ApiService(storageService: storageService);
     _betRepository = BetRepository(
       apiService: apiService,
       storageService: storageService,
     );
+    _ticketRepository = TicketRepository(
+      apiService: apiService,
+      storageService: storageService,
+    );
 
-    // Initialize winners data to avoid null issues
+    // Initialize data to avoid null issues
     _winnersData = WinnerListResponse(top3Lists: [], winners: []);
+    _liveResultsData = ThreeDLiveResultResponse(results: []);
 
     // Set selected time section based on current time
     _setDefaultTimeSection();
@@ -372,164 +393,79 @@ class _ThreeDScreenState extends State<ThreeDScreen>
     }
   }
 
-  Widget _buildTabBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            Container(
-              height: 36,
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(
-                color:
-                    _selectedTabIndex == 0
-                        ? AppTheme.primaryColor
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border:
-                    _selectedTabIndex == 0
-                        ? null
-                        : Border.all(color: AppTheme.primaryColor, width: 1),
-              ),
-              child: TextButton.icon(
-                icon: Image.asset(
-                  'assets/images/2D_list.png',
-                  width: 16,
-                  height: 16,
-                  color:
-                      _selectedTabIndex == 0
-                          ? Colors.white
-                          : AppTheme.backgroundColor == Colors.white
-                          ? AppTheme.primaryColor
-                          : AppTheme.textColor,
-                ),
-                label: Text(
-                  'ထီထိုးရန်',
-                  style: TextStyle(
-                    color:
-                        _selectedTabIndex == 0
-                            ? Colors.white
-                            : AppTheme.backgroundColor == Colors.white
-                            ? Colors.black
-                            : AppTheme.textColor,
-                    fontSize: 13,
-                    fontFamily: 'Pyidaungsu',
-                    letterSpacing: 0.3,
-                    height: 1.4,
-                    leadingDistribution: TextLeadingDistribution.even,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  maxLines: 1,
-                ),
-                onPressed: () {
-                  _tabController.animateTo(0);
-                },
-              ),
-            ),
-            SizedBox(width: 12),
-            Container(
-              height: 36,
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(
-                color:
-                    _selectedTabIndex == 1
-                        ? AppTheme.primaryColor
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border:
-                    _selectedTabIndex == 1
-                        ? null
-                        : Border.all(color: AppTheme.primaryColor, width: 1),
-              ),
-              child: TextButton.icon(
-                icon: Icon(
-                  Icons.card_giftcard,
-                  color:
-                      _selectedTabIndex == 1
-                          ? Colors.white
-                          : AppTheme.backgroundColor == Colors.white
-                          ? AppTheme.primaryColor
-                          : AppTheme.textColor,
-                  size: 16,
-                ),
-                label: Text(
-                  '3D ကံစမ်းမှတ်တမ်း',
-                  style: TextStyle(
-                    color:
-                        _selectedTabIndex == 1
-                            ? Colors.white
-                            : AppTheme.backgroundColor == Colors.white
-                            ? Colors.black
-                            : AppTheme.textColor,
-                    fontSize: 12,
-                    fontFamily: 'Pyidaungsu',
-                    letterSpacing: 0.3,
-                    height: 1.4,
-                    leadingDistribution: TextLeadingDistribution.even,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  maxLines: 1,
-                ),
-                onPressed: () {
-                  _tabController.animateTo(1);
-                },
-              ),
-            ),
-            SizedBox(width: 12),
-            Container(
-              height: 36,
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(
-                color:
-                    _selectedTabIndex == 2
-                        ? AppTheme.primaryColor
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border:
-                    _selectedTabIndex == 2
-                        ? null
-                        : Border.all(color: AppTheme.primaryColor, width: 1),
-              ),
-              child: TextButton.icon(
-                icon: Icon(
-                  Icons.star,
-                  color:
-                      _selectedTabIndex == 2
-                          ? Colors.white
-                          : AppTheme.backgroundColor == Colors.white
-                          ? AppTheme.primaryColor
-                          : AppTheme.textColor,
-                  size: 14,
-                ),
-                label: Text(
-                  'ကံထူးရှင်များ',
-                  style: TextStyle(
-                    color:
-                        _selectedTabIndex == 2
-                            ? Colors.white
-                            : AppTheme.backgroundColor == Colors.white
-                            ? Colors.black
-                            : AppTheme.textColor,
-                    fontSize: 12,
-                    fontFamily: 'Pyidaungsu',
-                    letterSpacing: 0.3,
-                    height: 1.4,
-                    leadingDistribution: TextLeadingDistribution.even,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  maxLines: 1,
-                ),
-                onPressed: () {
-                  _tabController.animateTo(2);
-                },
-              ),
-            ),
+  // Add fetch method for live results
+  Future<void> _fetchLiveResultsData() async {
+    if (_isLiveResultsLoading) return; // Prevent duplicate fetches
+
+    setState(() {
+      _isLiveResultsLoading = true;
+    });
+
+    try {
+      print('Fetching 3D live results data...');
+      final response = await _ticketRepository.getThreeDLiveResults();
+
+      // Update state with new data
+      setState(() {
+        _liveResultsData = response;
+        _isLiveResultsLoading = false;
+      });
+
+      print(
+        '3D live results fetched successfully with ${response.results?.length ?? 0} results',
+      );
+    } catch (e) {
+      print('Error fetching 3D live results: $e');
+      setState(() {
+        _isLiveResultsLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('3D Lottery'),
+        backgroundColor: AppTheme.appBarColor,
+        foregroundColor: AppTheme.textColor,
+        elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppTheme.primaryColor,
+          labelColor: AppTheme.primaryColor,
+          unselectedLabelColor: AppTheme.textSecondaryColor,
+          tabs: const [
+            Tab(text: 'Play Now'),
+            Tab(text: 'Results'),
+            Tab(text: 'Winners'),
+            Tab(text: 'Live Results'),
           ],
         ),
       ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildPlayTab(),
+          _buildResultsTab(),
+          _buildWinnersTab(),
+          _buildLiveResultsTab(),
+        ],
+      ),
     );
+  }
+
+  Widget _buildPlayTab() {
+    return _buildFirstTabContent();
+  }
+
+  Widget _buildResultsTab() {
+    return _buildSecondTabContent();
+  }
+
+  Widget _buildWinnersTab() {
+    return _buildThirdTabContent();
   }
 
   Widget _buildFirstTabContent() {
@@ -2011,29 +1947,202 @@ class _ThreeDScreenState extends State<ThreeDScreen>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppTheme.backgroundColor,
-        title: Text('3D', style: TextStyle(color: AppTheme.textColor)),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
-          onPressed: () => Navigator.pop(context),
+  Widget _buildLiveResultsTab() {
+    // If still loading, show progress indicator
+    if (_isLiveResultsLoading) {
+      return Center(
+        child: CircularProgressIndicator(color: AppTheme.primaryColor),
+      );
+    }
+
+    // Get live results from the data
+    final results = _liveResultsData?.results ?? [];
+
+    // If no results available, show empty state
+    if (results.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 60,
+              color: AppTheme.textSecondaryColor,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No live results available',
+              style: TextStyle(color: AppTheme.textColor, fontSize: 18),
+            ),
+          ],
         ),
-      ),
-      body: Column(
+      );
+    }
+
+    // Show latest number at the top
+    final latestNumber =
+        results.isNotEmpty ? results[0].number ?? '---' : '---';
+    final latestDate =
+        results.isNotEmpty
+            ? results[0].formattedDate ?? 'Unknown date'
+            : 'Unknown date';
+
+    return RefreshIndicator(
+      onRefresh: _fetchLiveResultsData,
+      color: AppTheme.primaryColor,
+      backgroundColor: AppTheme.cardColor,
+      child: Column(
         children: [
-          _buildTabBar(),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildFirstTabContent(),
-                _buildSecondTabContent(),
-                _buildThirdTabContent(),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withOpacity(0.8),
+                  AppTheme.primaryColor,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
               ],
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'Latest Drawing',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  latestNumber,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 56,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      color: Colors.white70,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      latestDate,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Text(
+                  'Previous Results',
+                  style: TextStyle(
+                    color: AppTheme.textColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${results.length} drawings',
+                  style: TextStyle(
+                    color: AppTheme.textSecondaryColor,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              itemCount: results.length,
+              itemBuilder: (context, index) {
+                final result = results[index];
+                return Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  color: AppTheme.cardColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Date',
+                              style: TextStyle(
+                                color: AppTheme.textSecondaryColor,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              result.formattedDate ?? result.date ?? 'Unknown',
+                              style: TextStyle(
+                                color: AppTheme.textColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppTheme.primaryColor.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            result.number ?? '---',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],

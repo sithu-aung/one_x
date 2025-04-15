@@ -21,7 +21,7 @@ import 'package:one_x/features/notification/presentation/screens/notification_sc
 import 'package:one_x/features/notification/presentation/providers/notification_provider.dart';
 import 'package:one_x/features/bet/presentation/screens/three_d_screen.dart';
 import 'package:one_x/features/payment/presentation/screens/top_up_page.dart';
-import 'package:one_x/features/payment/presentation/screens/withdraw_page.dart';
+import 'package:one_x/features/payment/presentation/screens/withdraw_amount_define_screen.dart';
 import 'package:one_x/features/payment/presentation/screens/change_currency_page.dart';
 import 'package:one_x/features/profile/presentation/screens/faq/faq_screen.dart';
 

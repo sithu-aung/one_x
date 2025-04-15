@@ -2,10 +2,7 @@ class BalanceModel {
   final double amount;
   final String currency;
 
-  BalanceModel({
-    required this.amount,
-    required this.currency,
-  });
+  BalanceModel({required this.amount, required this.currency});
 
   factory BalanceModel.fromJson(Map<String, dynamic> json) {
     return BalanceModel(
@@ -15,10 +12,7 @@ class BalanceModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'amount': amount,
-      'currency': currency,
-    };
+    return {'amount': amount, 'currency': currency};
   }
 }
 
@@ -64,6 +58,7 @@ class PaymentProviderModel {
   final String imagePath;
   final String imageLocation;
   final UserModel user;
+  final Billing? billing;
 
   PaymentProviderModel({
     required this.id,
@@ -75,6 +70,7 @@ class PaymentProviderModel {
     required this.imagePath,
     required this.imageLocation,
     required this.user,
+    this.billing,
   });
 
   factory PaymentProviderModel.fromJson(Map<String, dynamic> json) {
@@ -88,6 +84,8 @@ class PaymentProviderModel {
       imagePath: json['image_path'],
       imageLocation: json['image_location'],
       user: UserModel.fromJson(json['user']),
+      billing:
+          json['billing'] != null ? Billing.fromJson(json['billing']) : null,
     );
   }
 
@@ -102,6 +100,7 @@ class PaymentProviderModel {
       'image_path': imagePath,
       'image_location': imageLocation,
       'user': user.toJson(),
+      if (billing != null) 'billing': billing!.toJson(),
     };
   }
 }
@@ -209,15 +208,14 @@ class UserModel {
 class PaymentProvidersResponse {
   final List<PaymentProviderModel> providers;
 
-  PaymentProvidersResponse({
-    required this.providers,
-  });
+  PaymentProvidersResponse({required this.providers});
 
   factory PaymentProvidersResponse.fromJson(Map<String, dynamic> json) {
     return PaymentProvidersResponse(
-      providers: (json['providers'] as List)
-          .map((provider) => PaymentProviderModel.fromJson(provider))
-          .toList(),
+      providers:
+          (json['providers'] as List)
+              .map((provider) => PaymentProviderModel.fromJson(provider))
+              .toList(),
     );
   }
 
@@ -286,5 +284,49 @@ class TransactionModel {
       default:
         return TransactionType.payment;
     }
+  }
+}
+
+class Billing {
+  final int id;
+  final String billingKey;
+  final int userId;
+  final int providerId;
+  final String providerName;
+  final String providerPhone;
+  final String status;
+
+  Billing({
+    required this.id,
+    required this.billingKey,
+    required this.userId,
+    required this.providerId,
+    required this.providerName,
+    required this.providerPhone,
+    required this.status,
+  });
+
+  factory Billing.fromJson(Map<String, dynamic> json) {
+    return Billing(
+      id: json['id'],
+      billingKey: json['billingKey'],
+      userId: json['user_id'],
+      providerId: json['provider_id'],
+      providerName: json['provider_name'],
+      providerPhone: json['provider_phone'],
+      status: json['status'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'billingKey': billingKey,
+      'user_id': userId,
+      'provider_id': providerId,
+      'provider_name': providerName,
+      'provider_phone': providerPhone,
+      'status': status,
+    };
   }
 }

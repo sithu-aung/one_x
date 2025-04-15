@@ -189,6 +189,10 @@ class AppTheme {
   static Color get cardColor => currentTheme.cardColor;
   static Color get cardExtraColor => currentTheme.cardExtraColor;
 
+  // App bar color that adapts to the current theme
+  static Color get appBarColor =>
+      backgroundColor == Colors.white ? Colors.white : Color(0xFF1A1A1A);
+
   // Create Burmese text style
   static TextStyle burmeseTextStyle({
     double fontSize = 14.0,

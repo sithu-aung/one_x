@@ -7,7 +7,7 @@ import 'package:one_x/features/payment/presentation/screens/change_currency_page
 import 'package:one_x/features/payment/presentation/screens/payment_list_page.dart';
 import 'package:one_x/features/payment/presentation/screens/top_up_page.dart';
 import 'package:one_x/features/payment/presentation/screens/transaction_history_screen.dart';
-import 'package:one_x/features/payment/presentation/screens/withdraw_page.dart';
+import 'package:one_x/features/payment/presentation/screens/withdraw_amount_define_screen.dart';
 
 class PaymentPage extends ConsumerStatefulWidget {
   const PaymentPage({super.key});
@@ -277,7 +277,9 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const WithdrawPage(),
+                                    builder:
+                                        (context) =>
+                                            const WithdrawAmountDefineScreen(),
                                   ),
                                 ).then((_) {
                                   // Refresh data after returning from withdraw page
@@ -302,7 +304,8 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                                   context,
                                   MaterialPageRoute(
                                     builder:
-                                        (context) => const TransactionHistoryScreen(),
+                                        (context) =>
+                                            const TransactionHistoryScreen(),
                                   ),
                                 );
                               },

@@ -214,49 +214,52 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Transaction ID field (with login style)
-                    TextFormField(
-                      controller: _transactionIdController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      style: TextStyle(color: textColor, fontSize: 14),
-                      decoration: InputDecoration(
-                        labelText: 'Transaction ID (6 digits)***',
-                        labelStyle: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                        floatingLabelStyle: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                        filled: true,
-                        fillColor: AppTheme.darkGrayColor,
-                        counterText: '',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                            color: AppTheme.primaryColor,
-                            width: 1,
+                    // Transaction ID field (Only show for topup, not withdraw)
+                    if (widget.type == PaymentActionType.topUp)
+                      TextFormField(
+                        controller: _transactionIdController,
+                        keyboardType: TextInputType.number,
+                        maxLength: 6,
+                        style: TextStyle(color: textColor, fontSize: 14),
+                        decoration: InputDecoration(
+                          labelText: 'Transaction ID (6 digits)***',
+                          labelStyle: TextStyle(
+                            fontSize: 14,
+                            color: AppTheme.textSecondaryColor,
                           ),
+                          floatingLabelStyle: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                          filled: true,
+                          fillColor: AppTheme.darkGrayColor,
+                          counterText: '',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: AppTheme.primaryColor,
+                              width: 1,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          alignLabelWithHint: true,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                        floatingLabelBehavior: FloatingLabelBehavior.auto,
-                        alignLabelWithHint: true,
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                    if (widget.type == PaymentActionType.topUp)
+                      const SizedBox(height: 24),
+
                     // Amount field (with login style) - moved up in order
                     TextFormField(
                       controller: _amountController,
@@ -358,7 +361,7 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                       ),
                     ),
                     child: const Text(
-                      'ရုတ်သိမ်းမည်',
+                      'မလုပ်တော့ပါ',
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -369,7 +372,6 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                     onPressed: () {
                       // Validate inputs first before touching providers
                       final amount = _amountController.text.replaceAll(',', '');
-                      final transactionId = _transactionIdController.text;
 
                       if (amount.isEmpty ||
                           double.tryParse(amount) == null ||
@@ -391,15 +393,19 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                         return;
                       }
 
-                      if (transactionId.isEmpty || transactionId.length < 6) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Please enter a valid 6-digit transaction ID',
+                      // Only validate transaction ID for top-up
+                      if (widget.type == PaymentActionType.topUp) {
+                        final transactionId = _transactionIdController.text;
+                        if (transactionId.isEmpty || transactionId.length < 6) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Please enter a valid 6-digit transaction ID',
+                              ),
                             ),
-                          ),
-                        );
-                        return;
+                          );
+                          return;
+                        }
                       }
 
                       // Properly handle provider ID
@@ -434,14 +440,16 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                         return;
                       }
 
-                      // Show loading indication
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Processing ${widget.type == PaymentActionType.topUp ? "deposit" : "withdrawal"}...',
+                      // Show loading indication for topup only
+                      if (widget.type == PaymentActionType.topUp) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Successfully requested to review the deposit...',
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
 
                       // Use post-frame callback to avoid provider modification during build
                       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -456,7 +464,7 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                               providerId: providerId,
                               amount: amount,
                               accountNumber: _phoneController.text,
-                              transactionId: transactionId,
+                              transactionId: _transactionIdController.text,
                             );
 
                             if (mounted) {
@@ -478,22 +486,36 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                               Navigator.pop(context);
                             }
                           } else {
+                            // For withdraw, use an empty string for transactionId
                             response = await paymentNotifier
                                 .processStoreWithdraw(
                                   providerId: providerId,
                                   amount: amount,
                                   accountNumber: _phoneController.text,
-                                  transactionId: transactionId,
+                                  transactionId: "",
                                 );
 
                             if (mounted) {
-                              // Display the success message from the API
+                              // Always display the success message from the API for withdrawals
                               if (response['status'] == 'success' &&
                                   response['message'] != null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text(response['message'])),
                                 );
+                                Navigator.pop(context);
+                              } else if (response['status'] != 'success') {
+                                // Show error message if status is not success
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      response['message'] ??
+                                          'Withdrawal request failed',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
                               } else {
+                                // Fallback message if no message in response
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
@@ -501,8 +523,8 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                                     ),
                                   ),
                                 );
+                                Navigator.pop(context);
                               }
-                              Navigator.pop(context);
                             }
                           }
                         } catch (e) {
