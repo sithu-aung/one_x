@@ -76,7 +76,7 @@ class BetHistoryWidget extends ConsumerWidget {
       onRefresh: () => ref.read(betHistoryProvider.notifier).fetchHistory(),
       child: Column(
         children: [
-          buildTimeFilterSection(),
+          //buildTimeFilterSection(),
           Expanded(child: buildHistoryContent(context, historyState)),
         ],
       ),

@@ -31,38 +31,38 @@ class _PlayHistoryListWidgetState extends State<PlayHistoryListWidget> {
     return Column(
       children: [
         // Time filter tabs
-        Container(
-          height: 40,
-          margin: const EdgeInsets.symmetric(vertical: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildTimeFilterTab(
-                  label: 'All',
-                  isActive: _selectedTimeFilter == 'All',
-                ),
-                _buildTimeFilterTab(
-                  label: '09:00 AM',
-                  isActive: _selectedTimeFilter == '09:00 AM',
-                ),
-                _buildTimeFilterTab(
-                  label: '12:00 PM',
-                  isActive: _selectedTimeFilter == '12:00 PM',
-                ),
-                _buildTimeFilterTab(
-                  label: '2:00 PM',
-                  isActive: _selectedTimeFilter == '2:00 PM',
-                ),
-                _buildTimeFilterTab(
-                  label: '4:30 PM',
-                  isActive: _selectedTimeFilter == '4:30 PM',
-                ),
-              ],
-            ),
-          ),
-        ),
+        // Container(
+        //   height: 40,
+        //   margin: const EdgeInsets.symmetric(vertical: 12),
+        //   padding: const EdgeInsets.symmetric(horizontal: 16),
+        //   child: SingleChildScrollView(
+        //     scrollDirection: Axis.horizontal,
+        //     child: Row(
+        //       children: [
+        //         _buildTimeFilterTab(
+        //           label: 'All',
+        //           isActive: _selectedTimeFilter == 'All',
+        //         ),
+        //         _buildTimeFilterTab(
+        //           label: '09:00 AM',
+        //           isActive: _selectedTimeFilter == '09:00 AM',
+        //         ),
+        //         _buildTimeFilterTab(
+        //           label: '12:00 PM',
+        //           isActive: _selectedTimeFilter == '12:00 PM',
+        //         ),
+        //         _buildTimeFilterTab(
+        //           label: '2:00 PM',
+        //           isActive: _selectedTimeFilter == '2:00 PM',
+        //         ),
+        //         _buildTimeFilterTab(
+        //           label: '4:30 PM',
+        //           isActive: _selectedTimeFilter == '4:30 PM',
+        //         ),
+        //       ],
+        //     ),
+        //   ),
+        // ),
 
         // Filter dropdowns
         Padding(

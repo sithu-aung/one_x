@@ -53,7 +53,6 @@ class BetRepository {
     }
   }
 
-
   /// Get 2D session status
   Future<List<dynamic>> get2DSessionStatus() async {
     try {
@@ -584,6 +583,21 @@ class BetRepository {
     } catch (error) {
       print('Error fetching 3D holidays: $error');
       rethrow;
+    }
+  }
+
+  /// Get 3D play history records
+  Future<PlayHistoryListResponse> get3DPlayHistory() async {
+    try {
+      print('BetRepository: Fetching 3D play history');
+      final response = await _apiService.get(
+        AppConstants.threeDHistoryDailyEndpoint,
+      );
+      return PlayHistoryListResponse.fromJson(response);
+    } catch (error) {
+      print('Error in get3DPlayHistory: $error');
+      // Return empty model to avoid null errors
+      return PlayHistoryListResponse(histories: []);
     }
   }
 }

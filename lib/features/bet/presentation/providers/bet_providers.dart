@@ -136,3 +136,33 @@ final twoDHolidaysProvider = StateNotifierProvider<
   final repository = ref.watch(betRepositoryProvider);
   return TwoDHolidaysNotifier(repository: repository);
 });
+
+// 3D history notifier
+class ThreeDHistoryNotifier
+    extends StateNotifier<AsyncValue<PlayHistoryListResponse>> {
+  final BetRepository repository;
+
+  ThreeDHistoryNotifier({required this.repository})
+    : super(const AsyncValue.loading()) {
+    getPlayHistory();
+  }
+
+  Future<void> getPlayHistory() async {
+    try {
+      state = const AsyncValue.loading();
+      final response = await repository.get3DPlayHistory();
+      state = AsyncValue.data(response);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
+    }
+  }
+}
+
+// 3D history provider
+final threeDHistoryProvider = StateNotifierProvider<
+  ThreeDHistoryNotifier,
+  AsyncValue<PlayHistoryListResponse>
+>((ref) {
+  final repository = ref.watch(betRepositoryProvider);
+  return ThreeDHistoryNotifier(repository: repository);
+});

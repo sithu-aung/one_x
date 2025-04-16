@@ -15,6 +15,7 @@ import 'package:one_x/features/bet/presentation/widgets/bet_history_widget.dart'
 import 'package:one_x/features/bet/presentation/widgets/bet_winners_widget.dart';
 import 'package:one_x/features/bet/presentation/widgets/three_d_history_numbers_widget.dart';
 import 'package:one_x/features/bet/presentation/widgets/three_d_holidays_widget.dart';
+import 'package:one_x/features/bet/presentation/widgets/three_d_bet_history_widget.dart';
 
 class ThreeDScreen extends StatefulWidget {
   const ThreeDScreen({super.key});
@@ -470,7 +471,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
                 controller: _tabController,
                 children: [
                   buildFirstTabContent(),
-                  const BetHistoryWidget(),
+                  const ThreeDHistoryWidget(),
                   const BetWinnersWidget(),
                   const ThreeDHistoryNumbersWidget(),
                   const ThreeDHolidaysWidget(),
