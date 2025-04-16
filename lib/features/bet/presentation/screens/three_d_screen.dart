@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
+import 'package:one_x/features/bet/domain/models/three_d_live_result_response.dart';
 import 'package:one_x/features/bet/presentation/screens/number_selection_3d_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -9,7 +11,10 @@ import 'package:one_x/core/services/storage_service.dart';
 import 'package:one_x/features/bet/domain/models/winner_list_response.dart';
 import 'package:intl/intl.dart';
 import 'package:one_x/features/tickets/data/repositories/ticket_repository.dart';
-import 'package:one_x/features/tickets/domain/models/three_d_live_result_response.dart';
+import 'package:one_x/features/bet/presentation/widgets/bet_history_widget.dart';
+import 'package:one_x/features/bet/presentation/widgets/bet_winners_widget.dart';
+import 'package:one_x/features/bet/presentation/widgets/three_d_history_numbers_widget.dart';
+import 'package:one_x/features/bet/presentation/widgets/three_d_holidays_widget.dart';
 
 class ThreeDScreen extends StatefulWidget {
   const ThreeDScreen({super.key});
@@ -28,7 +33,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
   bool _isLoading = true;
   bool _isWinnersLoading = false;
   bool _isLiveResultsLoading = false;
-  Map<String, dynamic> _apiData = {};
+  final Map<String, dynamic> _apiData = {};
   String _currentResult = '--';
   List<dynamic> _activeSessions = [];
 
@@ -45,41 +50,28 @@ class _ThreeDScreenState extends State<ThreeDScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return; // Skip if still animating
 
-      // Get previous tab index to detect changes
-      final prevIndex = _selectedTabIndex;
-      final newIndex = _tabController.index;
+      setState(() {
+        _selectedTabIndex = _tabController.index;
+      });
 
-      if (prevIndex != newIndex) {
-        print('Tab changed from $prevIndex to $newIndex');
-
-        setState(() {
-          _selectedTabIndex = newIndex;
-
-          // Reset loading states for the new tab to ensure fresh data fetch
-          if (newIndex == 2) {
-            _isWinnersLoading = false;
-          } else if (newIndex == 3) {
-            _isLiveResultsLoading = false;
-          }
-        });
-
-        // Only fetch data when tab actually changes
-        if (newIndex == 2) {
-          print('Switching to Winners tab - triggering data fetch');
-          // Slight delay to allow setState to complete before fetching
-          Future.delayed(Duration(milliseconds: 50), () => _fetchWinnersData());
-        } else if (newIndex == 3) {
-          print('Switching to Live Results tab - triggering data fetch');
-          // Slight delay to allow setState to complete before fetching
-          Future.delayed(
-            Duration(milliseconds: 50),
-            () => _fetchLiveResultsData(),
-          );
-        }
+      // Load data when switching to the first tab
+      if (_tabController.index == 0) {
+        print("Tab switched to first tab (index 0), fetching 3D live data...");
+        fetch3DLiveData();
+      } else if (_tabController.index == 2) {
+        print(
+          "Tab switched to winners tab (index 2), fetching winners data...",
+        );
+        fetchWinnersData();
+      } else if (_tabController.index == 3) {
+        print(
+          "Tab switched to live results tab (index 3), fetching live results data...",
+        );
+        fetchLiveResultsData();
       }
     });
 
@@ -100,14 +92,15 @@ class _ThreeDScreenState extends State<ThreeDScreen>
     _liveResultsData = ThreeDLiveResultResponse(results: []);
 
     // Set selected time section based on current time
-    _setDefaultTimeSection();
+    setDefaultTimeSection();
 
     // Fetch data when the screen loads
-    _fetchData();
-    _fetchSessionStatus();
+    print("Screen initialized, fetching 3D live data...");
+    fetch3DLiveData();
+    fetchSessionStatus();
   }
 
-  void _setDefaultTimeSection() {
+  void setDefaultTimeSection() {
     // Get current time
     final now = DateTime.now();
     // If current time is before 12:00 PM, set to morning session (12:01 PM)
@@ -120,11 +113,10 @@ class _ThreeDScreenState extends State<ThreeDScreen>
     print('Default time section set to: $_selectedTimeSection');
   }
 
-  Future<void> _fetchSessionStatus() async {
+  Future<void> fetchSessionStatus() async {
     try {
-      // Call 2D session status API as specified in requirements
       final dynamic response = await _betRepository.getActive2DSessions();
-      print('API Response (2D session status): ${jsonEncode(response)}');
+      print('API Response: ${jsonEncode(response)}');
 
       // Extract sessions from the "session" key if it exists
       List<dynamic> sessions = [];
@@ -266,7 +258,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
         }
       });
     } catch (e) {
-      print('Error fetching 2D session status: $e');
+      print('Error fetching session status: $e');
       // Show a snackbar with the error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -275,7 +267,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
             duration: const Duration(seconds: 3),
             action: SnackBarAction(
               label: 'Retry',
-              onPressed: _fetchSessionStatus,
+              onPressed: fetchSessionStatus,
             ),
           ),
         );
@@ -283,53 +275,91 @@ class _ThreeDScreenState extends State<ThreeDScreen>
     }
   }
 
-  Future<void> _fetchData() async {
+  Future<void> fetch3DLiveData() async {
+    print("Starting fetch3DLiveData API call");
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final data = await _betRepository.get3DLiveResults();
+      print(
+        "Calling _ticketRepository.getThreeDLiveResults() to get 3D live data",
+      );
 
+      // Use ticketRepository which has the actual implementation for the API call
+      final response = await _ticketRepository.getThreeDLiveResults();
+
+      print("API response received: $response");
+      print("Response type: ${response.runtimeType}");
+
+      // Debug the response structure to understand what's in it
+      if (response.results != null && response.results!.isNotEmpty) {
+        print("Response contains ${response.results!.length} results");
+        print("First result details:");
+        var firstResult = response.results![0];
+        print("  -> toString: ${firstResult.toString()}");
+        print("  -> runtime type: ${firstResult.runtimeType}");
+
+        // Print all properties to see what we have
+        print("  Properties available:");
+        try {
+          print("  -> number: ${firstResult.result}");
+        } catch (e) {
+          print("  -> number not available");
+        }
+        try {
+          print("  -> date: ${firstResult.datetime}");
+        } catch (e) {
+          print("  -> date not available");
+        }
+        try {
+          print("  -> updatedAt: ${firstResult.datetime}");
+        } catch (e) {
+          print("  -> updatedAt not available");
+        }
+
+        // Check all results for non-null values
+        for (int i = 0; i < response.results!.length; i++) {
+          var result = response.results![i];
+          print("Result $i number: ${result.result}");
+          if (result.result != null && result.result!.isNotEmpty) {
+            // Found a good result to use
+            setState(() {
+              _currentResult = result.result!;
+              print("Found good number result: $_currentResult");
+            });
+            break;
+          }
+        }
+      } else {
+        print("No results available in the response");
+      }
+
+      // Store the response for later use
       setState(() {
-        _apiData = data;
+        _liveResultsData = response;
 
-        // Print response for debugging
-        print('API Response: ${jsonEncode(_apiData)}');
-
-        // Get the result from API response - improved extraction logic
-        if (_apiData.containsKey('result_430') &&
-            _apiData['result_430'] != null) {
-          // Most common case - use result_430 for 4:30 PM result
-          _currentResult = _apiData['result_430'].toString();
-        } else if (_apiData.containsKey('result_12') &&
-            _apiData['result_12'] != null) {
-          // Fallback to 12:01 PM result
-          _currentResult = _apiData['result_12'].toString();
-        } else if (_apiData.containsKey('current_result') &&
-            _apiData['current_result'] != null) {
-          // Fallback to current_result field
-          _currentResult = _apiData['current_result'].toString();
-        } else {
-          // If no result found, use placeholder
+        if (_currentResult.isEmpty) {
           _currentResult = '--';
+          print("Setting default value for current result");
         }
 
         _isLoading = false;
       });
     } catch (e) {
+      print("Error in fetch3DLiveData: $e");
       setState(() {
-        _isLoading = false;
         _currentResult = '--';
+        _isLoading = false;
       });
 
-      print('Error fetching 3D data: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to load 3D data: $e'),
+            content: Text('Failed to load 3D live results: $e'),
             duration: const Duration(seconds: 3),
-            action: SnackBarAction(label: 'Retry', onPressed: _fetchData),
+            action: SnackBarAction(label: 'Retry', onPressed: fetch3DLiveData),
           ),
         );
       }
@@ -337,7 +367,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
   }
 
   // Fetch winners data
-  Future<void> _fetchWinnersData() async {
+  Future<void> fetchWinnersData() async {
     print(
       'Starting to fetch 3D winners data, _isWinnersLoading=$_isWinnersLoading',
     );
@@ -383,10 +413,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Failed to load 3D winners data'),
-            action: SnackBarAction(
-              label: 'Retry',
-              onPressed: _fetchWinnersData,
-            ),
+            action: SnackBarAction(label: 'Retry', onPressed: fetchWinnersData),
           ),
         );
       }
@@ -394,7 +421,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
   }
 
   // Add fetch method for live results
-  Future<void> _fetchLiveResultsData() async {
+  Future<void> fetchLiveResultsData() async {
     if (_isLiveResultsLoading) return; // Prevent duplicate fetches
 
     setState(() {
@@ -424,404 +451,467 @@ class _ThreeDScreenState extends State<ThreeDScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: const Text('3D Lottery'),
-        backgroundColor: AppTheme.appBarColor,
-        foregroundColor: AppTheme.textColor,
-        elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppTheme.primaryColor,
-          labelColor: AppTheme.primaryColor,
-          unselectedLabelColor: AppTheme.textSecondaryColor,
-          tabs: const [
-            Tab(text: 'Play Now'),
-            Tab(text: 'Results'),
-            Tab(text: 'Winners'),
-            Tab(text: 'Live Results'),
+    return ProviderScope(
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundColor,
+        appBar: AppBar(
+          backgroundColor: AppTheme.backgroundColor,
+          title: Text('3D', style: TextStyle(color: AppTheme.textColor)),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Column(
+          children: [
+            buildTabBar(),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  buildFirstTabContent(),
+                  const BetHistoryWidget(),
+                  const BetWinnersWidget(),
+                  const ThreeDHistoryNumbersWidget(),
+                  const ThreeDHolidaysWidget(),
+                ],
+              ),
+            ),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildPlayTab(),
-          _buildResultsTab(),
-          _buildWinnersTab(),
-          _buildLiveResultsTab(),
-        ],
       ),
     );
   }
 
-  Widget _buildPlayTab() {
+  Widget buildTabBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            Container(
+              height: 36,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                color:
+                    _selectedTabIndex == 0
+                        ? AppTheme.primaryColor
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    _selectedTabIndex == 0
+                        ? null
+                        : Border.all(color: AppTheme.primaryColor, width: 1),
+              ),
+              child: TextButton.icon(
+                icon: Image.asset(
+                  'assets/images/2D_list.png',
+                  width: 16,
+                  height: 16,
+                  color:
+                      _selectedTabIndex == 0
+                          ? Colors.white
+                          : AppTheme.backgroundColor == Colors.white
+                          ? AppTheme.primaryColor
+                          : AppTheme.textColor,
+                ),
+                label: Text(
+                  'ထီထိုးရန်',
+                  style: TextStyle(
+                    color:
+                        _selectedTabIndex == 0
+                            ? Colors.white
+                            : AppTheme.backgroundColor == Colors.white
+                            ? Colors.black
+                            : AppTheme.textColor,
+                    fontSize: 13,
+                    fontFamily: 'Pyidaungsu',
+                    letterSpacing: 0.3,
+                    height: 1.4,
+                    leadingDistribution: TextLeadingDistribution.even,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  maxLines: 1,
+                ),
+                onPressed: () {
+                  _tabController.animateTo(0);
+                },
+              ),
+            ),
+            SizedBox(width: 12),
+            Container(
+              height: 36,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                color:
+                    _selectedTabIndex == 1
+                        ? AppTheme.primaryColor
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    _selectedTabIndex == 1
+                        ? null
+                        : Border.all(color: AppTheme.primaryColor, width: 1),
+              ),
+              child: TextButton.icon(
+                icon: Icon(
+                  Icons.card_giftcard,
+                  color:
+                      _selectedTabIndex == 1
+                          ? Colors.white
+                          : AppTheme.backgroundColor == Colors.white
+                          ? AppTheme.primaryColor
+                          : AppTheme.textColor,
+                  size: 16,
+                ),
+                label: Text(
+                  '3D ကံစမ်းမှတ်တမ်း',
+                  style: TextStyle(
+                    color:
+                        _selectedTabIndex == 1
+                            ? Colors.white
+                            : AppTheme.backgroundColor == Colors.white
+                            ? Colors.black
+                            : AppTheme.textColor,
+                    fontSize: 12,
+                    fontFamily: 'Pyidaungsu',
+                    letterSpacing: 0.3,
+                    height: 1.4,
+                    leadingDistribution: TextLeadingDistribution.even,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  maxLines: 1,
+                ),
+                onPressed: () {
+                  _tabController.animateTo(1);
+                },
+              ),
+            ),
+            SizedBox(width: 12),
+            Container(
+              height: 36,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                color:
+                    _selectedTabIndex == 2
+                        ? AppTheme.primaryColor
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    _selectedTabIndex == 2
+                        ? null
+                        : Border.all(color: AppTheme.primaryColor, width: 1),
+              ),
+              child: TextButton.icon(
+                icon: Icon(
+                  Icons.star,
+                  color:
+                      _selectedTabIndex == 2
+                          ? Colors.white
+                          : AppTheme.backgroundColor == Colors.white
+                          ? AppTheme.primaryColor
+                          : AppTheme.textColor,
+                  size: 14,
+                ),
+                label: Text(
+                  'ကံထူးရှင်များ',
+                  style: TextStyle(
+                    color:
+                        _selectedTabIndex == 2
+                            ? Colors.white
+                            : AppTheme.backgroundColor == Colors.white
+                            ? Colors.black
+                            : AppTheme.textColor,
+                    fontSize: 12,
+                    fontFamily: 'Pyidaungsu',
+                    letterSpacing: 0.3,
+                    height: 1.4,
+                    leadingDistribution: TextLeadingDistribution.even,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  maxLines: 1,
+                ),
+                onPressed: () {
+                  _tabController.animateTo(2);
+                },
+              ),
+            ),
+            SizedBox(width: 12),
+            Container(
+              height: 36,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                color:
+                    _selectedTabIndex == 3
+                        ? AppTheme.primaryColor
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    _selectedTabIndex == 3
+                        ? null
+                        : Border.all(color: AppTheme.primaryColor, width: 1),
+              ),
+              child: TextButton.icon(
+                icon: Icon(
+                  Icons.format_list_numbered,
+                  color:
+                      _selectedTabIndex == 3
+                          ? Colors.white
+                          : AppTheme.backgroundColor == Colors.white
+                          ? AppTheme.primaryColor
+                          : AppTheme.textColor,
+                  size: 14,
+                ),
+                label: Text(
+                  '3D ပေါက်ဂဏန်းများ',
+                  style: TextStyle(
+                    color:
+                        _selectedTabIndex == 3
+                            ? Colors.white
+                            : AppTheme.backgroundColor == Colors.white
+                            ? Colors.black
+                            : AppTheme.textColor,
+                    fontSize: 12,
+                    fontFamily: 'Pyidaungsu',
+                    letterSpacing: 0.3,
+                    height: 1.4,
+                    leadingDistribution: TextLeadingDistribution.even,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  maxLines: 1,
+                ),
+                onPressed: () {
+                  _tabController.animateTo(3);
+                },
+              ),
+            ),
+            SizedBox(width: 12),
+            Container(
+              height: 36,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                color:
+                    _selectedTabIndex == 4
+                        ? AppTheme.primaryColor
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    _selectedTabIndex == 4
+                        ? null
+                        : Border.all(color: AppTheme.primaryColor, width: 1),
+              ),
+              child: TextButton.icon(
+                icon: Icon(
+                  Icons.calendar_today,
+                  color:
+                      _selectedTabIndex == 4
+                          ? Colors.white
+                          : AppTheme.backgroundColor == Colors.white
+                          ? AppTheme.primaryColor
+                          : AppTheme.textColor,
+                  size: 14,
+                ),
+                label: Text(
+                  '3D Holidays',
+                  style: TextStyle(
+                    color:
+                        _selectedTabIndex == 4
+                            ? Colors.white
+                            : AppTheme.backgroundColor == Colors.white
+                            ? Colors.black
+                            : AppTheme.textColor,
+                    fontSize: 12,
+                    fontFamily: 'Pyidaungsu',
+                    letterSpacing: 0.3,
+                    height: 1.4,
+                    leadingDistribution: TextLeadingDistribution.even,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  maxLines: 1,
+                ),
+                onPressed: () {
+                  _tabController.animateTo(4);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildFirstTabContent() {
     return _buildFirstTabContent();
-  }
-
-  Widget _buildResultsTab() {
-    return _buildSecondTabContent();
-  }
-
-  Widget _buildWinnersTab() {
-    return _buildThirdTabContent();
   }
 
   Widget _buildFirstTabContent() {
     return RefreshIndicator(
       onRefresh: () async {
-        await Future.wait([_fetchData(), _fetchSessionStatus()]);
+        await Future.wait([fetch3DLiveData(), fetchSessionStatus()]);
       },
-      child: Column(
-        children: [
-          _buildResultsSection(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Divider(
-              color: AppTheme.textColor.withOpacity(0.1),
-              height: 1,
-              thickness: 0.5,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  _buildTimeResultCard('12:01 PM', '12'),
-                  _buildTimeResultCard('04:30 PM', '430'),
-                ],
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            _buildResultsSection(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Divider(
+                color: AppTheme.textColor.withOpacity(0.1),
+                height: 1,
+                thickness: 0.5,
               ),
             ),
-          ),
-          _buildBottomBar(),
-        ],
+            const SizedBox(height: 16),
+            // Display live results if available
+            if (_liveResultsData?.results != null &&
+                _liveResultsData!.results!.length > 1)
+              _buildLiveResultsList(),
+            const SizedBox(height: 16),
+            _buildBottomBar(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildResultsSection() {
-    // Calculate dynamic sizes based on screen width
-    final screenWidth = MediaQuery.of(context).size.width;
-    final centerBlockWidth = screenWidth * 0.5;
-    final sideBlockWidth = (screenWidth - centerBlockWidth) / 2;
+    // Get updatedAt from the first result if available
+    String updatedAt = '';
+    if (_liveResultsData?.results != null &&
+        _liveResultsData!.results!.isNotEmpty) {
+      updatedAt =
+          _liveResultsData!.results![0].datetime ??
+          DateTime.now().toString().substring(0, 16);
+    } else {
+      updatedAt = DateTime.now().toString().substring(0, 16);
+    }
 
-    // Determine if we're in a white/light theme
-    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
+    // Show the current result that was found
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        _isLoading
+            ? CircularProgressIndicator(color: AppTheme.primaryColor)
+            : Text(
+              _currentResult,
+              style: TextStyle(
+                fontSize: 72,
+                fontWeight: FontWeight.w900,
+                color:
+                    AppTheme.backgroundColor == Colors.white
+                        ? const Color(0xFFFFD700)
+                        : AppTheme.primaryColor,
+              ),
+            ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 16),
+            const SizedBox(width: 4),
+            Text(
+              _isLoading ? 'Loading...' : 'Updated at: $updatedAt',
+              style: TextStyle(color: AppTheme.textColor, fontSize: 14),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 16),
+  Widget _buildLiveResultsList() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Time section selection buttons
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTimeSection = '12:01 PM';
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color:
-                            _selectedTimeSection == '12:01 PM'
-                                ? AppTheme.primaryColor
-                                : (isLightTheme
-                                    ? Colors.grey.shade200
-                                    : const Color(0xFF1E1E1E)),
-                        borderRadius: const BorderRadius.horizontal(
-                          left: Radius.circular(8),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '12:01 PM',
-                          style: TextStyle(
-                            color:
-                                _selectedTimeSection == '12:01 PM'
-                                    ? Colors.white
-                                    : AppTheme.textColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTimeSection = '04:30 PM';
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color:
-                            _selectedTimeSection == '04:30 PM'
-                                ? AppTheme.primaryColor
-                                : (isLightTheme
-                                    ? Colors.grey.shade200
-                                    : const Color(0xFF1E1E1E)),
-                        borderRadius: const BorderRadius.horizontal(
-                          right: Radius.circular(8),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '04:30 PM',
-                          style: TextStyle(
-                            color:
-                                _selectedTimeSection == '04:30 PM'
-                                    ? Colors.white
-                                    : AppTheme.textColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            padding: const EdgeInsets.only(left: 8, bottom: 12),
+            child: Text(
+              'Recent Results',
+              style: TextStyle(
+                color: AppTheme.textColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-
-          // Hero section with 3D Result
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              // Background image/graphic
-              Container(
-                width: double.infinity,
-                height: 200,
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppTheme.backgroundColor == Colors.white
-                          ? const Color(0xFFF8F9FA)
-                          : const Color(0xFF2A2A2A),
-                      AppTheme.backgroundColor == Colors.white
-                          ? const Color(0xFFF1F3F5)
-                          : const Color(0xFF232323),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow:
-                      isLightTheme
-                          ? [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ]
-                          : null,
-                ),
-                child: Stack(
-                  children: [
-                    // Left decorative element
-                    Positioned(
-                      top: 20,
-                      left: 20,
-                      child: Container(
-                        width: sideBlockWidth,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              AppTheme.primaryColor.withOpacity(0.7),
-                              AppTheme.primaryColor.withOpacity(0.5),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              offset: const Offset(0, 3),
-                              blurRadius: 5,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Right decorative element
-                    Positioned(
-                      top: 60,
-                      right: 20,
-                      child: Container(
-                        width: sideBlockWidth,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              AppTheme.primaryColor.withOpacity(0.7),
-                              AppTheme.primaryColor.withOpacity(0.5),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              offset: const Offset(0, 3),
-                              blurRadius: 5,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Bottom decorative element (center)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Container(
-                          width: centerBlockWidth,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                AppTheme.primaryColor,
-                                AppTheme.primaryColor.withOpacity(0.8),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.35),
-                                offset: const Offset(0, 6),
-                                blurRadius: 10,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Left bottom decorative element
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      width: sideBlockWidth,
-                      height: 50,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              AppTheme.primaryColor.withOpacity(0.9),
-                              AppTheme.primaryColor.withOpacity(0.7),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              offset: const Offset(0, 4),
-                              blurRadius: 6,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Right bottom decorative element
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      width: sideBlockWidth,
-                      height: 50,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              AppTheme.primaryColor.withOpacity(0.9),
-                              AppTheme.primaryColor.withOpacity(0.7),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              offset: const Offset(0, 4),
-                              blurRadius: 6,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Main content - 3D Result
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'LIVE 3D RESULT',
-                            style: TextStyle(
-                              color: AppTheme.textColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _selectedTimeSection,
-                            style: TextStyle(
-                              color: AppTheme.textSecondaryColor,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          _isLoading
-                              ? const CircularProgressIndicator()
-                              : Text(
-                                _currentResult == '--'
-                                    ? 'COMING SOON'
-                                    : _currentResult,
-                                style: TextStyle(
-                                  color:
-                                      AppTheme.backgroundColor == Colors.white
-                                          ? const Color(0xFFFFD700)
-                                          : AppTheme.primaryColor,
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2,
-                                ),
-                              ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount:
+                _liveResultsData!.results!.length > 1
+                    ? _liveResultsData!.results!.length - 1
+                    : 0, // Skip the first item as it's already shown at the top
+            itemBuilder: (context, index) {
+              // Add 1 to index to skip the first result
+              final result = _liveResultsData!.results![index + 1];
+              return _buildLiveResultItem(result);
+            },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLiveResultItem(Results result) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 12),
+      color: AppTheme.cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Date',
+                    style: TextStyle(
+                      color: AppTheme.textSecondaryColor,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    result.datetime ?? 'Unknown',
+                    style: TextStyle(
+                      color: AppTheme.textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                result.result ?? '---',
+                style: TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1061,15 +1151,18 @@ class _ThreeDScreenState extends State<ThreeDScreen>
                           });
                           Navigator.pop(context);
 
-                          // Navigate to number selection screen
+                          // Get the session_name from the selected session
+                          String sessionName =
+                              selectedSessionObj['session_name'] ?? '';
+
+                          // Navigate to number selection screen with session_name
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder:
                                   (context) => NumberSelection3DScreen(
-                                    sessionName: dialogSelectedSection,
+                                    sessionName: sessionName,
                                     sessionData: selectedSessionObj,
-                                    type: '3D',
                                   ),
                             ),
                           );
@@ -1100,1053 +1193,9 @@ class _ThreeDScreenState extends State<ThreeDScreen>
     );
   }
 
-  Widget _buildSecondTabContent() {
-    return _selectedTabIndex == 1
-        ? _buildHistoryTab()
-        : const SizedBox.shrink();
-  }
-
-  Widget _buildThirdTabContent() {
-    // Determine if we're in a white/light theme
-    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
-
-    // Calculate screen width for positioning
-    final screenWidth = MediaQuery.of(context).size.width;
-    final podiumWidth = screenWidth - 32; // Account for horizontal padding
-    final centerBlockWidth = podiumWidth * 0.3; // Width for center block
-    final sideBlockWidth =
-        podiumWidth * 0.33; // Wider blocks for 2nd and 3rd place
-
-    return _isWinnersLoading
-        ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text(
-                'Loading winners...',
-                style: TextStyle(color: AppTheme.textColor),
-              ),
-            ],
-          ),
-        )
-        : RefreshIndicator(
-          onRefresh: _fetchWinnersData,
-          child: Column(
-            children: [
-              // Winners podium with 3 slots
-              SizedBox(
-                height: 280,
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      // Podium base - 3D style with overlapping blocks
-                      Positioned(
-                        bottom: 0,
-                        left: 10,
-                        right: 10,
-                        height: 80, // Explicitly set height for the base stack
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            // 2nd place podium - left
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              width: sideBlockWidth,
-                              height: 50,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Color(
-                                        0xFF6c52c3,
-                                      ), // Purple gradient start
-                                      Color(0xFF5545a3), // Purple gradient end
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.3),
-                                      offset: const Offset(0, 5),
-                                      blurRadius: 8,
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '2',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.bold,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black38,
-                                          offset: Offset(0, 2),
-                                          blurRadius: 4,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            // 1st place podium - middle (taller)
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Center(
-                                child: Container(
-                                  width: centerBlockWidth,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Color(
-                                          0xFF6c52c3,
-                                        ), // Purple gradient start
-                                        Color(
-                                          0xFF5545a3,
-                                        ), // Purple gradient end
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.35),
-                                        offset: const Offset(0, 6),
-                                        blurRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '1',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 42,
-                                        fontWeight: FontWeight.bold,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black38,
-                                            offset: Offset(0, 2),
-                                            blurRadius: 4,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            // 3rd place podium - right
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              width: sideBlockWidth,
-                              height: 50,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Color(
-                                        0xFF6c52c3,
-                                      ), // Purple gradient start
-                                      Color(0xFF5545a3), // Purple gradient end
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.3),
-                                      offset: const Offset(0, 4),
-                                      blurRadius: 6,
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '3',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.bold,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black38,
-                                          offset: Offset(0, 2),
-                                          blurRadius: 4,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // 2nd place winner - left
-                      Positioned(
-                        bottom: 50,
-                        left: 15,
-                        width: 105,
-                        height: 130,
-                        child: _buildWinnerCard(
-                          rank: "2",
-                          iconAsset: 'assets/images/ic_second.png',
-                          isLightTheme: isLightTheme,
-                          winner:
-                              _winnersData?.top3Lists != null &&
-                                      _winnersData!.top3Lists!.length > 1
-                                  ? _winnersData!.top3Lists![1]
-                                  : null,
-                        ),
-                      ),
-
-                      // 1st place winner - middle
-                      Positioned(
-                        bottom: 80,
-                        left: 0,
-                        right: 0,
-                        height: 130,
-                        child: Center(
-                          child: SizedBox(
-                            width: 105,
-                            height: 130,
-                            child: _buildWinnerCard(
-                              rank: "1",
-                              iconAsset: 'assets/images/ic_first.png',
-                              isLightTheme: isLightTheme,
-                              winner:
-                                  _winnersData?.top3Lists != null &&
-                                          _winnersData!.top3Lists!.isNotEmpty
-                                      ? _winnersData!.top3Lists![0]
-                                      : null,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // 3rd place winner - right
-                      Positioned(
-                        bottom: 50,
-                        right: 15,
-                        width: 105,
-                        height: 130,
-                        child: _buildWinnerCard(
-                          rank: "3",
-                          iconAsset: 'assets/images/ic_third.png',
-                          isLightTheme: isLightTheme,
-                          winner:
-                              _winnersData?.top3Lists != null &&
-                                      _winnersData!.top3Lists!.length > 2
-                                  ? _winnersData!.top3Lists![2]
-                                  : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // List of winners
-              Expanded(
-                child:
-                    _winnersData?.winners == null ||
-                            _winnersData!.winners!.isEmpty
-                        ? Center(
-                          child: Text(
-                            'No winners data available',
-                            style: TextStyle(color: AppTheme.textColor),
-                          ),
-                        )
-                        : ListView.builder(
-                          padding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            bottom: 16,
-                          ),
-                          itemCount: _winnersData!.winners!.length,
-                          itemBuilder: (context, index) {
-                            final winner = _winnersData!.winners![index];
-                            return _buildWinnerListItem(
-                              isLightTheme: isLightTheme,
-                              winner: winner,
-                            );
-                          },
-                        ),
-              ),
-            ],
-          ),
-        );
-  }
-
-  // Helper method to build each winner card on the podium
-  Widget _buildWinnerCard({
-    required String rank,
-    required String iconAsset,
-    required bool isLightTheme,
-    UserListItem? winner,
-  }) {
-    return Container(
-      width: 105,
-      height: 130,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF6c52c3), // Purple gradient start
-            Color(0xFF5545a3), // Purple gradient end
-          ],
-        ),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            offset: const Offset(0, 3),
-            blurRadius: 6,
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Star with rank number at top
-          Positioned(
-            top: 8,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    rank,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Rainbow bar under the star
-          Positioned(
-            top: 34,
-            left: 30,
-            right: 30,
-            child: Container(
-              height: 4,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.red,
-                    Colors.orange,
-                    Colors.yellow,
-                    Colors.green,
-                    Colors.blue,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-
-          // Content
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 42, 10, 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Name
-                Text(
-                  winner?.user?.username ?? 'Su Myat',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                // Description - using winner number and prize amount
-                Text(
-                  winner?.winnerNumber != null && winner?.prizeAmount != null
-                      ? 'Won ${winner!.prizeAmount} Ks on ${winner.winnerNumber}'
-                      : 'Lorem ipsum dolor sit amet',
-                  style: TextStyle(color: Colors.white, fontSize: 10),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWinnerListItem({
-    required bool isLightTheme,
-    required UserListItem winner,
-  }) {
-    // Format date if available
-    String formattedDate = '';
-    if (winner.createdAt != null) {
-      try {
-        final datetime = DateTime.parse(winner.createdAt!);
-        formattedDate = DateFormat('E dd-MM-yyyy | hh:mm a').format(datetime);
-      } catch (e) {
-        formattedDate = winner.createdAt ?? '';
-      }
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isLightTheme ? Colors.white : const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(8),
-        border:
-            isLightTheme
-                ? Border.all(color: Colors.grey.shade300, width: 1)
-                : null,
-        boxShadow:
-            isLightTheme
-                ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 3,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-                : null,
-      ),
-      child: Stack(
-        children: [
-          // Main content
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-            child: Row(
-              children: [
-                // Avatar/Profile Image
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.grey.shade600,
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.grey.shade300,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 10),
-
-                // User details
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // User name
-                      Text(
-                        winner.user?.username ?? 'Nyein Nyein',
-                        style: TextStyle(
-                          color:
-                              isLightTheme ? AppTheme.textColor : Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      // User ID
-                      Text(
-                        winner.user?.hiddenPhone ?? '09xxxxxxx123',
-                        style: TextStyle(
-                          color:
-                              isLightTheme
-                                  ? Colors.grey.shade600
-                                  : Colors.grey.shade400,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      // Date
-                      Text(
-                        formattedDate,
-                        style: TextStyle(
-                          color:
-                              isLightTheme
-                                  ? Colors.grey.shade600
-                                  : Colors.grey.shade400,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Winner number
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        isLightTheme
-                            ? AppTheme.primaryColor.withOpacity(0.1)
-                            : AppTheme.primaryColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        winner.winnerNumber ?? '123',
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Number',
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                // Prize amount
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${winner.prizeAmount ?? '1,000'} Ks',
-                        style: TextStyle(
-                          color:
-                              isLightTheme
-                                  ? AppTheme.accentColor
-                                  : Colors.greenAccent,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Prize',
-                        style: TextStyle(
-                          color:
-                              isLightTheme
-                                  ? Colors.grey.shade600
-                                  : Colors.grey.shade400,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHistoryTab() {
-    // Determine if we're in a white/light theme
-    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // History table would go here
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.cardColor,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow:
-                        isLightTheme
-                            ? [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ]
-                            : null,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Recent Results',
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildHistoryItem('Today', '12:01 PM', '348'),
-                      _buildHistoryItem('Yesterday', '04:30 PM', '259'),
-                      _buildHistoryItem('Yesterday', '12:01 PM', '687'),
-                      _buildHistoryItem('05/31/2023', '04:30 PM', '321'),
-                      _buildHistoryItem('05/31/2023', '12:01 PM', '475'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHistoryItem(String date, String time, String result) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: AppTheme.textSecondaryColor.withOpacity(0.2),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Text(
-              date,
-              style: TextStyle(color: AppTheme.textColor, fontSize: 14),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              time,
-              style: TextStyle(color: AppTheme.textColor, fontSize: 14),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              result,
-              style: TextStyle(
-                color: AppTheme.primaryColor,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimeResultCard(String time, String timeKey) {
-    // Convert timeKey to the corresponding keys in the API response
-    String setKey = 'set_$timeKey';
-    String valKey = 'val_$timeKey';
-    String resultKey = 'result_$timeKey';
-
-    // Extract values from API data
-    String set = _isLoading ? '--' : (_apiData[setKey] ?? '--');
-    String value = _isLoading ? '--' : (_apiData[valKey] ?? '--');
-    String threed =
-        _isLoading ? '--' : (_apiData[resultKey]?.toString() ?? '--');
-
-    // Determine if we're in a white/light theme
-    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow:
-            isLightTheme
-                ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                    spreadRadius: 0,
-                  ),
-                ]
-                : null,
-        border:
-            isLightTheme
-                ? Border.all(color: Colors.grey.shade300, width: 1)
-                : null,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.only(top: 12, bottom: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.cardColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(8),
-              ),
-            ),
-            child: Center(
-              child: Text(
-                time,
-                style: TextStyle(
-                  color: AppTheme.textColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 42),
-            child: Divider(
-              color: AppTheme.textSecondaryColor.withOpacity(0.4),
-              thickness: 0.7,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Modern column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'SET',
-                        style: TextStyle(
-                          color: AppTheme.textSecondaryColor,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        set,
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Internet column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'VALUE',
-                        style: TextStyle(
-                          color: AppTheme.textSecondaryColor,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        value,
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // 3D column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        '3D',
-                        style: TextStyle(
-                          color: AppTheme.textSecondaryColor,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        threed,
-                        style: TextStyle(
-                          color:
-                              threed == '--'
-                                  ? Colors.blue
-                                  : AppTheme.backgroundColor == Colors.white
-                                  ? const Color(
-                                    0xFFFFD700,
-                                  ).withRed(255).withGreen(215).withBlue(0)
-                                  : AppTheme.primaryColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 4),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLiveResultsTab() {
-    // If still loading, show progress indicator
-    if (_isLiveResultsLoading) {
-      return Center(
-        child: CircularProgressIndicator(color: AppTheme.primaryColor),
-      );
-    }
-
-    // Get live results from the data
-    final results = _liveResultsData?.results ?? [];
-
-    // If no results available, show empty state
-    if (results.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off,
-              size: 60,
-              color: AppTheme.textSecondaryColor,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No live results available',
-              style: TextStyle(color: AppTheme.textColor, fontSize: 18),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Show latest number at the top
-    final latestNumber =
-        results.isNotEmpty ? results[0].number ?? '---' : '---';
-    final latestDate =
-        results.isNotEmpty
-            ? results[0].formattedDate ?? 'Unknown date'
-            : 'Unknown date';
-
-    return RefreshIndicator(
-      onRefresh: _fetchLiveResultsData,
-      color: AppTheme.primaryColor,
-      backgroundColor: AppTheme.cardColor,
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppTheme.primaryColor.withOpacity(0.8),
-                  AppTheme.primaryColor,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                const Text(
-                  'Latest Drawing',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  latestNumber,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 56,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.calendar_today,
-                      color: Colors.white70,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      latestDate,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              children: [
-                Text(
-                  'Previous Results',
-                  style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '${results.length} drawings',
-                  style: TextStyle(
-                    color: AppTheme.textSecondaryColor,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: results.length,
-              itemBuilder: (context, index) {
-                final result = results[index];
-                return Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  color: AppTheme.cardColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Date',
-                              style: TextStyle(
-                                color: AppTheme.textSecondaryColor,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              result.formattedDate ?? result.date ?? 'Unknown',
-                              style: TextStyle(
-                                color: AppTheme.textColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppTheme.primaryColor.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            result.number ?? '---',
-                            style: TextStyle(
-                              color: AppTheme.primaryColor,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 }

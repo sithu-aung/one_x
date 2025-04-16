@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:one_x/core/constants/app_constants.dart';
 import 'package:one_x/core/services/storage_service.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/core/utils/api_service.dart';
@@ -8,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:one_x/features/bet/presentation/screens/bet_slip_screen.dart';
 import 'package:one_x/features/tickets/data/repositories/ticket_repository.dart';
 import 'package:one_x/features/tickets/domain/models/winning_record_list_response.dart';
-import 'package:one_x/features/tickets/domain/models/three_d_live_result_response.dart';
 
 // Repository provider
 final ticketRepositoryProvider = Provider<TicketRepository>((ref) {
@@ -41,14 +39,6 @@ final winningRecordProvider = FutureProvider<WinningRecordListResponse>((
     startDate: dateRange.start,
     endDate: dateRange.end,
   );
-});
-
-// 3D Live results provider
-final threeDLiveResultProvider = FutureProvider<ThreeDLiveResultResponse>((
-  ref,
-) async {
-  final repository = ref.watch(ticketRepositoryProvider);
-  return repository.getThreeDLiveResults();
 });
 
 class WinningRecordScreen extends ConsumerStatefulWidget {
@@ -111,10 +101,6 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Read these values without watching them to avoid unnecessary rebuilds
-    final selectedLotteryType = ref.read(lotteryTypeProvider);
-    final selectedDateRange = ref.read(dateRangeProvider);
-
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: Column(

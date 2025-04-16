@@ -53,37 +53,6 @@ class BetRepository {
     }
   }
 
-  /// Get 3D live results (initially using the same API as 2D)
-  Future<Map<String, dynamic>> get3DLiveResults() async {
-    try {
-      // Currently using same endpoint as 2D for initial implementation
-      final response = await http.get(
-        Uri.parse('https://luke.2dboss.com/api/luke/twod-result-live'),
-      );
-
-      print("3D Live Result - ${response.toString()}");
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is Map<String, dynamic> &&
-            data['result'] == 1 &&
-            data['message'] == 'success' &&
-            data['data'] is Map<String, dynamic>) {
-          return data['data'];
-        } else {
-          throw Exception(
-            'API returned unexpected format or unsuccessful result',
-          );
-        }
-      } else {
-        throw Exception('Failed to load data: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error fetching 3D live results: $e');
-      // Return empty map instead of throwing to prevent app crashes
-      return {};
-    }
-  }
 
   /// Get 2D session status
   Future<List<dynamic>> get2DSessionStatus() async {
@@ -582,6 +551,39 @@ class BetRepository {
 
       // Return empty model to avoid null errors
       return HolidayListResponse(holidays: []);
+    }
+  }
+
+  // Get 2D history
+  Future<dynamic> get2DHistory() async {
+    try {
+      final response = await _apiService.get('/api/2d-result');
+      return response;
+    } catch (error) {
+      print('Error fetching 2D history: $error');
+      rethrow;
+    }
+  }
+
+  // Get 3D history
+  Future<dynamic> get3DHistory() async {
+    try {
+      final response = await _apiService.get('/api/3d-result');
+      return response;
+    } catch (error) {
+      print('Error fetching 3D history: $error');
+      rethrow;
+    }
+  }
+
+  // Get 3D holidays
+  Future<dynamic> get3DHolidays() async {
+    try {
+      final response = await _apiService.get('/api/3d-holidays');
+      return response;
+    } catch (error) {
+      print('Error fetching 3D holidays: $error');
+      rethrow;
     }
   }
 }

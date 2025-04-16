@@ -1,8 +1,8 @@
 import 'package:one_x/core/constants/app_constants.dart';
 import 'package:one_x/core/services/storage_service.dart';
 import 'package:one_x/core/utils/api_service.dart';
+import 'package:one_x/features/bet/domain/models/three_d_live_result_response.dart';
 import 'package:one_x/features/tickets/domain/models/winning_record_list_response.dart';
-import 'package:one_x/features/tickets/domain/models/three_d_live_result_response.dart';
 
 class TicketRepository {
   final ApiService _apiService;
