@@ -880,7 +880,32 @@ class _ThreeDScreenState extends State<ThreeDScreen>
       ),
       child: ElevatedButton(
         onPressed: () {
-          _showTimeSectionDialog();
+          // Navigate directly to number selection screen using the first active session
+          if (_activeSessions.isEmpty) {
+            // Show error if no active sessions
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('No active sessions available'),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+            return;
+          }
+
+          // Get the first active session
+          final selectedSession = _activeSessions[0];
+
+          // Navigate to number selection screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => NumberSelection3DScreen(
+                    sessionName: selectedSession['session_name'] ?? '',
+                    sessionData: selectedSession,
+                  ),
+            ),
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryColor,
@@ -899,261 +924,6 @@ class _ThreeDScreenState extends State<ThreeDScreen>
           ),
         ),
       ),
-    );
-  }
-
-  void _showTimeSectionDialog() {
-    // Find the matching session object for the current selection
-    Map<String, dynamic> initialSessionObj = {};
-    if (_activeSessions.isNotEmpty) {
-      for (var session in _activeSessions) {
-        if (session['session'] == _selectedTimeSection) {
-          initialSessionObj = session;
-          break;
-        }
-      }
-    }
-
-    // Variables to track selection state inside the dialog
-    String dialogSelectedSection = _selectedTimeSection;
-    Map<String, dynamic> selectedSessionObj = initialSessionObj;
-
-    // Flag to check if a valid selection exists
-    bool isValidSelectionMade = initialSessionObj.isNotEmpty;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: AppTheme.cardColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              titlePadding: const EdgeInsets.only(
-                left: 20,
-                right: 12,
-                top: 20,
-                bottom: 0,
-              ),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'ထိုးမည် Section ရွေးပါ',
-                    style: TextStyle(
-                      color: AppTheme.textColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.textColor.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.close,
-                        color: AppTheme.textColor,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              contentPadding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              content: Container(
-                width: double.maxFinite,
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.5,
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 10),
-                      _activeSessions.isEmpty
-                          ? Center(
-                            child: Text(
-                              'No active sessions available',
-                              style: TextStyle(color: AppTheme.textColor),
-                            ),
-                          )
-                          : Column(
-                            children:
-                                _activeSessions.map<Widget>((session) {
-                                  String timeSection = session['session'] ?? '';
-                                  bool isSelected =
-                                      timeSection == dialogSelectedSection;
-
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        dialogSelectedSection = timeSection;
-                                        selectedSessionObj = session;
-                                        isValidSelectionMade = true;
-                                        print(
-                                          'Selected: $timeSection, session_name: ${session['session_name']}',
-                                        );
-                                      });
-                                    },
-                                    child: Container(
-                                      width: double.infinity,
-                                      margin: const EdgeInsets.symmetric(
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            isSelected
-                                                ? AppTheme.primaryColor
-                                                    .withOpacity(0.15)
-                                                : AppTheme.cardExtraColor,
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                          color:
-                                              isSelected
-                                                  ? AppTheme.primaryColor
-                                                  : Colors.transparent,
-                                          width: 2.0,
-                                        ),
-                                        boxShadow:
-                                            isSelected
-                                                ? [
-                                                  BoxShadow(
-                                                    color: AppTheme.primaryColor
-                                                        .withOpacity(0.3),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ]
-                                                : null,
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                        horizontal: 16,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              '$timeSection Section',
-                                              style: TextStyle(
-                                                color:
-                                                    isSelected
-                                                        ? AppTheme.primaryColor
-                                                        : AppTheme.textColor,
-                                                fontSize: 14,
-                                                fontWeight:
-                                                    isSelected
-                                                        ? FontWeight.bold
-                                                        : FontWeight.normal,
-                                              ),
-                                            ),
-                                          ),
-                                          if (isSelected)
-                                            Icon(
-                                              Icons.check_circle,
-                                              color: AppTheme.primaryColor,
-                                              size: 20,
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                          ),
-                      // Add padding at the bottom of the list
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ),
-              actionsPadding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-              actions: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.cardExtraColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Text(
-                          'CANCEL',
-                          style: TextStyle(
-                            color: AppTheme.textColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed:
-                            isValidSelectionMade
-                                ? () {
-                                  // Update the actual selected time in the parent state
-                                  this.setState(() {
-                                    _selectedTimeSection =
-                                        dialogSelectedSection;
-                                  });
-                                  Navigator.pop(context);
-
-                                  // Get the session_name from the selected session
-                                  String sessionName =
-                                      selectedSessionObj['session_name'] ?? '';
-
-                                  // Navigate to number selection screen with session_name
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => NumberSelection3DScreen(
-                                            sessionName: sessionName,
-                                            sessionData: selectedSessionObj,
-                                          ),
-                                    ),
-                                  );
-                                }
-                                : null, // Disable the button if no valid selection
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          disabledBackgroundColor: AppTheme.primaryColor
-                              .withOpacity(0.5),
-                          disabledForegroundColor: Colors.white.withOpacity(
-                            0.7,
-                          ),
-                        ),
-                        child: Text(
-                          'OK',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        );
-      },
     );
   }
 

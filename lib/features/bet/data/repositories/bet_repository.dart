@@ -227,23 +227,28 @@ class BetRepository {
     }
   }
 
-  /// Get morning session 3D play data
-  Future<PlaySessionResponse> getMorningSession3DPlayData(
+  /// Get 3D play data from the unified endpoint
+  Future<PlaySessionResponse> get3DPlayData(
     Map<String, dynamic> sessionData,
   ) async {
     try {
-      // Use POST method with the morning session endpoint and pass the session data
-      final response = await _apiService.post(
-        AppConstants.threeDPlayMorningSessionEndpoint,
-        body: sessionData,
-      );
+      // Use the unified endpoint for all 3D session data with GET method
+      final response = await _apiService.get(AppConstants.threeDPlay3DEndpoint);
       return PlaySessionResponse.fromJson(response);
     } catch (error) {
-      print('Error in getMorningSession3DPlayData: $error');
+      print('Error in get3DPlayData: $error');
       // Errors are already handled by ApiService with SnackBar
       // Return empty model to avoid null errors
       return PlaySessionResponse(twoDigits: [], totalBetAmount: "0");
     }
+  }
+
+  /// Get morning session 3D play data
+  Future<PlaySessionResponse> getMorningSession3DPlayData(
+    Map<String, dynamic> sessionData,
+  ) async {
+    // Now simply use the unified endpoint with the existing session data
+    return get3DPlayData(sessionData);
   }
 
   /// Get evening session play data
@@ -268,19 +273,8 @@ class BetRepository {
   Future<PlaySessionResponse> getEveningSession3DPlayData(
     Map<String, dynamic> sessionData,
   ) async {
-    try {
-      // Use POST method with the evening session endpoint and pass the session data
-      final response = await _apiService.post(
-        AppConstants.threeDPlayEveningSessionEndpoint,
-        body: sessionData,
-      );
-      return PlaySessionResponse.fromJson(response);
-    } catch (error) {
-      print('Error in getEveningSession3DPlayData: $error');
-      // Errors are already handled by ApiService with SnackBar
-      // Return empty model to avoid null errors
-      return PlaySessionResponse(twoDigits: [], totalBetAmount: "0");
-    }
+    // Now simply use the unified endpoint with the existing session data
+    return get3DPlayData(sessionData);
   }
 
   /// Get manual play data based on session

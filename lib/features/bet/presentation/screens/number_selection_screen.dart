@@ -561,19 +561,19 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildColorLegendItem(
-                  text: 'ထိုးငွေ 0% - 50% သုံးစွဲထားသည်',
+                  text: 'ထိုးငွေ 0% - 50% ',
                   progressColor: Colors.green,
                   progressValue: 0.5,
                   isLightTheme: isLightTheme,
                 ),
                 _buildColorLegendItem(
-                  text: 'ထိုးငွေ 51% - 90% သုံးစွဲထားသည်',
+                  text: 'ထိုးငွေ 51% - 90% ',
                   progressColor: Colors.orange,
                   progressValue: 0.9,
                   isLightTheme: isLightTheme,
                 ),
                 _buildColorLegendItem(
-                  text: 'ထိုးငွေ 91% - 99% သုံးစွဲထားသည်',
+                  text: 'ထိုးငွေ 91% - 99% ',
                   progressColor: Colors.red,
                   progressValue: 0.99,
                   isLightTheme: isLightTheme,

@@ -7,6 +7,7 @@ import 'package:one_x/features/bet/data/repositories/bet_repository.dart';
 import 'package:one_x/core/utils/api_service.dart';
 import 'package:one_x/core/services/storage_service.dart';
 import 'package:one_x/features/bet/domain/models/play_session.dart';
+import 'package:one_x/features/bet/presentation/screens/type_three_d_screen.dart';
 import 'dart:convert';
 import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/home/data/models/home_model.dart';
@@ -75,20 +76,9 @@ class _NumberSelection3DScreenState
       final repository = ref.read(betRepositoryProvider);
       PlaySessionResponse data;
 
-      // Use appropriate repository methods based on session name
-      if (widget.sessionData['session_name'] == 'morning') {
-        // Pass the entire session data for morning session API call
-        data = await repository.getMorningSession3DPlayData(widget.sessionData);
-        print('Fetched morning 3D session data');
-      } else if (widget.sessionData['session_name'] == 'evening') {
-        // Pass the entire session data for evening session API call
-        data = await repository.getEveningSession3DPlayData(widget.sessionData);
-        print('Fetched evening 3D session data');
-      } else {
-        // Default fallback uses manual play data
-        data = await repository.getManual3DPlayData(widget.sessionName);
-        print('Fetched manual 3D play data for: ${widget.sessionName}');
-      }
+      // Call the API with GET method without session data parameter
+      data = await repository.get3DPlayData({});
+      print('Fetched 3D data from unified endpoint');
 
       setState(() {
         // Store data in a map format for backward compatibility
@@ -98,10 +88,24 @@ class _NumberSelection3DScreenState
           'playTime': data.playTime?.toJson() ?? {},
         };
 
-        // Process three digits data
-        if (data.twoDigits != null && data.twoDigits!.isNotEmpty) {
+        // Process three digits data - prioritize threeDigits over twoDigits if available
+        List<TwoDigits> digitsToProcess = [];
+
+        if (data.threeDigits != null && data.threeDigits!.isNotEmpty) {
+          digitsToProcess = data.threeDigits!;
+          print(
+            'Using threeDigits from response with ${digitsToProcess.length} items',
+          );
+        } else if (data.twoDigits != null && data.twoDigits!.isNotEmpty) {
+          digitsToProcess = data.twoDigits!;
+          print(
+            'Using twoDigits from response with ${digitsToProcess.length} items',
+          );
+        }
+
+        if (digitsToProcess.isNotEmpty) {
           final Map<String, dynamic> digitsMap = {};
-          for (var digit in data.twoDigits!) {
+          for (var digit in digitsToProcess) {
             if (digit.permanentNumber != null) {
               // Ensure percentage is an integer - convert if necessary
               int percentage = 0;
@@ -124,7 +128,7 @@ class _NumberSelection3DScreenState
 
           // Create user remaining amounts format for compatibility
           final Map<String, dynamic> userAmounts = {};
-          for (var digit in data.twoDigits!) {
+          for (var digit in digitsToProcess) {
             if (digit.permanentNumber != null) {
               // Ensure percentage is an integer - convert if necessary
               int percentage = 0;
@@ -196,6 +200,8 @@ class _NumberSelection3DScreenState
       // Handle different types of percentage values
       if (rawPercentage is int) {
         apiPercentage = rawPercentage;
+      } else if (rawPercentage is double) {
+        apiPercentage = rawPercentage.round().toInt();
       } else if (rawPercentage is String) {
         apiPercentage = int.tryParse(rawPercentage) ?? 0;
       } else if (rawPercentage != null) {
@@ -204,8 +210,6 @@ class _NumberSelection3DScreenState
 
       final uiPercentage = 100 - apiPercentage; // Reverse for UI display
 
-      final isTape = digitData['is_tape'] == 'active';
-      final isHot = digitData['is_hot'] == 'active';
       final status = digitData['status'];
 
       // Determine if number is unavailable
@@ -215,20 +219,18 @@ class _NumberSelection3DScreenState
 
       // Set progress color based on UI percentage (used percentage)
       Color progressColor;
-      if (uiPercentage <= 75) {
+      if (uiPercentage <= 50) {
         progressColor = Colors.green;
-      } else if (uiPercentage < 100) {
+      } else if (uiPercentage <= 90) {
         progressColor = Colors.orange;
       } else {
         progressColor = Colors.red;
       }
 
-      // Store in indicators map
+      // Store in indicators map (without tape or hot flags since 3D doesn't have these)
       numberIndicators[digitKey] = {
         'color': progressColor,
         'progress': uiPercentage / 100, // Convert to 0-1 scale
-        'is_tape': isTape,
-        'is_hot': isHot,
       };
     });
 
@@ -472,12 +474,269 @@ class _NumberSelection3DScreenState
               fontFamily: 'Pyidaungsu',
             ),
           ),
-          Text(
-            '${selectedNumbers.length} ရွေးချယ်ပြီး',
-            style: TextStyle(
-              color: AppTheme.primaryColor,
-              fontSize: 14,
-              fontFamily: 'Pyidaungsu',
+          Row(
+            children: [
+              // Add color legend button
+              GestureDetector(
+                onTap: () => _showColorLegendDialog(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withOpacity(0.5),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: AppTheme.primaryColor,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'အညွှန်း',
+                        style: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '${selectedNumbers.length} ရွေးချယ်ပြီး',
+                style: TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontSize: 14,
+                  fontFamily: 'Pyidaungsu',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showColorLegendDialog() {
+    // Determine if we're in a white/light theme
+    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
+    final Color dialogBgColor =
+        isLightTheme ? Colors.white : AppTheme.cardColor;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: dialogBgColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.info_outline, color: AppTheme.textColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Color ရှင်းလင်းချက်',
+                      style: TextStyle(
+                        color: AppTheme.textColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.close, color: AppTheme.textColor),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildColorLegendItem(
+                  text: 'ထိုးငွေ 0% - 50% ',
+                  progressColor: Colors.green,
+                  progressValue: 0.5,
+                  isLightTheme: isLightTheme,
+                ),
+                _buildColorLegendItem(
+                  text: 'ထိုးငွေ 51% - 90% ',
+                  progressColor: Colors.orange,
+                  progressValue: 0.9,
+                  isLightTheme: isLightTheme,
+                ),
+                _buildColorLegendItem(
+                  text: 'ထိုးငွေ 91% - 100% ',
+                  progressColor: Colors.red,
+                  progressValue: 0.99,
+                  isLightTheme: isLightTheme,
+                ),
+                _buildColorLegendItem(
+                  text: 'ထိုးငွေ 100% (ဂဏန်းထိုး၍မရပါ)',
+                  isUnavailable: true,
+                  progressColor: Colors.grey,
+                  progressValue: 1.0,
+                  isLightTheme: isLightTheme,
+                ),
+                _buildColorLegendItem(
+                  text: 'ရွေးချယ်ထားသည်',
+                  isLightTheme: isLightTheme,
+                  backgroundColor: AppTheme.primaryColor,
+                  textColor: Colors.white,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'OK',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildColorLegendItem({
+    Color? progressColor,
+    double progressValue = 0,
+    required String text,
+    bool isUnavailable = false,
+    required bool isLightTheme,
+    Color? backgroundColor,
+    Color? textColor,
+  }) {
+    // Number box background color based on theme
+    final Color bgColor =
+        backgroundColor ??
+        (isLightTheme
+            ? Colors.white
+            : isUnavailable
+            ? Colors.grey.withOpacity(0.3)
+            : AppTheme.cardColor);
+
+    // Text color should provide good contrast with the background
+    final Color txtColor =
+        textColor ??
+        (isLightTheme
+            ? isUnavailable
+                ? Colors.grey.shade700
+                : AppTheme.textColor
+            : AppTheme.textColor);
+
+    // Border color based on theme
+    Color borderColor =
+        isLightTheme
+            ? Colors.grey.shade400
+            : Colors.grey.shade800.withOpacity(0.5);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          // Number box preview (styled like actual number buttons)
+          Container(
+            width: 45,
+            height: 45,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: borderColor, width: 1),
+              boxShadow:
+                  isLightTheme
+                      ? [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 1,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
+                      : null,
+            ),
+            child: Stack(
+              children: [
+                // Center content (number)
+                Center(
+                  child: Text(
+                    '123',
+                    style: TextStyle(
+                      color: txtColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                // Progress indicator at bottom
+                if (progressColor != null || isUnavailable)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 6,
+                        right: 6,
+                        bottom: 4,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(6),
+                          bottomRight: Radius.circular(6),
+                        ),
+                        child: LinearProgressIndicator(
+                          value: isUnavailable ? 1.0 : progressValue,
+                          minHeight: 4,
+                          backgroundColor: Colors.transparent,
+                          color: isUnavailable ? Colors.grey : progressColor,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Description text
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: AppTheme.textColor, fontSize: 14),
             ),
           ),
         ],
@@ -551,9 +810,6 @@ class _NumberSelection3DScreenState
   }) {
     // Determine status colors
     final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
-    final bool isHot = indicatorData != null && indicatorData['is_hot'] == true;
-    final bool isTape =
-        indicatorData != null && indicatorData['is_tape'] == true;
     final double progressValue =
         indicatorData != null ? (indicatorData['progress'] ?? 0.0) : 0.0;
     final Color progressColor =
@@ -630,36 +886,6 @@ class _NumberSelection3DScreenState
                 ),
               ),
             ),
-
-            // Hot indicator (red dot top right)
-            if (isHot && !isSelected)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-
-            // Tape indicator (yellow dot top right, positioned to left of hot if both exist)
-            if (isTape && !isSelected)
-              Positioned(
-                top: 4,
-                right: isHot ? 16 : 4,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: Colors.yellow,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
 
             // Progress indicator at bottom - always show for all states except selected
             if (!isSelected)
@@ -1061,170 +1287,15 @@ class _NumberSelection3DScreenState
   }
 
   void _showManualInputDialog() {
-    final textController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: AppTheme.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '3D ၐဏန်းရိုက်ထိုးရန်',
-                    style: TextStyle(
-                      color: AppTheme.textColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Pyidaungsu',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  TextFormField(
-                    controller: textController,
-                    style: TextStyle(color: AppTheme.textColor),
-                    decoration: InputDecoration(
-                      hintText: '3D နံပါတ် (ဥပမာ: 123)',
-                      hintStyle: TextStyle(
-                        color: AppTheme.textSecondaryColor,
-                        fontSize: 13,
-                        fontFamily: 'Pyidaungsu',
-                      ),
-                      filled: true,
-                      fillColor:
-                          isLightTheme
-                              ? Colors.grey.shade100
-                              : Colors.grey.shade800.withOpacity(0.5),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color:
-                              isLightTheme
-                                  ? Colors.grey.shade300
-                                  : Colors.grey.shade700,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color:
-                              isLightTheme
-                                  ? Colors.grey.shade300
-                                  : Colors.grey.shade700,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppTheme.primaryColor),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    maxLength: 3,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'နံပါတ်ကို ထည့်သွင်းပေးပါ';
-                      }
-
-                      // Check if the number is a valid 3-digit number
-                      if (!RegExp(r'^\d{1,3}$').hasMatch(value)) {
-                        return 'သုံးလုံးဂဏန်းသာ ထည့်သွင်းပါ';
-                      }
-
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          'ပယ်ဖျက်မည်',
-                          style: TextStyle(
-                            color: AppTheme.textSecondaryColor,
-                            fontFamily: 'Pyidaungsu',
-                          ),
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (formKey.currentState!.validate()) {
-                            final input = textController.text;
-
-                            // Pad with leading zeros if needed
-                            final paddedNumber = input.padLeft(3, '0');
-
-                            // Check if number is available
-                            if (unavailableNumbers.contains(paddedNumber)) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'နံပါတ် $paddedNumber သည် မရရှိနိုင်ပါ',
-                                    style: TextStyle(fontFamily: 'Pyidaungsu'),
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                              return;
-                            }
-
-                            // Add to selected numbers
-                            setState(() {
-                              selectedNumbers.add(paddedNumber);
-                            });
-
-                            Navigator.pop(context);
-
-                            // Show success message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'နံပါတ် $paddedNumber ကို ထည့်ပြီးပါပြီ',
-                                  style: TextStyle(fontFamily: 'Pyidaungsu'),
-                                ),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          'ထည့်သွင်းမည်',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Pyidaungsu',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => TypeThreeDScreen(
+              sessionName: widget.sessionName,
+              sessionData: {'session': widget.sessionData['session']},
             ),
-          ),
-        );
-      },
+      ),
     );
   }
 }

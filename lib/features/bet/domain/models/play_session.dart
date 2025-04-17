@@ -1,12 +1,14 @@
 class PlaySessionResponse {
   PlayTime? playTime;
   List<TwoDigits>? twoDigits;
+  List<TwoDigits>? threeDigits;
   String? totalBetAmount;
   String? hotPer;
 
   PlaySessionResponse({
     this.playTime,
     this.twoDigits,
+    this.threeDigits,
     this.totalBetAmount,
     this.hotPer,
   });
@@ -14,6 +16,7 @@ class PlaySessionResponse {
   PlaySessionResponse.fromJson(Map<String, dynamic> json) {
     playTime =
         json['play_time'] != null ? PlayTime.fromJson(json['play_time']) : null;
+
     if (json['twoDigits'] != null) {
       twoDigits = <TwoDigits>[];
       json['twoDigits'].forEach((v) {
@@ -21,7 +24,17 @@ class PlaySessionResponse {
       });
     }
 
-    // Handle totalBetAmount that might come as int or String
+    if (json['threeDigits'] != null) {
+      threeDigits = <TwoDigits>[];
+      json['threeDigits'].forEach((v) {
+        threeDigits!.add(TwoDigits.fromJson(v));
+      });
+
+      if (twoDigits == null || twoDigits!.isEmpty) {
+        twoDigits = threeDigits;
+      }
+    }
+
     if (json['totalBetAmount'] != null) {
       if (json['totalBetAmount'] is int) {
         totalBetAmount = json['totalBetAmount'].toString();
@@ -30,7 +43,6 @@ class PlaySessionResponse {
       }
     }
 
-    // Handle hotPer that might come as int or String
     if (json['hot_per'] != null) {
       if (json['hot_per'] is int) {
         hotPer = json['hot_per'].toString();
@@ -47,6 +59,9 @@ class PlaySessionResponse {
     }
     if (twoDigits != null) {
       data['twoDigits'] = twoDigits!.map((v) => v.toJson()).toList();
+    }
+    if (threeDigits != null) {
+      data['threeDigits'] = threeDigits!.map((v) => v.toJson()).toList();
     }
     data['totalBetAmount'] = totalBetAmount;
     data['hot_per'] = hotPer;

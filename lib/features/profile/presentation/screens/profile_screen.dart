@@ -637,6 +637,7 @@ class _PasswordChangeScreenState extends ConsumerState<PasswordChangeScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
                   ),
@@ -942,6 +943,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
                   ),
