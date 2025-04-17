@@ -65,120 +65,121 @@ class _PlayHistoryListWidgetState extends State<PlayHistoryListWidget> {
         // ),
 
         // Filter dropdowns
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isLightTheme ? Colors.white : AppTheme.cardColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color:
-                          isLightTheme
-                              ? Colors.grey.shade300
-                              : Colors.grey.shade800.withOpacity(0.5),
-                    ),
-                    boxShadow:
-                        isLightTheme
-                            ? [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 2,
-                                offset: const Offset(0, 1),
-                              ),
-                            ]
-                            : null,
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Ticket အလိုက် ကြည့်ရန်',
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 14,
-                          fontFamily: 'Pyidaungsu',
-                        ),
-                      ),
-                      const Spacer(),
-                      Icon(
-                        Icons.arrow_drop_down,
-                        color: AppTheme.primaryColor,
-                        size: 24,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              InkWell(
-                onTap: () async {
-                  final DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate ?? DateTime.now(),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime.now(),
-                  );
-                  if (picked != null && picked != _selectedDate) {
-                    setState(() {
-                      _selectedDate = picked;
-                    });
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isLightTheme ? Colors.white : AppTheme.cardColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color:
-                          isLightTheme
-                              ? Colors.grey.shade300
-                              : Colors.grey.shade800.withOpacity(0.5),
-                    ),
-                    boxShadow:
-                        isLightTheme
-                            ? [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 2,
-                                offset: const Offset(0, 1),
-                              ),
-                            ]
-                            : null,
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        _selectedDate != null
-                            ? DateFormat('dd,MM,yyyy').format(_selectedDate!)
-                            : DateFormat('dd,MM,yyyy').format(DateTime.now()),
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.calendar_today,
-                        color: AppTheme.primaryColor,
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        //   child: Row(
+        //     children: [
+        //       Expanded(
+        //         child: Container(
+        //           padding: const EdgeInsets.symmetric(
+        //             horizontal: 16,
+        //             vertical: 12,
+        //           ),
+        //           decoration: BoxDecoration(
+        //             color: isLightTheme ? Colors.white : AppTheme.cardColor,
+        //             borderRadius: BorderRadius.circular(12),
+        //             border: Border.all(
+        //               color:
+        //                   isLightTheme
+        //                       ? Colors.grey.shade300
+        //                       : Colors.grey.shade800.withOpacity(0.5),
+        //             ),
+        //             boxShadow:
+        //                 isLightTheme
+        //                     ? [
+        //                       BoxShadow(
+        //                         color: Colors.black.withOpacity(0.05),
+        //                         blurRadius: 2,
+        //                         offset: const Offset(0, 1),
+        //                       ),
+        //                     ]
+        //                     : null,
+        //           ),
+        //           child: Row(
+        //             children: [
+        //               Text(
+        //                 'Ticket အလိုက် ကြည့်ရန်',
+        //                 style: TextStyle(
+        //                   color: AppTheme.textColor,
+        //                   fontSize: 14,
+        //                   fontFamily: 'Pyidaungsu',
+        //                 ),
+        //               ),
+        //               const Spacer(),
+        //               Icon(
+        //                 Icons.arrow_drop_down,
+        //                 color: AppTheme.primaryColor,
+        //                 size: 24,
+        //               ),
+        //             ],
+        //           ),
+        //         ),
+        //       ),
+        //       const SizedBox(width: 12),
+        //       InkWell(
+        //         onTap: () async {
+        //           final DateTime? picked = await showDatePicker(
+        //             context: context,
+        //             initialDate: _selectedDate ?? DateTime.now(),
+        //             firstDate: DateTime(2020),
+        //             lastDate: DateTime.now(),
+        //           );
+        //           if (picked != null && picked != _selectedDate) {
+        //             setState(() {
+        //               _selectedDate = picked;
+        //             });
+        //           }
+        //         },
+        //         child: Container(
+        //           padding: const EdgeInsets.symmetric(
+        //             horizontal: 16,
+        //             vertical: 12,
+        //           ),
+        //           decoration: BoxDecoration(
+        //             color: isLightTheme ? Colors.white : AppTheme.cardColor,
+        //             borderRadius: BorderRadius.circular(12),
+        //             border: Border.all(
+        //               color:
+        //                   isLightTheme
+        //                       ? Colors.grey.shade300
+        //                       : Colors.grey.shade800.withOpacity(0.5),
+        //             ),
+        //             boxShadow:
+        //                 isLightTheme
+        //                     ? [
+        //                       BoxShadow(
+        //                         color: Colors.black.withOpacity(0.05),
+        //                         blurRadius: 2,
+        //                         offset: const Offset(0, 1),
+        //                       ),
+        //                     ]
+        //                     : null,
+        //           ),
+        //           child: Row(
+        //             children: [
+        //               Text(
+        //                 _selectedDate != null
+        //                     ? DateFormat('dd,MM,yyyy').format(_selectedDate!)
+        //                     : DateFormat('dd,MM,yyyy').format(DateTime.now()),
+        //                 style: TextStyle(
+        //                   color: AppTheme.textColor,
+        //                   fontSize: 14,
+        //                 ),
+        //               ),
+        //               const SizedBox(width: 8),
+        //               Icon(
+        //                 Icons.calendar_today,
+        //                 color: AppTheme.primaryColor,
+        //                 size: 18,
+        //               ),
+        //             ],
+        //           ),
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        Container(height: 20),
 
         // Betting history items
         Expanded(

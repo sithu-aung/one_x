@@ -152,8 +152,7 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
         backgroundColor: AppTheme.backgroundColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed:
-              () => Navigator.of(context).popUntil((route) => route.isFirst),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Member လက်မှတ် အသေးစိတ်',
