@@ -15,6 +15,7 @@ import 'package:one_x/features/home/data/models/home_model.dart';
 import 'package:one_x/features/bet/presentation/providers/bet_provider.dart';
 import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
 import 'package:one_x/features/bet/presentation/screens/dream_number_screen.dart';
+import 'package:one_x/features/bet/presentation/screens/tape_hot_selection_dialog.dart';
 
 class NumberSelectionScreen extends ConsumerStatefulWidget {
   final String selectedTimeSection;
@@ -45,6 +46,15 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
   Set<String> unavailableNumbers = {};
   Map<String, Map<String, dynamic>> numberIndicators = {};
 
+  // Tape and Hot numbers data
+  bool _isTapeHotLoading = true;
+  List<String> _tapeNumbers = [];
+  List<String> _hotNumbers = [];
+
+  // Marquee scroll controller
+  final ScrollController _marqueeScrollController = ScrollController();
+  bool _isScrolling = false; // Non-final variable
+
   @override
   void initState() {
     super.initState();
@@ -56,11 +66,14 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
 
     // Fetch digit data based on session name
     _fetchDigitData();
+    // Prefetch tape and hot numbers
+    _fetchTapeHotData();
   }
 
   @override
   void dispose() {
     _amountController.dispose();
+    _marqueeScrollController.dispose();
     super.dispose();
   }
 
@@ -927,19 +940,31 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
   Widget _buildActionButtons() {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _buildActionButton('အမြန် ရွေးရန်'),
-            const SizedBox(width: 8),
-            _buildActionButton('ထိပ်စီး ဂဏန်း'),
-            const SizedBox(width: 8),
-            _buildActionButton('အိပ်မက် ဂဏန်း'),
-            const SizedBox(width: 8),
-            _buildActionButton('R - ပတ်လည်'),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildActionButton('အမြန် ရွေးရန်'),
+                const SizedBox(width: 8),
+                _buildActionButton('ထိပ်စီး ဂဏန်း'),
+                const SizedBox(width: 8),
+                _buildActionButton('အိပ်မက် ဂဏန်း'),
+                const SizedBox(width: 8),
+                _buildActionButton('R - ပတ်လည်'),
+              ],
+            ),
+          ),
+          // Add text marquee for tape and hot numbers
+          if (!_isTapeHotLoading &&
+              (_tapeNumbers.isNotEmpty || _hotNumbers.isNotEmpty))
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _buildTapeHotMarquee(),
+            ),
+        ],
       ),
     );
   }
@@ -981,6 +1006,9 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
               }
             });
           }
+        } else if (text == 'ထိပ်စီး ဂဏန်း') {
+          // Fetch and show tape-hot data
+          _showTapeHotDialog();
         } else if (text == 'အိပ်မက် ဂဏန်း') {
           // Navigate to DreamNumberScreen
           final result = await Navigator.push<List<String>>(
@@ -1056,6 +1084,49 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
         ),
       ),
     );
+  }
+
+  // Method to show Tape and Hot numbers dialog
+  Future<void> _showTapeHotDialog() async {
+    // Use already fetched data instead of fetching again
+    if (_isTapeHotLoading) {
+      // If still loading, show loading dialog
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Wait for data to be loaded
+      await _fetchTapeHotData();
+
+      setState(() {
+        _isLoading = false;
+      });
+    }
+
+    if (!mounted) return;
+
+    // Show dialog with tape and hot numbers
+    final result = await showDialog<List<String>>(
+      context: context,
+      builder: (BuildContext context) {
+        return TapeHotSelectionDialog(
+          tapeNumbers: _tapeNumbers,
+          hotNumbers: _hotNumbers,
+        );
+      },
+    );
+
+    if (result != null && result.isNotEmpty) {
+      setState(() {
+        // Add the selected tape/hot numbers to the main selection
+        for (var number in result) {
+          if (!selectedNumbers.contains(number) &&
+              !unavailableNumbers.contains(number)) {
+            selectedNumbers.add(number);
+          }
+        }
+      });
+    }
   }
 
   // Helper method to show alert dialog
@@ -1361,5 +1432,206 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
     final year = now.year.toString();
 
     return '$day-$month-$year';
+  }
+
+  // Method to fetch Tape and Hot numbers
+  Future<void> _fetchTapeHotData() async {
+    try {
+      final repository = ref.read(betRepositoryProvider);
+      final tapeHotData = await repository.get2DTapeHotList();
+
+      if (mounted) {
+        setState(() {
+          _tapeNumbers =
+              tapeHotData.isTape
+                  ?.map((tape) => tape.permanentNumber ?? "")
+                  .whereType<String>()
+                  .toList() ??
+              [];
+
+          _hotNumbers =
+              tapeHotData.isHot
+                  ?.map((hot) => hot.permanentNumber ?? "")
+                  .whereType<String>()
+                  .toList() ??
+              [];
+
+          _isTapeHotLoading = false;
+        });
+
+        print('Tape numbers: ${_tapeNumbers.join(", ")}');
+        print('Hot numbers: ${_hotNumbers.join(", ")}');
+      }
+    } catch (e) {
+      print('Error fetching tape and hot numbers: $e');
+      if (mounted) {
+        setState(() {
+          _tapeNumbers = [];
+          _hotNumbers = [];
+          _isTapeHotLoading = false;
+        });
+      }
+    }
+  }
+
+  // Widget to build a text marquee for tape and hot numbers
+  Widget _buildTapeHotMarquee() {
+    // Determine if we're in a white/light theme for color adjustments
+    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
+
+    // Use a darker shade of yellow for light theme to improve visibility
+    final Color tapeColor =
+        isLightTheme ? Colors.amber.shade800 : Colors.yellow;
+
+    final tapeText =
+        _tapeNumbers.isNotEmpty
+            ? 'ထိပ်စီး - ${_buildColoredNumbersText(_tapeNumbers, tapeColor)}'
+            : '';
+
+    final hotText =
+        _hotNumbers.isNotEmpty
+            ? 'ဟော့ - ${_buildColoredNumbersText(_hotNumbers, Colors.red)}'
+            : '';
+
+    final List<Widget> textWidgets = [
+      if (tapeText.isNotEmpty)
+        RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'ထိပ်စီး - ',
+                style: TextStyle(color: AppTheme.textColor, fontSize: 12),
+              ),
+              ...buildColoredNumbersSpans(_tapeNumbers, tapeColor),
+            ],
+          ),
+        ),
+      if (hotText.isNotEmpty && tapeText.isNotEmpty)
+        Text(
+          '     |     ',
+          style: TextStyle(color: AppTheme.textColor, fontSize: 12),
+        ),
+      if (hotText.isNotEmpty)
+        RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'ဟော့ - ',
+                style: TextStyle(color: AppTheme.textColor, fontSize: 12),
+              ),
+              ...buildColoredNumbersSpans(_hotNumbers, Colors.red),
+            ],
+          ),
+        ),
+    ];
+
+    if (textWidgets.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Start auto-scrolling with animation after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isScrolling && _marqueeScrollController.hasClients) {
+        _startMarqueeAnimation();
+      }
+    });
+
+    return Container(
+      width: double.infinity,
+      height: 24,
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics:
+            const NeverScrollableScrollPhysics(), // Disable manual scrolling
+        controller: _marqueeScrollController,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            children: [
+              // Adding extra space at beginning for continuous scrolling effect
+              SizedBox(width: MediaQuery.of(context).size.width * 0.5),
+              Row(children: textWidgets),
+              // Adding the same text again for continuous scrolling effect
+              SizedBox(width: MediaQuery.of(context).size.width * 0.5),
+              Row(children: textWidgets),
+              SizedBox(width: MediaQuery.of(context).size.width * 0.5),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper method to create colored number text
+  String _buildColoredNumbersText(List<String> numbers, Color color) {
+    return numbers.join(", ");
+  }
+
+  // Helper method to build TextSpans with colored numbers
+  List<TextSpan> buildColoredNumbersSpans(List<String> numbers, Color color) {
+    List<TextSpan> spans = [];
+
+    for (int i = 0; i < numbers.length; i++) {
+      // Add the number with the specified color
+      spans.add(
+        TextSpan(
+          text: numbers[i],
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+
+      // Add comma with the same color if not the last item
+      if (i < numbers.length - 1) {
+        spans.add(
+          TextSpan(
+            text: ", ",
+            style: TextStyle(
+              color: color, // Same color as the numbers
+              fontSize: 12,
+            ),
+          ),
+        );
+      }
+    }
+
+    return spans;
+  }
+
+  // Method to start auto-scrolling animation for marquee
+  void _startMarqueeAnimation() {
+    if (!mounted || !_marqueeScrollController.hasClients) return;
+
+    _isScrolling = true;
+
+    // Get total scroll extent
+    final double maxExtent = _marqueeScrollController.position.maxScrollExtent;
+
+    // Define animation duration based on content length - slower speed
+    final int duration = 25000; // 25 seconds for full cycle (was 15 seconds)
+
+    // Animate to end
+    _marqueeScrollController
+        .animateTo(
+          maxExtent,
+          duration: Duration(milliseconds: duration),
+          curve: Curves.linear,
+        )
+        .then((_) {
+          // When animation completes, jump back to start and repeat
+          if (mounted) {
+            _marqueeScrollController.jumpTo(0);
+            _isScrolling = false;
+            // Start the animation again
+            _startMarqueeAnimation();
+          }
+        });
   }
 }

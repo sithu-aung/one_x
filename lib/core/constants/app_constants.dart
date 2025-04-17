@@ -79,6 +79,7 @@ class AppConstants {
   static const String twoDEveningConfirmEndpoint = '/api/user/evening/confirm';
   static const String twoDHolidayEndpoint = '/api/user/play-2d/holiday';
   static const String twoDWinnersEndpoint = '/api/user/play-2d/winners';
+  static const String twoDTapeHotEndpoint = '/api/user/play-2d/tape-hot';
 
   // API Endpoints - ThreeD Game
   static const String threeDPlayMorningSessionEndpoint =

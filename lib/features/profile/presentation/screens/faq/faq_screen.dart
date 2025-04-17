@@ -120,15 +120,16 @@ class _FAQScreenState extends ConsumerState<FAQScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: const Text(
           'Frequently Asked Questions',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: null),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        elevation: 0,
       ),
       body: _buildBody(),
     );

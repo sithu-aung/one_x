@@ -10,6 +10,7 @@ import 'package:one_x/features/bet/domain/models/play_history_list_response.dart
 import 'package:one_x/features/bet/domain/models/winner_list_response.dart';
 import 'package:one_x/features/bet/domain/models/two_d_history_response.dart';
 import 'package:one_x/features/bet/domain/models/holiday_list_response.dart';
+import 'package:one_x/features/bet/domain/models/tape_hot_list_response.dart';
 
 class BetRepository {
   final ApiService _apiService;
@@ -400,6 +401,19 @@ class BetRepository {
       // Errors are already handled by ApiService with SnackBar
       // Return empty model to avoid null errors
       return DreamListResponse(dreams: []);
+    }
+  }
+
+  /// Get tape-hot list for 2D
+  Future<TapeHotListResponse> get2DTapeHotList() async {
+    try {
+      final response = await _apiService.get(AppConstants.twoDTapeHotEndpoint);
+      return TapeHotListResponse.fromJson(response);
+    } catch (error) {
+      print('Error in get2DTapeHotList: $error');
+      // Errors are already handled by ApiService with SnackBar
+      // Return empty model to avoid null errors
+      return TapeHotListResponse(isTape: [], isHot: []);
     }
   }
 

@@ -24,6 +24,7 @@ import 'package:one_x/features/payment/presentation/screens/top_up_page.dart';
 import 'package:one_x/features/payment/presentation/screens/withdraw_amount_define_screen.dart';
 import 'package:one_x/features/payment/presentation/screens/change_currency_page.dart';
 import 'package:one_x/features/profile/presentation/screens/faq/faq_screen.dart';
+import 'package:one_x/features/profile/presentation/screens/contact_us_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -220,6 +221,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 title: 'ဆက်သွယ်ရန်',
                 onTap: () {
                   Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ContactUsScreen(),
+                    ),
+                  );
                 },
               ),
 

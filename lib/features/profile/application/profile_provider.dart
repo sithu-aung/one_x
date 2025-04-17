@@ -5,6 +5,7 @@ import 'package:one_x/core/services/storage_service.dart';
 import 'package:one_x/features/profile/domain/models/policy.dart';
 import 'package:one_x/features/profile/domain/models/faq_list_response.dart';
 import 'package:one_x/features/profile/domain/models/profile_response.dart';
+import 'package:one_x/features/profile/domain/models/contact_response.dart';
 
 // Profile Repository
 class ProfileRepository {
@@ -107,6 +108,17 @@ class ProfileRepository {
     }
   }
 
+  // Get contacts
+  Future<ContactResponse> getContacts() async {
+    try {
+      final response = await _apiService.get('/api/user/contact');
+      return ContactResponse.fromJson(response);
+    } catch (error) {
+      print('Error fetching contacts: $error');
+      rethrow;
+    }
+  }
+
   // Get user responses - REMOVED as API doesn't exist
   // Future<UserResponse> getUserResponses() async {
   //   try {
@@ -169,6 +181,17 @@ final privacyPolicyProvider = FutureProvider<PolicyResponse>((ref) async {
     return await repository.getPrivacyPolicy();
   } catch (e) {
     print('Error in privacyPolicyProvider: $e');
+    rethrow;
+  }
+});
+
+// Contacts Provider
+final contactsProvider = FutureProvider<ContactResponse>((ref) async {
+  final repository = ref.watch(profileRepositoryProvider);
+  try {
+    return await repository.getContacts();
+  } catch (e) {
+    print('Error in contactsProvider: $e');
     rethrow;
   }
 });
