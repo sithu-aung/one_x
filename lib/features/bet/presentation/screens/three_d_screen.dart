@@ -14,7 +14,6 @@ import 'package:one_x/features/tickets/data/repositories/ticket_repository.dart'
 import 'package:one_x/features/bet/presentation/widgets/bet_history_widget.dart';
 import 'package:one_x/features/bet/presentation/widgets/bet_winners_widget.dart';
 import 'package:one_x/features/bet/presentation/widgets/three_d_history_numbers_widget.dart';
-import 'package:one_x/features/bet/presentation/widgets/three_d_holidays_widget.dart';
 import 'package:one_x/features/bet/presentation/widgets/three_d_bet_history_widget.dart';
 
 class ThreeDScreen extends StatefulWidget {
@@ -51,7 +50,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return; // Skip if still animating
 
@@ -473,8 +472,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
                   buildFirstTabContent(),
                   const ThreeDHistoryWidget(),
                   const BetWinnersWidget(),
-                  const ThreeDHistoryNumbersWidget(),
-                  const ThreeDHolidaysWidget(),
+                  _buildLiveResultsTab(),
                 ],
               ),
             ),
@@ -688,54 +686,6 @@ class _ThreeDScreenState extends State<ThreeDScreen>
               ),
             ),
             SizedBox(width: 12),
-            Container(
-              height: 36,
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(
-                color:
-                    _selectedTabIndex == 4
-                        ? AppTheme.primaryColor
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border:
-                    _selectedTabIndex == 4
-                        ? null
-                        : Border.all(color: AppTheme.primaryColor, width: 1),
-              ),
-              child: TextButton.icon(
-                icon: Icon(
-                  Icons.calendar_today,
-                  color:
-                      _selectedTabIndex == 4
-                          ? Colors.white
-                          : AppTheme.backgroundColor == Colors.white
-                          ? AppTheme.primaryColor
-                          : AppTheme.textColor,
-                  size: 14,
-                ),
-                label: Text(
-                  '3D Holidays',
-                  style: TextStyle(
-                    color:
-                        _selectedTabIndex == 4
-                            ? Colors.white
-                            : AppTheme.backgroundColor == Colors.white
-                            ? Colors.black
-                            : AppTheme.textColor,
-                    fontSize: 12,
-                    fontFamily: 'Pyidaungsu',
-                    letterSpacing: 0.3,
-                    height: 1.4,
-                    leadingDistribution: TextLeadingDistribution.even,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  maxLines: 1,
-                ),
-                onPressed: () {
-                  _tabController.animateTo(4);
-                },
-              ),
-            ),
           ],
         ),
       ),
@@ -1204,6 +1154,104 @@ class _ThreeDScreenState extends State<ThreeDScreen>
           },
         );
       },
+    );
+  }
+
+  Widget _buildLiveResultsTab() {
+    return RefreshIndicator(
+      onRefresh: fetchLiveResultsData,
+      child:
+          _isLiveResultsLoading
+              ? Center(
+                child: CircularProgressIndicator(color: AppTheme.primaryColor),
+              )
+              : _liveResultsData?.results == null ||
+                  _liveResultsData!.results!.isEmpty
+              ? Center(
+                child: Text(
+                  'No results available',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+              )
+              : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _liveResultsData!.results!.length,
+                itemBuilder: (context, index) {
+                  final result = _liveResultsData!.results![index];
+                  // Format date (if available)
+                  String formattedDate = 'Unknown Date';
+                  if (result.datetime != null && result.datetime!.isNotEmpty) {
+                    try {
+                      final DateTime date = DateTime.parse(result.datetime!);
+                      formattedDate = DateFormat('yyyy-MM-dd').format(date);
+                    } catch (e) {
+                      formattedDate = result.datetime!;
+                    }
+                  }
+
+                  return Card(
+                    elevation: 2,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    color: AppTheme.cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Date',
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondaryColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  formattedDate,
+                                  style: TextStyle(
+                                    color: AppTheme.textColor,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppTheme.primaryColor.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              result.result ?? '---',
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
     );
   }
 
