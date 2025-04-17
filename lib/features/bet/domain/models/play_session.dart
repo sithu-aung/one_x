@@ -20,8 +20,24 @@ class PlaySessionResponse {
         twoDigits!.add(TwoDigits.fromJson(v));
       });
     }
-    totalBetAmount = json['totalBetAmount'];
-    hotPer = json['hot_per'];
+
+    // Handle totalBetAmount that might come as int or String
+    if (json['totalBetAmount'] != null) {
+      if (json['totalBetAmount'] is int) {
+        totalBetAmount = json['totalBetAmount'].toString();
+      } else {
+        totalBetAmount = json['totalBetAmount'];
+      }
+    }
+
+    // Handle hotPer that might come as int or String
+    if (json['hot_per'] != null) {
+      if (json['hot_per'] is int) {
+        hotPer = json['hot_per'].toString();
+      } else {
+        hotPer = json['hot_per'];
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -118,9 +134,9 @@ class TwoDigits {
     if (json['percentage'] is int) {
       percentage = json['percentage'];
     } else if (json['percentage'] is String) {
-      percentage = int.tryParse(json['percentage']) ?? 0;
+      percentage = json['percentage'];
     } else {
-      percentage = 0;
+      percentage = json['percentage']?.toString();
     }
 
     isTape = json['is_tape'];
@@ -133,15 +149,7 @@ class TwoDigits {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['permanent_number'] = permanentNumber;
-
-    if (percentage is int) {
-      data['percentage'] = percentage;
-    } else if (percentage is String) {
-      data['percentage'] = int.tryParse(percentage) ?? 0;
-    } else {
-      data['percentage'] = 0;
-    }
-
+    data['percentage'] = percentage;
     data['is_tape'] = isTape;
     data['is_hot'] = isHot;
     data['status'] = status;

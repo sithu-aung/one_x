@@ -968,6 +968,9 @@ class _ThreeDScreenState extends State<ThreeDScreen>
     String dialogSelectedSection = _selectedTimeSection;
     Map<String, dynamic> selectedSessionObj = initialSessionObj;
 
+    // Flag to check if a valid selection exists
+    bool isValidSelectionMade = initialSessionObj.isNotEmpty;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1043,6 +1046,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
                                       setState(() {
                                         dialogSelectedSection = timeSection;
                                         selectedSessionObj = session;
+                                        isValidSelectionMade = true;
                                         print(
                                           'Selected: $timeSection, session_name: ${session['session_name']}',
                                         );
@@ -1145,35 +1149,44 @@ class _ThreeDScreenState extends State<ThreeDScreen>
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Update the actual selected time in the parent state
-                          this.setState(() {
-                            _selectedTimeSection = dialogSelectedSection;
-                          });
-                          Navigator.pop(context);
+                        onPressed:
+                            isValidSelectionMade
+                                ? () {
+                                  // Update the actual selected time in the parent state
+                                  this.setState(() {
+                                    _selectedTimeSection =
+                                        dialogSelectedSection;
+                                  });
+                                  Navigator.pop(context);
 
-                          // Get the session_name from the selected session
-                          String sessionName =
-                              selectedSessionObj['session_name'] ?? '';
+                                  // Get the session_name from the selected session
+                                  String sessionName =
+                                      selectedSessionObj['session_name'] ?? '';
 
-                          // Navigate to number selection screen with session_name
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => NumberSelection3DScreen(
-                                    sessionName: sessionName,
-                                    sessionData: selectedSessionObj,
-                                  ),
-                            ),
-                          );
-                        },
+                                  // Navigate to number selection screen with session_name
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => NumberSelection3DScreen(
+                                            sessionName: sessionName,
+                                            sessionData: selectedSessionObj,
+                                          ),
+                                    ),
+                                  );
+                                }
+                                : null, // Disable the button if no valid selection
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
+                          disabledBackgroundColor: AppTheme.primaryColor
+                              .withOpacity(0.5),
+                          disabledForegroundColor: Colors.white.withOpacity(
+                            0.7,
+                          ),
                         ),
                         child: Text(
                           'OK',
