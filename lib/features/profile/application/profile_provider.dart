@@ -53,6 +53,41 @@ class ProfileRepository {
     }
   }
 
+  // Update user profile by ID
+  Future<Map<String, dynamic>> updateUserProfileByID({
+    required int userId,
+    String? username,
+    String? phone,
+    String? viberPhone,
+    String? telegramAccount,
+    String? dateOfBirth,
+    String? email,
+    String? address,
+    String? country,
+  }) async {
+    try {
+      // Create request body with non-null values
+      final Map<String, dynamic> requestBody = {};
+      if (username != null) requestBody['username'] = username;
+      if (phone != null) requestBody['phone'] = phone;
+      if (viberPhone != null) requestBody['hidden_phone'] = viberPhone;
+      if (telegramAccount != null) requestBody['my_referral'] = telegramAccount;
+      if (dateOfBirth != null) requestBody['date_of_birth'] = dateOfBirth;
+      if (email != null) requestBody['email'] = email;
+      if (address != null) requestBody['address'] = address;
+      if (country != null) requestBody['country'] = country;
+
+      final response = await _apiService.post(
+        '/api/user/profile/update/$userId',
+        body: requestBody,
+      );
+      return response;
+    } catch (error) {
+      print('Error updating user profile by ID: $error');
+      rethrow;
+    }
+  }
+
   // Change password
   Future<Map<String, dynamic>> changePassword({
     required String oldPassword,
@@ -71,6 +106,47 @@ class ProfileRepository {
       return response;
     } catch (error) {
       print('Error changing password: $error');
+      rethrow;
+    }
+  }
+
+  // Update password directly
+  Future<Map<String, dynamic>> updatePassword({
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        '/api/user/update/password/',
+        body: {'new_password': newPassword},
+      );
+      return response;
+    } catch (error) {
+      print('Error updating password: $error');
+      rethrow;
+    }
+  }
+
+  // Update password with user key
+  Future<Map<String, dynamic>> updatePasswordWithUserKey({
+    required String newPassword,
+  }) async {
+    try {
+      // First, get the user profile to obtain the userKey
+      final userProfile = await getUserProfile();
+      final userKey = userProfile.user?.userKey;
+
+      if (userKey == null) {
+        throw Exception('Unable to retrieve user key from profile');
+      }
+
+      // Then make the request with the userKey in the URL path
+      final response = await _apiService.post(
+        '/api/user/update/password/$userKey',
+        body: {'new_password': newPassword},
+      );
+      return response;
+    } catch (error) {
+      print('Error updating password with user key: $error');
       rethrow;
     }
   }
@@ -163,6 +239,34 @@ final userProfileProvider = FutureProvider<UserResponse>((ref) async {
   }
 });
 
+// Update User Profile By ID Provider
+final updateUserProfileByIDProvider =
+    FutureProvider.family<Map<String, dynamic>, Map<String, dynamic>>((
+      ref,
+      profileData,
+    ) async {
+      final repository = ref.watch(profileRepositoryProvider);
+      try {
+        final response = await repository.updateUserProfileByID(
+          userId: profileData['userId'] as int,
+          username: profileData['username'] as String?,
+          phone: profileData['phone'] as String?,
+          viberPhone: profileData['viber_phone'] as String?,
+          telegramAccount: profileData['telegram_account'] as String?,
+          dateOfBirth: profileData['date_of_birth'] as String?,
+          email: profileData['email'] as String?,
+          address: profileData['address'] as String?,
+          country: profileData['country'] as String?,
+        );
+        // Refresh user profile after update
+        ref.refresh(userProfileProvider);
+        return response;
+      } catch (e) {
+        print('Error in updateUserProfileByIDProvider: $e');
+        rethrow;
+      }
+    });
+
 // Terms and Conditions Provider
 final termsConditionsProvider = FutureProvider<PolicyResponse>((ref) async {
   final repository = ref.watch(profileRepositoryProvider);
@@ -246,6 +350,39 @@ final changePasswordProvider =
         return response;
       } catch (e) {
         print('Error in changePasswordProvider: $e');
+        rethrow;
+      }
+    });
+
+// Direct Password Update Provider
+final updatePasswordProvider = FutureProvider.family<
+  Map<String, dynamic>,
+  String
+>((ref, newPassword) async {
+  final repository = ref.watch(profileRepositoryProvider);
+  try {
+    final response = await repository.updatePassword(newPassword: newPassword);
+    return response;
+  } catch (e) {
+    print('Error in updatePasswordProvider: $e');
+    rethrow;
+  }
+});
+
+// Password Update with UserKey Provider
+final updatePasswordWithUserKeyProvider =
+    FutureProvider.family<Map<String, dynamic>, String>((
+      ref,
+      newPassword,
+    ) async {
+      final repository = ref.watch(profileRepositoryProvider);
+      try {
+        final response = await repository.updatePasswordWithUserKey(
+          newPassword: newPassword,
+        );
+        return response;
+      } catch (e) {
+        print('Error in updatePasswordWithUserKeyProvider: $e');
         rethrow;
       }
     });

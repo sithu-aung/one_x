@@ -410,7 +410,9 @@ class _ThreeDScreenState extends State<ThreeDScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  buildFirstTabContent(),
+                  _selectedTabIndex == 0
+                      ? buildFirstTabContent()
+                      : const SizedBox(),
                   const ThreeDHistoryWidget(),
                   const ThreeDWinnersWidget(),
                   _buildLiveResultsTab(),
@@ -419,6 +421,8 @@ class _ThreeDScreenState extends State<ThreeDScreen>
             ),
           ],
         ),
+        // Only show bottom button when first tab is selected
+        bottomNavigationBar: _selectedTabIndex == 0 ? _buildBottomBar() : null,
       ),
     );
   }
@@ -661,7 +665,8 @@ class _ThreeDScreenState extends State<ThreeDScreen>
                 _liveResultsData!.results!.length > 1)
               _buildLiveResultsList(),
             const SizedBox(height: 16),
-            _buildBottomBar(),
+            // Bottom padding to ensure content isn't hidden behind the fixed button
+            SizedBox(height: 16),
           ],
         ),
       ),

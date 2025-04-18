@@ -339,60 +339,6 @@ class _TransactionHistoryScreenState
             ),
           ),
 
-          // Account activity header and date selector
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Account Activity',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: _showDatePicker,
-                  icon: Icon(
-                    Icons.calendar_today,
-                    size: 16,
-                    color: isDarkMode ? Colors.white : AppTheme.primaryColor,
-                  ),
-                  label: Text(
-                    _selectedDate != null
-                        ? DateFormat('dd MMM yyyy').format(_selectedDate!)
-                        : 'Choose Date',
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.white : AppTheme.primaryColor,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isDarkMode
-                            ? AppTheme.primaryColor.withOpacity(0.2)
-                            : Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color:
-                            isDarkMode
-                                ? AppTheme.primaryColor.withOpacity(0.5)
-                                : Colors.grey.shade300,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Transaction list
           Expanded(
             child: walletHistoryAsync.when(
