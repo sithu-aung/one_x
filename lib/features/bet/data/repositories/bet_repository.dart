@@ -507,6 +507,42 @@ class BetRepository {
     }
   }
 
+  /// Get 3D winners data with date filter
+  Future<WinnerListResponse> get3DWinnersByDate(String date) async {
+    try {
+      print(
+        'BetRepository: Starting get3DWinnersByDate API call for date: $date',
+      );
+      // Use POST method with date parameter
+      final response = await _apiService.post(
+        AppConstants.threeDWinnersEndpoint,
+        body: {"select_date": date},
+      );
+      print(
+        'BetRepository: API response received: ${response.toString().substring(0, min(100, response.toString().length))}...',
+      );
+
+      // Create a response object
+      final result = WinnerListResponse.fromJson(response);
+
+      // Debug the parsed result
+      print(
+        'BetRepository: Parsed response - Top3: ${result.top3Lists?.length ?? 0}, Winners: ${result.winners?.length ?? 0}',
+      );
+
+      // Initialize empty lists if they're null to avoid errors elsewhere
+      result.top3Lists ??= [];
+      result.winners ??= [];
+
+      return result;
+    } catch (error) {
+      print('BetRepository: Error in get3DWinnersByDate: $error');
+
+      // Return empty model to avoid null errors
+      return WinnerListResponse(top3Lists: [], winners: []);
+    }
+  }
+
   /// Get 2D winning number history data
   Future<TowDHistoryResponse> get2DHistoryNumbers() async {
     try {

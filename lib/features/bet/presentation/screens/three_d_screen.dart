@@ -15,6 +15,8 @@ import 'package:one_x/features/bet/presentation/widgets/bet_history_widget.dart'
 import 'package:one_x/features/bet/presentation/widgets/bet_winners_widget.dart';
 import 'package:one_x/features/bet/presentation/widgets/three_d_history_numbers_widget.dart';
 import 'package:one_x/features/bet/presentation/widgets/three_d_bet_history_widget.dart';
+import 'package:one_x/features/bet/presentation/providers/bet_providers.dart';
+import 'package:one_x/features/bet/presentation/widgets/three_d_winners_widget.dart';
 
 class ThreeDScreen extends StatefulWidget {
   const ThreeDScreen({super.key});
@@ -31,7 +33,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
 
   // API data
   bool _isLoading = true;
-  bool _isWinnersLoading = false;
+  final bool _isWinnersLoading = false;
   bool _isLiveResultsLoading = false;
   final Map<String, dynamic> _apiData = {};
   String _currentResult = '--';
@@ -47,6 +49,9 @@ class _ThreeDScreenState extends State<ThreeDScreen>
   late BetRepository _betRepository;
   late TicketRepository _ticketRepository;
 
+  // Add date selection variable
+  String? _selectedDate;
+
   @override
   void initState() {
     super.initState();
@@ -58,19 +63,10 @@ class _ThreeDScreenState extends State<ThreeDScreen>
         _selectedTabIndex = _tabController.index;
       });
 
-      // Load data when switching to the first tab
+      // Load data when switching to the first tab or live results tab
       if (_tabController.index == 0) {
-        print("Tab switched to first tab (index 0), fetching 3D live data...");
         fetch3DLiveData();
-      } else if (_tabController.index == 2) {
-        print(
-          "Tab switched to winners tab (index 2), fetching winners data...",
-        );
-        fetchWinnersData();
       } else if (_tabController.index == 3) {
-        print(
-          "Tab switched to live results tab (index 3), fetching live results data...",
-        );
         fetchLiveResultsData();
       }
     });
@@ -95,7 +91,6 @@ class _ThreeDScreenState extends State<ThreeDScreen>
     setDefaultTimeSection();
 
     // Fetch data when the screen loads
-    print("Screen initialized, fetching 3D live data...");
     fetch3DLiveData();
     fetchSessionStatus();
   }
@@ -115,7 +110,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
 
   Future<void> fetchSessionStatus() async {
     try {
-      final dynamic response = await _betRepository.getActive2DSessions();
+      final dynamic response = await _betRepository.getActive3DSessions();
       print('API Response: ${jsonEncode(response)}');
 
       // Extract sessions from the "session" key if it exists
@@ -366,60 +361,6 @@ class _ThreeDScreenState extends State<ThreeDScreen>
     }
   }
 
-  // Fetch winners data
-  Future<void> fetchWinnersData() async {
-    print(
-      'Starting to fetch 3D winners data, _isWinnersLoading=$_isWinnersLoading',
-    );
-
-    // If already loading, don't make duplicate requests
-    if (_isWinnersLoading) {
-      print('Already fetching 3D winners data, skipping duplicate request');
-      return;
-    }
-
-    // Set loading state to true before making the API call
-    if (mounted) {
-      setState(() {
-        _isWinnersLoading = true;
-      });
-    }
-
-    try {
-      print('Making API call to get 3D winners');
-      final response = await _betRepository.get3DWinners();
-      print(
-        'Received 3D winners response: ${response.winners?.length ?? 0} winners, ${response.top3Lists?.length ?? 0} top3 entries',
-      );
-
-      // Only update state if widget is still mounted
-      if (mounted) {
-        setState(() {
-          _winnersData = response;
-          _isWinnersLoading = false;
-        });
-      }
-    } catch (error) {
-      print('Error fetching 3D winners data: $error');
-      // Only update state if widget is still mounted
-      if (mounted) {
-        setState(() {
-          // Initialize with empty lists to prevent null errors
-          _winnersData = WinnerListResponse(winners: [], top3Lists: []);
-          _isWinnersLoading = false;
-        });
-
-        // Show error message with retry option
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Failed to load 3D winners data'),
-            action: SnackBarAction(label: 'Retry', onPressed: fetchWinnersData),
-          ),
-        );
-      }
-    }
-  }
-
   // Add fetch method for live results
   Future<void> fetchLiveResultsData() async {
     if (_isLiveResultsLoading) return; // Prevent duplicate fetches
@@ -471,7 +412,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
                 children: [
                   buildFirstTabContent(),
                   const ThreeDHistoryWidget(),
-                  const BetWinnersWidget(),
+                  const ThreeDWinnersWidget(),
                   _buildLiveResultsTab(),
                 ],
               ),

@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/bet/data/repositories/bet_repository.dart';
 import 'package:one_x/features/bet/presentation/providers/bet_providers.dart';
-import 'package:one_x/features/bet/presentation/screens/copy_3d_number_screen.dart';
+import 'package:one_x/features/bet/presentation/screens/copy_number_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/dream_number_screen.dart';
-import 'package:one_x/features/bet/presentation/screens/number_selection_3d_screen.dart';
+import 'package:one_x/features/bet/presentation/screens/number_selection_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/quick_select_screen.dart';
 import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/home/data/models/home_model.dart';
@@ -17,13 +17,13 @@ import 'package:one_x/features/bet/presentation/screens/amount_entry_screen.dart
 import 'package:one_x/core/utils/api_service.dart';
 
 class TypeThreeDScreen extends ConsumerStatefulWidget {
+  final String selectedTimeSection;
   final String sessionName;
-  final Map<String, dynamic> sessionData;
 
   const TypeThreeDScreen({
     super.key,
+    required this.selectedTimeSection,
     required this.sessionName,
-    required this.sessionData,
   });
 
   @override
@@ -58,7 +58,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
   bool _isRToggled = false;
 
   // Bulk entry mode
-  final bool _isBulkEntryMode = false;
+  bool _isBulkEntryMode = false;
   final TextEditingController _bulkAmountController = TextEditingController();
 
   @override
@@ -139,13 +139,15 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
         TextEditingController(text: amount.toString()),
       );
 
-      // If R is toggled on, also add the reversed number (except for palindrome numbers like 111, 222, etc.)
-      if (_isRToggled && !(number[0] == number[1] && number[1] == number[2])) {
+      // If R is toggled on, also add the reversed number
+      if (_isRToggled) {
         final reversedNumber = number.split('').reversed.join();
-        _entries.add(ThreeDEntry(number: reversedNumber, amount: amount));
-        _entryAmountControllers.add(
-          TextEditingController(text: amount.toString()),
-        );
+        if (number != reversedNumber) {
+          _entries.add(ThreeDEntry(number: reversedNumber, amount: amount));
+          _entryAmountControllers.add(
+            TextEditingController(text: amount.toString()),
+          );
+        }
       }
 
       _updateTotalAmount();
@@ -240,67 +242,87 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'အတည်ပြုရန်',
+                      style: TextStyle(
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
+                        ),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Icon(
+                        Icons.close,
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
+                        ),
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
                 Text(
-                  'အတည်ပြုမှု',
+                  'သေချာပါသလား?',
                   style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 18,
+                    color: AppTheme.getTextColorForBackground(
+                      AppTheme.cardColor,
+                    ),
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  user.username,
+                  style: TextStyle(
+                    color: AppTheme.getTextColorForBackground(
+                      AppTheme.cardColor,
+                    ),
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'အသုံးပြုသူအမည်: ${user.username}',
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 14,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Total',
+                      style: TextStyle(
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
                         ),
+                        fontSize: 16,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'ဂဏန်းအရေအတွက်: ${_entries.length}',
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 14,
+                    ),
+                    const SizedBox(width: 20),
+                    Text(
+                      '( ${_entries.length} ကွက် )',
+                      style: TextStyle(
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
                         ),
+                        fontSize: 16,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'ဂဏန်းများ: ${_entries.map((e) => e.number).join(', ')}',
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 14,
+                    ),
+                    const SizedBox(width: 20),
+                    Text(
+                      _formatAmount(_totalAmount),
+                      style: TextStyle(
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
                         ),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'စုစုပေါင်းငွေပမာဏ: $_totalAmount',
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'ဂဏန်းထိုးပြီးလျှင် ပြန်ဖျက်၍မရပါ။',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 30),
                 Row(
@@ -316,7 +338,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              'မလုပ်တော့ပါ',
+                              'NO',
                               style: TextStyle(
                                 color: AppTheme.getTextColorForBackground(
                                   AppTheme.cardExtraColor,
@@ -344,7 +366,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              'သေချာပါသည်',
+                              'YES',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -374,7 +396,12 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
       // Build selections array in the format expected by the API
       List<Map<String, dynamic>> selections =
           _entries.map((entry) {
-            return {"permanent_number": entry.number, "amount": entry.amount};
+            return {
+              "permanent_number": entry.number,
+              "amount": entry.amount,
+              "is_tape": "inactive",
+              "is_hot": "inactive",
+            };
           }).toList();
 
       // Build digits string
@@ -387,7 +414,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
         "bet_time": _getBetTimeValue(widget.sessionName),
         "totalAmount": _totalAmount,
         "user_id": user.id,
-        "name": "threed",
+        "name": "three",
       };
 
       // Get repository from provider
@@ -513,6 +540,77 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
     );
   }
 
+  // Add entries in bulk
+  void _addBulkEntries() {
+    // Validate the amount
+    final amountText = _bulkAmountController.text.trim();
+    if (amountText.isEmpty) {
+      _showError("Please enter an amount");
+      return;
+    }
+
+    final amount = int.tryParse(amountText);
+    if (amount == null || amount <= 0) {
+      _showError("Please enter a valid amount");
+      return;
+    }
+
+    // Add entries for all selected numbers
+    setState(() {
+      for (String number in selectedNumbers) {
+        _entries.add(ThreeDEntry(number: number, amount: amount));
+        // Create a controller for each entry
+        _entryAmountControllers.add(
+          TextEditingController(text: amount.toString()),
+        );
+      }
+
+      _updateTotalAmount();
+
+      // Clear the input fields and selected numbers
+      _bulkAmountController.clear();
+      selectedNumbers = {};
+
+      // Exit bulk entry mode
+      _isBulkEntryMode = false;
+    });
+  }
+
+  // Reset bulk entry mode
+  void _resetBulkEntryMode() {
+    setState(() {
+      selectedNumbers = {};
+      _isBulkEntryMode = false;
+      _bulkAmountController.clear();
+    });
+  }
+
+  // Add bulk entries from quick select or dream number results
+  void _processBulkSelectionResults(List<String> selectedDigits) {
+    if (selectedDigits.isEmpty) return;
+
+    // Filter out invalid numbers
+    Set<String> validNumbers = {};
+    for (var number in selectedDigits) {
+      if (number.length == 3 && !unavailableNumbers.contains(number)) {
+        validNumbers.add(number);
+      }
+    }
+
+    if (validNumbers.isEmpty) return;
+
+    setState(() {
+      // Enter bulk entry mode
+      _isBulkEntryMode = true;
+      selectedNumbers = validNumbers;
+      // Focus on the bulk amount field
+      Future.delayed(Duration.zero, () {
+        _bulkAmountController.clear();
+        FocusScope.of(context).requestFocus(FocusNode());
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -525,15 +623,14 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          if (widget.sessionData['session'] != null)
-            Container(
-              margin: const EdgeInsets.only(right: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: Text(
-                'အရောင်းပိတ်ရန် - ${widget.sessionData['session']}',
-                style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
-              ),
+          Container(
+            margin: const EdgeInsets.only(right: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Text(
+              'အရောင်းပိတ်ရန် - ${widget.selectedTimeSection}',
+              style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
             ),
+          ),
         ],
       ),
       body: Column(
@@ -575,16 +672,19 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                                   ),
                                 ),
                                 Expanded(
-                                  flex: 2,
+                                  flex: 3,
                                   child: Text(
-                                    'ငွေပမာဏ',
+                                    'ထိုးငွေ (ကျပ်)',
                                     style: TextStyle(
                                       color: AppTheme.textColor,
                                       fontWeight: FontWeight.bold,
                                     ),
+                                    textAlign: TextAlign.right,
                                   ),
                                 ),
-                                SizedBox(width: 40),
+                                const SizedBox(
+                                  width: 40,
+                                ), // Space for delete button
                               ],
                             ),
                           ),
@@ -595,9 +695,6 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                               itemCount: _entries.length,
                               itemBuilder: (context, index) {
                                 final entry = _entries[index];
-                                final controller =
-                                    _entryAmountControllers[index];
-
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
@@ -605,52 +702,86 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                                   ),
                                   child: Row(
                                     children: [
-                                      // Number
                                       Expanded(
                                         flex: 2,
                                         child: Text(
                                           entry.number,
                                           style: TextStyle(
                                             color: AppTheme.textColor,
-                                            fontSize: 16,
+                                            fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ),
-
-                                      // Amount
                                       Expanded(
-                                        flex: 2,
-                                        child: TextField(
-                                          controller: controller,
-                                          style: TextStyle(
-                                            color: AppTheme.textColor,
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                          decoration: InputDecoration(
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                        flex: 3,
+                                        child: Container(
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.cardExtraColor,
+                                            borderRadius: BorderRadius.circular(
+                                              8,
                                             ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 8,
-                                                ),
+                                            border:
+                                                AppTheme.backgroundColor
+                                                            .computeLuminance() >
+                                                        0.5
+                                                    ? Border.all(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                    )
+                                                    : null,
                                           ),
-                                          onChanged:
-                                              (value) => _updateEntryAmount(
-                                                index,
-                                                value,
+                                          child: Center(
+                                            child: TextField(
+                                              controller:
+                                                  index <
+                                                          _entryAmountControllers
+                                                              .length
+                                                      ? _entryAmountControllers[index]
+                                                      : TextEditingController(
+                                                        text:
+                                                            entry.amount
+                                                                .toString(),
+                                                      ),
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly,
+                                              ],
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: AppTheme.textColor,
+                                                fontSize: 16,
                                               ),
+                                              decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                    ),
+                                                hintText: 'ငွေပမာဏ',
+                                                hintStyle: TextStyle(
+                                                  color:
+                                                      AppTheme
+                                                          .textSecondaryColor,
+                                                ),
+                                              ),
+                                              onChanged:
+                                                  (value) => _updateEntryAmount(
+                                                    index,
+                                                    value,
+                                                  ),
+                                            ),
+                                          ),
                                         ),
                                       ),
-
-                                      // Delete button
                                       IconButton(
                                         icon: Icon(
-                                          Icons.delete,
+                                          Icons.close,
                                           color: Colors.red,
+                                          size: 18,
                                         ),
                                         onPressed: () => _deleteEntry(index),
                                       ),
@@ -661,25 +792,42 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                             ),
                           ),
 
-                          // Total amount
+                          // Divider
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Divider(
+                              color: AppTheme.textSecondaryColor.withOpacity(
+                                0.3,
+                              ),
+                            ),
+                          ),
+
+                          // Total
                           Padding(
                             padding: const EdgeInsets.all(16),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 Text(
-                                  'စုစုပေါင်း: ',
+                                  '(${_entries.length} ကွက်)',
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  'Total',
                                   style: TextStyle(
                                     color: AppTheme.textColor,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                                const SizedBox(width: 32),
                                 Text(
-                                  '${_formatAmount(_totalAmount)} ကျပ်',
+                                  _formatAmount(_totalAmount),
                                   style: TextStyle(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                    fontSize: 18,
                                   ),
                                 ),
                               ],
@@ -690,250 +838,374 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                     ),
           ),
 
-          // Input section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.cardColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Column(
+          // Bottom time info
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    // Number input
-                    Expanded(
-                      flex: 2,
-                      child: TextField(
-                        controller: _numberController,
-                        focusNode: _numberFocusNode,
-                        style: TextStyle(color: AppTheme.textColor),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(3),
-                        ],
-                        decoration: InputDecoration(
-                          hintText: '3D နံပါတ်',
-                          hintStyle: TextStyle(
-                            color: AppTheme.textSecondaryColor,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                        onSubmitted: (_) => _amountFocusNode.requestFocus(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Amount input
-                    Expanded(
-                      flex: 2,
-                      child: TextField(
-                        controller: _amountController,
-                        focusNode: _amountFocusNode,
-                        style: TextStyle(color: AppTheme.textColor),
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          hintText: 'ငွေပမာဏ',
-                          hintStyle: TextStyle(
-                            color: AppTheme.textSecondaryColor,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                        onSubmitted: (_) => _addEntry(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Add button
-                    ElevatedButton(
-                      onPressed: _addEntry,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 16,
-                        ),
-                      ),
-                      child: const Text(
-                        'ထည့်မည်',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  'ဖွင့်ချိန်: $_startTime',
+                  style: TextStyle(
+                    color: AppTheme.textSecondaryColor,
+                    fontSize: 12,
+                  ),
                 ),
-                const SizedBox(height: 8),
-
-                // Row with R button and submit button
-                Row(
-                  children: [
-                    // R button (toggle)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isRToggled = !_isRToggled;
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              _isRToggled
-                                  ? AppTheme.primaryColor.withOpacity(0.2)
-                                  : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppTheme.primaryColor),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              'R',
-                              style: TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              _isRToggled
-                                  ? Icons.check_box
-                                  : Icons.check_box_outline_blank,
-                              color: AppTheme.primaryColor,
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-
-                    // Submit button
-                    ElevatedButton(
-                      onPressed: _entries.isEmpty ? null : _submitEntries,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 24,
-                        ),
-                        minimumSize: const Size(120, 45),
-                      ),
-                      child: const Text(
-                        'ထိုးမည်',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  'ပိတ်ချိန်ကျန်: $_remainingTime',
+                  style: TextStyle(
+                    color: AppTheme.textSecondaryColor,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
           ),
+
+          // Button rows
+          _buildActionButtons(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child:
+                _isBulkEntryMode ? _buildBulkEntryUI() : _buildNormalEntryUI(),
+          ),
+          _buildButtonRows(),
+          SizedBox(height: 12),
         ],
       ),
     );
   }
 
   Widget _buildBalanceBar() {
-    // Use HomeState from Riverpod to get wallet balance
-    final homeDataValue = ref.watch(homeDataProvider);
-    final walletBalance = homeDataValue.when(
-      data: (data) => data.user.balance,
-      loading: () => 0,
-      error: (_, __) => 0,
-    );
-    final formattedBalance = _formatAmount(walletBalance);
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Balance display
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: AppTheme.cardColor,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.account_balance_wallet,
-                  color: AppTheme.textColor,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '$formattedBalance Ks.',
-                  style: TextStyle(color: AppTheme.textColor, fontSize: 13),
-                ),
-              ],
+            child: Consumer(
+              builder: (context, ref, _) {
+                final homeData = ref.watch(homeDataProvider);
+                return homeData.when(
+                  data: (data) {
+                    final balance = data.user.balance;
+                    return Row(
+                      children: [
+                        Icon(
+                          Icons.account_balance_wallet,
+                          color: AppTheme.textColor,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${_formatAmount(balance)} Ks.',
+                          style: TextStyle(
+                            color: AppTheme.textColor,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  loading:
+                      () => Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet,
+                            color: AppTheme.textColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                  error:
+                      (_, __) => Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet,
+                            color: AppTheme.textColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Error loading balance',
+                            style: TextStyle(
+                              color: AppTheme.textColor,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                );
+              },
             ),
           ),
-
-          const Spacer(),
-
-          // Copy-paste button
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => Copy3DNumberScreen(
-                        sessionName: widget.sessionName,
-                        sessionData: widget.sessionData,
-                      ),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => NumberSelectionScreen(
+                            sessionName: widget.sessionName,
+                            selectedTimeSection: widget.selectedTimeSection,
+                          ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.primaryColor),
+                  ),
+                  child: Text(
+                    'ၐဏန်းရွေးထိုးရန်',
+                    style: TextStyle(color: AppTheme.textColor, fontSize: 11),
+                  ),
                 ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppTheme.cardColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.primaryColor),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap:
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => CopyNumberScreen(
+                              sessionName:
+                                  widget.sessionName == "morning" ||
+                                          widget.sessionName == "evening"
+                                      ? widget.sessionName
+                                      : "morning", // Use "morning" as a fallback
+                              selectedTimeSection: widget.selectedTimeSection,
+                            ),
+                      ),
+                    ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.primaryColor),
+                  ),
+                  child: Text(
+                    'ကော်ပီကူးထိုးရန်',
+                    style: TextStyle(color: AppTheme.textColor, fontSize: 11),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildActionButton('အမြန် ရွေးရန်'),
+            const SizedBox(width: 8),
+            _buildActionButton('ထိပ်စီး ဂဏန်း'),
+            const SizedBox(width: 8),
+            _buildActionButton('အိပ်မက် ဂဏန်း'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String text) {
+    // Determine if we're in a white/light theme
+    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
+
+    // Calculate width based on text length
+    final textWidth = text.length * 10.0;
+    final minWidth = 100.0;
+
+    return GestureDetector(
+      onTap: () async {
+        if (text == 'အမြန် ရွေးရန်') {
+          // Navigate to QuickSelectScreen and pass currently selected numbers from quick select
+          final previousQuickSelectNumbers =
+              selectedNumbers.where((number) => true).toList();
+
+          final result = await Navigator.push<List<String>>(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => QuickSelectScreen(
+                    previouslySelectedNumbers: previousQuickSelectNumbers,
+                  ),
+            ),
+          );
+
+          // Process results if we got any back
+          if (result != null && result.isNotEmpty) {
+            _processBulkSelectionResults(result);
+          }
+        } else if (text == 'အိပ်မက် ဂဏန်း') {
+          // Navigate to DreamNumberScreen
+          final result = await Navigator.push<List<String>>(
+            context,
+            MaterialPageRoute(builder: (context) => const DreamNumberScreen()),
+          );
+
+          // Process results if we got any back
+          if (result != null && result.isNotEmpty) {
+            _processBulkSelectionResults(result);
+          }
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        width: math.max(textWidth, minWidth),
+        decoration: BoxDecoration(
+          color: isLightTheme ? Colors.white : AppTheme.cardExtraColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color:
+                isLightTheme
+                    ? Colors.grey.shade400
+                    : Colors.grey.shade800.withOpacity(0.5),
+          ),
+          boxShadow:
+              isLightTheme
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 1,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                  : null,
+        ),
+        child: Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppTheme.textColor, fontSize: 13),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildButtonRows() {
+    // Determine if we're in a white/light theme
+    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                // Clear all entries
+                setState(() {
+                  _entries.clear();
+                  _updateTotalAmount();
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    isLightTheme ? Colors.grey.shade200 : Color(0xFF3A3A3A),
+                minimumSize: const Size(double.infinity, 45),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
               ),
               child: Text(
-                'ကော်ပီကူးထိုးရန်',
-                style: TextStyle(color: AppTheme.textColor, fontSize: 11),
+                'ဖျက်မည်',
+                style: TextStyle(
+                  color: AppTheme.textColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: selectedNumbers.isEmpty ? _addEntry : _addBulkEntries,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                minimumSize: const Size(double.infinity, 45),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 4,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 4,
+                shadowColor: Colors.black.withOpacity(0.3),
+              ),
+              child: Text(
+                'အကွက်ဖြည့်မည်',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: _submitEntries,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                minimumSize: const Size(double.infinity, 45),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 4,
+                shadowColor: Colors.black.withOpacity(0.3),
+              ),
+              child: Text(
+                'ထိုးမည်',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -941,9 +1213,186 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
       ),
     );
   }
+
+  // Build the UI for bulk entry mode
+  Widget _buildBulkEntryUI() {
+    // Determine if we're in a white/light theme
+    final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
+
+    return Column(
+      children: [
+        // Display selected count and bulk amount input
+        Row(
+          children: [
+            Container(
+              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color:
+                    isLightTheme
+                        ? Colors.amber.withOpacity(0.15)
+                        : Colors.grey.shade800,
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    isLightTheme
+                        ? Border.all(color: Colors.amber, width: 1.5)
+                        : null,
+              ),
+              child: Center(
+                child: Text(
+                  '${selectedNumbers.length} ကွက်',
+                  style: TextStyle(
+                    color: isLightTheme ? Colors.amber.shade800 : Colors.amber,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade800,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: TextField(
+                  controller: _bulkAmountController,
+                  autofocus: true,
+                  style: TextStyle(color: AppTheme.textColor),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    hintText: 'ထိုးငွေ(Min - 100 ကျပ်)',
+                    hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  onSubmitted: (_) => _addBulkEntries(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  // Build the normal entry UI (when not in bulk mode)
+  Widget _buildNormalEntryUI() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade800,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: TextField(
+              controller: _numberController,
+              focusNode: _numberFocusNode,
+              style: TextStyle(color: AppTheme.textColor),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(3),
+              ],
+              decoration: InputDecoration(
+                hintText: 'နံပါတ်',
+                hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              onSubmitted: (_) {
+                _amountFocusNode.requestFocus();
+              },
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _isRToggled = !_isRToggled;
+            });
+          },
+          child: Container(
+            height: 48,
+            width: 48,
+            decoration: BoxDecoration(
+              color:
+                  _isRToggled
+                      ? (AppTheme.backgroundColor.computeLuminance() > 0.5
+                          ? Colors.amber.withOpacity(0.15)
+                          : Colors.grey.shade800)
+                      : (AppTheme.backgroundColor.computeLuminance() > 0.5
+                          ? Colors.grey.shade200
+                          : Colors.grey.shade900),
+              borderRadius: BorderRadius.circular(8),
+              border:
+                  _isRToggled
+                      ? (AppTheme.backgroundColor.computeLuminance() > 0.5
+                          ? Border.all(color: Colors.amber, width: 1.5)
+                          : null)
+                      : (AppTheme.backgroundColor.computeLuminance() > 0.5
+                          ? Border.all(color: Colors.grey.shade400)
+                          : null),
+            ),
+            child: Center(
+              child: Text(
+                'R',
+                style: TextStyle(
+                  color:
+                      _isRToggled
+                          ? (AppTheme.backgroundColor.computeLuminance() > 0.5
+                              ? Colors.amber.shade800
+                              : Colors.amber)
+                          : (AppTheme.backgroundColor.computeLuminance() > 0.5
+                              ? Colors.grey.shade600
+                              : Colors.grey.shade500),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 3,
+          child: Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade800,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: TextField(
+              controller: _amountController,
+              focusNode: _amountFocusNode,
+              style: TextStyle(color: AppTheme.textColor),
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                hintText: 'ငွေပမာဏ',
+                hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              onSubmitted: (_) {
+                _addEntry();
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-// Model class for a 3D entry
+// Helper class for 3D entries
 class ThreeDEntry {
   final String number;
   final int amount;

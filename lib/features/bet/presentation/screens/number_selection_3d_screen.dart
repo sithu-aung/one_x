@@ -9,6 +9,7 @@ import 'package:one_x/core/services/storage_service.dart';
 import 'package:one_x/features/bet/domain/models/play_session.dart';
 import 'package:one_x/features/bet/presentation/screens/type_three_d_screen.dart';
 import 'dart:convert';
+import 'dart:math' show min;
 import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/home/data/models/home_model.dart';
 import 'package:one_x/features/bet/presentation/providers/bet_provider.dart';
@@ -76,9 +77,10 @@ class _NumberSelection3DScreenState
       final repository = ref.read(betRepositoryProvider);
       PlaySessionResponse data;
 
-      // Call the API with GET method without session data parameter
+      // Call the API with GET method specifically targeting play-3d endpoint
+      print('Calling api/user/play-3d endpoint...');
       data = await repository.get3DPlayData({});
-      print('Fetched 3D data from unified endpoint');
+      print('Response received from api/user/play-3d: ${data.toJson()}');
 
       setState(() {
         // Store data in a map format for backward compatibility
@@ -96,10 +98,22 @@ class _NumberSelection3DScreenState
           print(
             'Using threeDigits from response with ${digitsToProcess.length} items',
           );
+
+          // Log the first few digits for debugging
+          if (digitsToProcess.isNotEmpty) {
+            print('Sample threeDigits data:');
+            for (int i = 0; i < min(5, digitsToProcess.length); i++) {
+              print('  - ${digitsToProcess[i].toJson()}');
+            }
+          }
         } else if (data.twoDigits != null && data.twoDigits!.isNotEmpty) {
           digitsToProcess = data.twoDigits!;
           print(
-            'Using twoDigits from response with ${digitsToProcess.length} items',
+            'Using twoDigits from response with ${digitsToProcess.length} items (threeDigits was empty)',
+          );
+        } else {
+          print(
+            'WARNING: Both threeDigits and twoDigits are empty in the response',
           );
         }
 
@@ -115,12 +129,21 @@ class _NumberSelection3DScreenState
                 percentage = int.tryParse(digit.percentage.toString()) ?? 0;
               }
 
+              // Log for each digit to trace the mapping
+              print(
+                'Processing digit: ${digit.permanentNumber} with percentage: $percentage, status: ${digit.status}',
+              );
+
               digitsMap[digit.permanentNumber!] = {
                 'percentage': percentage,
                 'is_tape': digit.isTape,
                 'is_hot': digit.isHot,
                 'status': digit.status,
               };
+            } else {
+              print(
+                'WARNING: Found digit with null permanentNumber: ${digit.toJson()}',
+              );
             }
           }
           _threeDigitsData = digitsMap;
@@ -156,9 +179,12 @@ class _NumberSelection3DScreenState
         _isLoading = false;
       });
 
-      print('API data loaded successfully');
+      print(
+        'API data loaded successfully. Processed ${_threeDigitsData.length} digit entries.',
+      );
     } catch (e) {
-      print('Error fetching 3D digit data: $e');
+      print('ERROR fetching 3D digit data: $e');
+      print('Stack trace: ${e is Exception ? e.toString() : ""}');
 
       if (mounted) {
         setState(() {
@@ -186,14 +212,16 @@ class _NumberSelection3DScreenState
   }
 
   void _processDigitData() {
+    print('Processing digit data for UI display...');
+
     // Clear existing data
     unavailableNumbers = {};
     numberIndicators = {};
 
     // Process directly from _threeDigitsData which contains processed percentage information
     _threeDigitsData.forEach((digitKey, digitData) {
-      // Get percentage value and reverse it (100% - API percentage)
-      // API percentage means "available percentage", UI shows "used percentage"
+      // Get percentage value directly from API
+      // API percentage means "used percentage", not available percentage
       final dynamic rawPercentage = digitData['percentage'];
       int apiPercentage = 0;
 
@@ -208,7 +236,8 @@ class _NumberSelection3DScreenState
         apiPercentage = int.tryParse(rawPercentage.toString()) ?? 0;
       }
 
-      final uiPercentage = 100 - apiPercentage; // Reverse for UI display
+      // Use API percentage directly (no reversal needed)
+      final uiPercentage = apiPercentage;
 
       final status = digitData['status'];
 
@@ -232,6 +261,13 @@ class _NumberSelection3DScreenState
         'color': progressColor,
         'progress': uiPercentage / 100, // Convert to 0-1 scale
       };
+
+      // Add detailed logging for important digits
+      if (uiPercentage > 80 || status == 'inactive') {
+        print(
+          'High usage digit: $digitKey, API%: $apiPercentage, UI%: $uiPercentage, Status: $status',
+        );
+      }
     });
 
     // Also check inactive digits from API
@@ -241,6 +277,9 @@ class _NumberSelection3DScreenState
       final inactiveDigitsStr = _apiData['inactiveDigit'];
       try {
         final List<dynamic> inactiveDigits = json.decode(inactiveDigitsStr);
+        print(
+          'Found ${inactiveDigits.length} inactive digits from inactiveDigit field',
+        );
         for (final digit in inactiveDigits) {
           if (digit is String) {
             unavailableNumbers.add(digit);
@@ -253,6 +292,13 @@ class _NumberSelection3DScreenState
 
     print('Processed ${numberIndicators.length} digits with indicators');
     print('${unavailableNumbers.length} unavailable numbers');
+
+    // Log some stats about the processed data
+    int highUsageCount = 0;
+    numberIndicators.forEach((key, value) {
+      if (value['progress'] > 0.9) highUsageCount++;
+    });
+    print('Statistics: $highUsageCount digits have >90% usage');
   }
 
   // Check if a number was from quick select
@@ -1293,7 +1339,7 @@ class _NumberSelection3DScreenState
         builder:
             (context) => TypeThreeDScreen(
               sessionName: widget.sessionName,
-              sessionData: {'session': widget.sessionData['session']},
+              selectedTimeSection: widget.sessionData['session_name'],
             ),
       ),
     );

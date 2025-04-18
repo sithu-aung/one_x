@@ -166,3 +166,45 @@ final threeDHistoryProvider = StateNotifierProvider<
   final repository = ref.watch(betRepositoryProvider);
   return ThreeDHistoryNotifier(repository: repository);
 });
+
+// 3D winners notifier
+class ThreeDWinnersNotifier
+    extends StateNotifier<AsyncValue<WinnerListResponse>> {
+  final BetRepository repository;
+  String? selectedDate;
+
+  ThreeDWinnersNotifier({required this.repository})
+    : super(const AsyncValue.loading()) {
+    getWinners();
+  }
+
+  Future<void> getWinners() async {
+    try {
+      state = const AsyncValue.loading();
+      final response = await repository.get3DWinners();
+      state = AsyncValue.data(response);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
+    }
+  }
+
+  Future<void> getWinnersByDate(String date) async {
+    try {
+      selectedDate = date;
+      state = const AsyncValue.loading();
+      final response = await repository.get3DWinnersByDate(date);
+      state = AsyncValue.data(response);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
+    }
+  }
+}
+
+// 3D winners provider
+final threeDWinnersProvider = StateNotifierProvider<
+  ThreeDWinnersNotifier,
+  AsyncValue<WinnerListResponse>
+>((ref) {
+  final repository = ref.watch(betRepositoryProvider);
+  return ThreeDWinnersNotifier(repository: repository);
+});

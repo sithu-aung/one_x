@@ -240,67 +240,87 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'အတည်ပြုရန်',
+                      style: TextStyle(
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
+                        ),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Icon(
+                        Icons.close,
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
+                        ),
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
                 Text(
-                  'အတည်ပြုမှု',
+                  'သေချာပါသလား?',
                   style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 18,
+                    color: AppTheme.getTextColorForBackground(
+                      AppTheme.cardColor,
+                    ),
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  user.username,
+                  style: TextStyle(
+                    color: AppTheme.getTextColorForBackground(
+                      AppTheme.cardColor,
+                    ),
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'အသုံးပြုသူအမည်: ${user.username}',
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 14,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Total',
+                      style: TextStyle(
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
                         ),
+                        fontSize: 16,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'ဂဏန်းအရေအတွက်: ${_entries.length}',
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 14,
+                    ),
+                    const SizedBox(width: 20),
+                    Text(
+                      '( ${_entries.length} ကွက် )',
+                      style: TextStyle(
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
                         ),
+                        fontSize: 16,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'ဂဏန်းများ: ${_entries.map((e) => e.number).join(', ')}',
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 14,
+                    ),
+                    const SizedBox(width: 20),
+                    Text(
+                      _formatAmount(_totalAmount),
+                      style: TextStyle(
+                        color: AppTheme.getTextColorForBackground(
+                          AppTheme.cardColor,
                         ),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'စုစုပေါင်းငွေပမာဏ: $_totalAmount',
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'ဂဏန်းထိုးပြီးလျှင် ပြန်ဖျက်၍မရပါ။',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 30),
                 Row(
@@ -316,7 +336,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              'မလုပ်တော့ပါ',
+                              'NO',
                               style: TextStyle(
                                 color: AppTheme.getTextColorForBackground(
                                   AppTheme.cardExtraColor,
@@ -344,7 +364,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              'သေချာပါသည်',
+                              'YES',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -843,11 +863,12 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
           // Button rows
           _buildActionButtons(),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child:
                 _isBulkEntryMode ? _buildBulkEntryUI() : _buildNormalEntryUI(),
           ),
           _buildButtonRows(),
+          SizedBox(height: 12),
         ],
       ),
     );
