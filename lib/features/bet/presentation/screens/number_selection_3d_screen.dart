@@ -435,7 +435,18 @@ class _NumberSelection3DScreenState
 
           // Manual input button
           GestureDetector(
-            onTap: () => _showManualInputDialog(),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => TypeThreeDScreen(
+                        sessionName: widget.sessionName,
+                        selectedTimeSection: widget.sessionData['session_name'],
+                      ),
+                ),
+              );
+            },
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -463,7 +474,7 @@ class _NumberSelection3DScreenState
           // Copy-paste button
           GestureDetector(
             onTap:
-                () => Navigator.push(
+                () => Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder:
@@ -1188,10 +1199,7 @@ class _NumberSelection3DScreenState
                       ? Colors.grey.shade100
                       : Colors.grey.shade800.withOpacity(0.3),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color:
-                    isLightTheme ? Colors.grey.shade300 : Colors.grey.shade700,
-              ),
+              // Remove the border completely
             ),
             child: Row(
               children: [
@@ -1208,6 +1216,10 @@ class _NumberSelection3DScreenState
                         fontFamily: 'Pyidaungsu',
                       ),
                       border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     onChanged: (value) {
@@ -1283,12 +1295,12 @@ class _NumberSelection3DScreenState
 
               const SizedBox(width: 12),
 
-              // Next button
+              // Next button - only disabled if no numbers are selected
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
                   onPressed:
-                      (selectedNumbers.isEmpty || _amount < _minAmount)
+                      selectedNumbers.isEmpty
                           ? null
                           : () {
                             Navigator.push(
@@ -1328,19 +1340,6 @@ class _NumberSelection3DScreenState
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  void _showManualInputDialog() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (context) => TypeThreeDScreen(
-              sessionName: widget.sessionName,
-              selectedTimeSection: widget.sessionData['session_name'],
-            ),
       ),
     );
   }

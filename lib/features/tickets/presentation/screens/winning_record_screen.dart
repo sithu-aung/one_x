@@ -133,7 +133,7 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
   }
 
   Widget _buildPendingTab() {
-    return const Center(child: Text('No pending records.'));
+    return const Center(child: Text('မှတ်တမ်း မရှိသေးပါ။'));
   }
 
   Widget _buildCompletedTab() {
@@ -155,7 +155,7 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
             data: (response) {
               final records = response.winningRecord ?? [];
               if (records.isEmpty) {
-                return const Center(child: Text('No records found.'));
+                return const Center(child: Text('မှတ်တမ်း မရှိပါ။'));
               }
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(

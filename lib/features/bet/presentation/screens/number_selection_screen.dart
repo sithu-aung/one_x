@@ -412,7 +412,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder:
@@ -442,7 +442,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
               const SizedBox(width: 8),
               GestureDetector(
                 onTap:
-                    () => Navigator.push(
+                    () => Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder:
