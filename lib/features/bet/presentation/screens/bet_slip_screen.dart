@@ -22,6 +22,7 @@ class BetSlipScreen extends ConsumerStatefulWidget {
   final int? invoiceId;
   final Map<String, dynamic>? invoiceData;
   final bool fromWinningRecords;
+  final bool fromSuccessfulApiResponse;
 
   const BetSlipScreen({
     super.key,
@@ -31,6 +32,7 @@ class BetSlipScreen extends ConsumerStatefulWidget {
     this.invoiceId,
     this.invoiceData,
     this.fromWinningRecords = false,
+    this.fromSuccessfulApiResponse = false,
   });
 
   @override
@@ -151,12 +153,12 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.backgroundColor,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Member လက်မှတ် အသေးစိတ်',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          'လက်မှတ် အသေးစိတ်',
+          style: TextStyle(color: AppTheme.textColor),
         ),
         actions: [
           IconButton(
@@ -179,36 +181,37 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
                       Theme.of(context).platform == TargetPlatform.iOS;
                   return Column(
                     children: [
-                      // Success message
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF4CAF50),
-                                shape: BoxShape.circle,
+                      // Success message - only show if coming from successful API response
+                      if (widget.fromSuccessfulApiResponse)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF4CAF50),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 18,
+                              const SizedBox(width: 10),
+                              const Text(
+                                'Ticket Create Successfully!',
+                                style: TextStyle(
+                                  color: Color(0xFF4CAF50),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Text(
-                              'Ticket Create Successfully!',
-                              style: TextStyle(
-                                color: Color(0xFF4CAF50),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
                       // Ticket with a little top padding
                       Expanded(
                         child: SingleChildScrollView(
@@ -573,6 +576,7 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             flex: 1,

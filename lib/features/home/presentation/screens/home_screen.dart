@@ -98,7 +98,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ProfileScreen(),
+                            builder:
+                                (context) =>
+                                    const ProfileScreen(fromHomeDrawer: true),
                           ),
                         );
                       },
@@ -125,7 +127,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ProfileScreen(),
+                            builder:
+                                (context) =>
+                                    const ProfileScreen(fromHomeDrawer: true),
                           ),
                         );
                       },
@@ -997,7 +1001,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildProfileContent() {
-    return const ProfileScreen();
+    return const ProfileScreen(fromHomeDrawer: false);
   }
 
   Widget _buildDrawerItem({

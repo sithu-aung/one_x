@@ -95,15 +95,13 @@ class ProfileRepository {
     required String confirmPassword,
   }) async {
     try {
-      final response = await _apiService.post(
-        '/api/user/change-password',
-        body: {
-          'old_password': oldPassword,
-          'new_password': newPassword,
-          'confirm_password': confirmPassword,
-        },
-      );
-      return response;
+      // Use the updatePasswordWithUserKey method instead of making a direct API call
+      if (newPassword != confirmPassword) {
+        throw Exception('New password and confirm password do not match');
+      }
+
+      // Call updatePasswordWithUserKey which already handles getting the userKey
+      return await updatePasswordWithUserKey(newPassword: newPassword);
     } catch (error) {
       print('Error changing password: $error');
       rethrow;

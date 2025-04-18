@@ -6,7 +6,9 @@ import 'package:one_x/features/profile/application/profile_provider.dart';
 import 'package:intl/intl.dart';
 
 class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({super.key});
+  final bool fromHomeDrawer;
+
+  const ProfileScreen({super.key, this.fromHomeDrawer = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,6 +22,19 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
+      // Only show AppBar if coming from home drawer, otherwise show no AppBar
+      appBar:
+          fromHomeDrawer
+              ? AppBar(
+                backgroundColor: AppTheme.backgroundColor,
+                elevation: 0,
+                automaticallyImplyLeading: false,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              )
+              : null,
       body: SafeArea(
         bottom: false, // Don't pad for bottom navigation
         child: userProfileAsync.when(
@@ -69,22 +84,23 @@ class ProfileScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile title at top left
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 16.0,
-                top: 16.0,
-                bottom: 8.0,
-              ),
-              child: Text(
-                'Profile',
-                style: TextStyle(
-                  color: AppTheme.textColor,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+            // Profile title at top left - only show if coming from home drawer
+            if (fromHomeDrawer)
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  top: 16.0,
+                  bottom: 8.0,
+                ),
+                child: Text(
+                  'Profile',
+                  style: TextStyle(
+                    color: AppTheme.textColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
 
             // Profile picture with edit button
             Center(
@@ -252,16 +268,10 @@ class ProfileScreen extends ConsumerWidget {
 
             // Contact Information section
             _buildSectionHeader('Contact Information'),
-            _buildInfoItem('Phone', user?.phone ?? '09123456789'),
-            _buildInfoItem('Viber Phone', user?.hiddenPhone ?? '09123456789'),
-            _buildInfoItem(
-              'Telegram Account',
-              user?.myReferral ?? 'https://telegram/aa/profile',
-            ),
-            _buildInfoItem(
-              'Address',
-              user?.address ?? 'No 141,Sanchaung Ts, Yangon',
-            ),
+            _buildInfoItem('Phone', user?.phone ?? '-'),
+            _buildInfoItem('Viber Phone', user?.hiddenPhone ?? '-'),
+            _buildInfoItem('Referal ID', user?.myReferral ?? '-'),
+            _buildInfoItem('Address', user?.address ?? '-'),
 
             // User Balance information
             _buildSectionHeader('Balance Information'),
@@ -272,19 +282,11 @@ class ProfileScreen extends ConsumerWidget {
                   : 'Not available',
             ),
             _buildInfoItem(
-              'Digit Usage',
-              user?.digitUsage != null
-                  ? user.digitUsage.toString()
-                  : 'Not available',
+              'Created At',
+              user?.createdAtHuman != null
+                  ? user.createdAtHuman.toString()
+                  : '-',
             ),
-
-            // User Role information if available
-            if (user?.roles != null && user!.roles!.isNotEmpty) ...[
-              _buildSectionHeader('Role Information'),
-              ...user.roles!.map(
-                (role) => _buildInfoItem('Role', role.name ?? 'Standard User'),
-              ),
-            ],
 
             // User Response Field information if available - removed as API doesn't exist
             // if (user?.userResponseField != null) ...[
