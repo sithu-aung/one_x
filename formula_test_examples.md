@@ -1,0 +1,79 @@
+# Complex Formula Test Examples
+
+## Special Formulas (No digits needed)
+1. AP၅၀၀ (All Pairs) - Expected: 00, 11, 22, 33, 44, 55, 66, 77, 88, 99 with 500 each
+2. အပူး300 (All Pairs in Myanmar) - Expected: 00, 11, 22, 33, 44, 55, 66, 77, 88, 99 with 300 each
+3. SP400 (Even Pairs) - Expected: 00, 22, 44, 66, 88 with 400 each
+4. စုံပူး၂၀၀ (Even Pairs in Myanmar) - Expected: 00, 22, 44, 66, 88 with 200 each
+5. MP₁₀₀₀ (Odd Pairs) - Expected: 11, 33, 55, 77, 99 with 1000 each
+6. မပူး၁၅၀၀ (Odd Pairs in Myanmar) - Expected: 11, 33, 55, 77, 99 with 1500 each
+7. NK350 (Zodiac) - Expected: 07, 18, 24, 35, 69, 70, 81, 42, 53, 96 with 350 each
+8. နက္ခတ်၅၀၀ (Zodiac in Myanmar) - Expected: 07, 18, 24, 35, 69, 70, 81, 42, 53, 96 with 500 each
+9. PW800 (Power) - Expected: 05, 16, 27, 38, 49, 50, 61, 72, 83, 94 with 800 each
+10. ပါဝါ၄၀၀ (Power in Myanmar) - Expected: 05, 16, 27, 38, 49, 50, 61, 72, 83, 94 with 400 each
+11. ညီကို950 (Brothers) - Expected: 10, 21, 32, 43, 54, 65, 76, 87, 98, 09, 01, 12, 23, 34, 45, 56, 67, 78, 89, 90 with 950 each
+
+## Formulas Requiring Numbers
+12. 12R500 (Reverse) - Expected: 12, 21 with 500 each
+13. ၁၅r300 (Reverse with Myanmar) - Expected: 15, 51 with 300 each
+14. 5BR400 (Break/Sum) - Expected: 05, 14, 23, 32, 41, 50 with 400 each
+15. ၈ဘရိတ်၉၀၀ (Break in Myanmar) - Expected: 08, 17, 26, 35, 44, 53, 62, 71, 80 with 900 each
+16. 3TS250 (Top/Head) - Expected: 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 with 250 each
+17. ၆ထိပ်300 (Top in Myanmar) - Expected: 60, 61, 62, 63, 64, 65, 66, 67, 68, 69 with 300 each
+18. 7NP600 (Tail) - Expected: 07, 17, 27, 37, 47, 57, 67, 77, 87, 97 with 600 each
+19. ၉နောက်ပိတ်၃၅၀ (Tail in Myanmar) - Expected: 09, 19, 29, 39, 49, 59, 69, 79, 89, 99 with 350 each
+20. 2P200 (Contains) - Expected: 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 02, 12, 32, 42, 52, 62, 72, 82, 92 with 200 each
+21. ၄ပါ၄၅၀ (Contains in Myanmar) - Expected: 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 04, 14, 24, 34, 54, 64, 74, 84, 94 with 450 each
+22. 123K600 (Combinations) - Expected: 12, 13, 21, 23, 31, 32 with 600 each
+23. ၁၂၃ခွေ၇၀၀ (Combinations in Myanmar) - Expected: 12, 13, 21, 23, 31, 32 with 700 each
+24. 456KP500 (Combinations with Pairs) - Expected: 44, 45, 46, 54, 55, 56, 64, 65, 66 with 500 each
+25. ၇၈၉ခွေပူး၄၀၀ (Combinations with Pairs in Myanmar) - Expected: 77, 78, 79, 87, 88, 89, 97, 98, 99 with 400 each
+
+## Mixed Format Lines (Multiple numbers with various separators)
+26. 12.34=500 - Expected: 12, 21, 34, 43 with 500 each
+27. 45*67 500 - Expected: 45, 54, 67, 76 with 500 each
+28. ၁၂.၃၄-၅၀၀ - Expected: 12, 21, 34, 43 with 500 each
+29. ၅၆*၇၈ ၆၀၀ - Expected: 56, 65, 78, 87 with 600 each
+30. 23,45,67=200 - Expected: 23, 32, 45, 54, 67, 76 with 200 each
+31. ၂၃,၄၅,၆၇=၃၀၀ - Expected: 23, 32, 45, 54, 67, 76 with 300 each
+
+## Complex Combined Examples (Multiple formats in one line)
+32. AP500 23R300 45NP200 - Expected:
+    - 00, 11, 22, 33, 44, 55, 66, 77, 88, 99 with 500 each
+    - 23, 32 with 300 each
+    - 05, 15, 25, 35, 45, 55, 65, 75, 85, 95 with 200 each
+
+33. အပူး၆၀၀ ၁၂ခွေ၄၀၀ ၇နောက်ပိတ်၅၀၀ - Expected:
+    - 00, 11, 22, 33, 44, 55, 66, 77, 88, 99 with 600 each
+    - 12, 21 with 400 each
+    - 07, 17, 27, 37, 47, 57, 67, 77, 87, 97 with 500 each
+
+## Combined Multi-line Input Test
+```
+AP၅၀၀
+၅BR300
+12TS200
+3NP400
+456K500
+789KP600
+NK350
+PW400
+ညီကို500
+SP400
+MP300
+45,67,89 500
+```
+
+Expected results:
+- 00, 11, 22, 33, 44, 55, 66, 77, 88, 99 with 500 each (AP)
+- 05, 14, 23, 32, 41, 50 with 300 each (BR)
+- 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 with 200 each (TS)
+- 03, 13, 23, 33, 43, 53, 63, 73, 83, 93 with 400 each (NP)
+- 45, 46, 54, 56, 64, 65 with 500 each (K)
+- 77, 78, 79, 87, 88, 89, 97, 98, 99 with 600 each (KP)
+- 07, 18, 24, 35, 69, 70, 81, 42, 53, 96 with 350 each (NK)
+- 05, 16, 27, 38, 49, 50, 61, 72, 83, 94 with 400 each (PW)
+- All "Brother" pattern numbers with 500 each (ညီကို)
+- 00, 22, 44, 66, 88 with 400 each (SP)
+- 11, 33, 55, 77, 99 with 300 each (MP)
+- 45, 54, 67, 76, 89, 98 with 500 each (regular numbers)
