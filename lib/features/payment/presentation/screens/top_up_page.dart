@@ -15,6 +15,10 @@ class TopUpPage extends ConsumerStatefulWidget {
 }
 
 class _TopUpPageState extends ConsumerState<TopUpPage> {
+  int? selectedProviderId;
+  String? selectedProviderName;
+  String? selectedImageLocation;
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +26,16 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
     Future(() {
       ref.read(paymentProvider.notifier).loadPaymentProviders();
     });
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Copied to clipboard'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -51,7 +65,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Top Up',
+          'ငွေသွင်းရန်',
           style: TextStyle(
             color: textColor,
             fontSize: 18,
@@ -59,50 +73,118 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: providersAsyncValue.when(
-          data: (providers) {
-            if (providers.providers.isEmpty) {
-              return Center(
-                child: Text(
-                  'No payment providers available',
-                  style: TextStyle(color: textColor),
-                ),
-              );
-            }
-
-            return ListView.separated(
-              itemCount: providers.providers.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final provider = providers.providers[index];
-                return _buildPaymentOption(
-                  context: context,
-                  // Use imageLocation if available, otherwise fallback to assets
-                  imagePath: provider.imageLocation,
-                  title: provider.providerName,
-                  subtitle: provider.billing?.providerPhone ?? '',
-                  onTap:
-                      () => _navigateToAmountDefineScreen(
-                        context,
-                        provider.providerName,
-                        provider.id,
-                        provider.imageLocation,
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: providersAsyncValue.when(
+                data: (providers) {
+                  if (providers.providers.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No payment providers available',
+                        style: TextStyle(color: textColor),
                       ),
-                );
-              },
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error:
-              (error, stackTrace) => Center(
-                child: Text(
-                  'Error loading payment providers: $error',
-                  style: TextStyle(color: textColor),
-                ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    itemCount: providers.providers.length,
+                    separatorBuilder:
+                        (context, index) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final provider = providers.providers[index];
+                      final phoneNumber = provider.billing?.providerPhone ?? '';
+                      return _buildPaymentOption(
+                        context: context,
+                        imagePath: provider.imageLocation,
+                        title: provider.providerName,
+                        subtitle: phoneNumber,
+                        providerId: provider.id,
+                        isSelected: selectedProviderId == provider.id,
+                        onTap: () {
+                          setState(() {
+                            selectedProviderId = provider.id;
+                            selectedProviderName = provider.providerName;
+                            selectedImageLocation = provider.imageLocation;
+                          });
+                        },
+                        onCopyPressed:
+                            phoneNumber.isNotEmpty
+                                ? () => _copyToClipboard(phoneNumber)
+                                : null,
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error:
+                    (error, stackTrace) => Center(
+                      child: Text(
+                        'Error loading payment providers: $error',
+                        style: TextStyle(color: textColor),
+                      ),
+                    ),
               ),
-        ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  offset: const Offset(0, -1),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey.shade300,
+                      foregroundColor: Colors.black87,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('မလုပ်တော့ပါ'),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed:
+                        selectedProviderId == null
+                            ? null
+                            : () => _navigateToAmountDefineScreen(
+                              context,
+                              selectedProviderName!,
+                              selectedProviderId!,
+                              selectedImageLocation!,
+                            ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade400,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('ရွေးချယ်မည်'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -136,20 +218,27 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
     required String imagePath,
     required String title,
     required String subtitle,
+    required int providerId,
+    required bool isSelected,
     required VoidCallback onTap,
+    VoidCallback? onCopyPressed,
   }) {
     final isDarkMode = AppTheme.backgroundColor.computeLuminance() < 0.5;
     final cardColor = isDarkMode ? AppTheme.cardColor : Colors.white;
     final textColor = AppTheme.textColor;
     final subTextColor = AppTheme.textSecondaryColor;
     final borderColor =
-        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200;
+        isSelected
+            ? Theme.of(context).primaryColor
+            : isDarkMode
+            ? Colors.grey.shade800
+            : Colors.grey.shade200;
 
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor, width: 1),
+        border: Border.all(color: borderColor, width: isSelected ? 2 : 1),
         boxShadow:
             isDarkMode
                 ? null
@@ -217,12 +306,19 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color:
-                      isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
-                ),
+                if (onCopyPressed != null)
+                  IconButton(
+                    icon: const Icon(Icons.copy, size: 20),
+                    color:
+                        isDarkMode
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
+                    onPressed: onCopyPressed,
+                    tooltip: 'Copy phone number',
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(8),
+                  ),
+                const SizedBox(width: 8),
               ],
             ),
           ),

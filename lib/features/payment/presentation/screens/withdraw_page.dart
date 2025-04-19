@@ -53,7 +53,7 @@ class _WithdrawPageState extends ConsumerState<WithdrawPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Withdraw',
+          'ငွေထုတ်ရန်',
           style: TextStyle(
             color: textColor,
             fontSize: 18,

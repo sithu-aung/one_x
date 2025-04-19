@@ -70,14 +70,14 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                       // Default Currency Section
                       GestureDetector(
                         onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ChangeCurrencyPage(),
-                            ),
-                          );
-                          // Refresh data after returning from currency page
-                          ref.read(paymentProvider.notifier).loadInitialData();
+                          // await Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => const ChangeCurrencyPage(),
+                          //   ),
+                          // );
+                          // // Refresh data after returning from currency page
+                          // ref.read(paymentProvider.notifier).loadInitialData();
                         },
                         child: Container(
                           width: double.infinity,
@@ -112,7 +112,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                                       width: 24,
                                       height: 24,
                                     ),
-                                    const SizedBox(width: 4),
+                                    const SizedBox(width: 8),
                                     Text(
                                       currentCurrency,
                                       style: TextStyle(
@@ -123,12 +123,6 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                                     ),
                                   ],
                                 ),
-                              ),
-                              Image.asset(
-                                'assets/images/switch.png',
-                                width: 24,
-                                height: 24,
-                                color: iconColor,
                               ),
                             ],
                           ),
@@ -173,80 +167,81 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      // Exchange Rate Section
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: cardColor,
-                          borderRadius: BorderRadius.circular(12),
-                          border:
-                              isDarkMode
-                                  ? Border.all(color: Colors.grey.shade800)
-                                  : null,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Update Exchange Rate',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: textColor,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  'assets/images/usd.png',
-                                  width: 28,
-                                  height: 28,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '1 USD',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: textColor,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '=',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: textColor,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Image.asset(
-                                  'assets/images/mmk.png',
-                                  width: 28,
-                                  height: 28,
-                                ),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    '${exchangeRate?.rate.toStringAsFixed(0) ?? '4,500'} MMK',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: textColor,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+
+                      // const SizedBox(height: 24),
+                      // // Exchange Rate Section
+                      // Container(
+                      //   width: double.infinity,
+                      //   padding: const EdgeInsets.all(16),
+                      //   decoration: BoxDecoration(
+                      //     color: cardColor,
+                      //     borderRadius: BorderRadius.circular(12),
+                      //     border:
+                      //         isDarkMode
+                      //             ? Border.all(color: Colors.grey.shade800)
+                      //             : null,
+                      //   ),
+                      //   child: Column(
+                      //     crossAxisAlignment: CrossAxisAlignment.start,
+                      //     children: [
+                      //       Text(
+                      //         'Update Exchange Rate',
+                      //         style: TextStyle(
+                      //           fontSize: 16,
+                      //           fontWeight: FontWeight.w500,
+                      //           color: textColor,
+                      //         ),
+                      //       ),
+                      //       const SizedBox(height: 12),
+                      //       Row(
+                      //         mainAxisAlignment: MainAxisAlignment.center,
+                      //         children: [
+                      //           Image.asset(
+                      //             'assets/images/usd.png',
+                      //             width: 28,
+                      //             height: 28,
+                      //           ),
+                      //           const SizedBox(width: 4),
+                      //           Text(
+                      //             '1 USD',
+                      //             style: TextStyle(
+                      //               fontSize: 14,
+                      //               fontWeight: FontWeight.w500,
+                      //               color: textColor,
+                      //             ),
+                      //           ),
+                      //           const SizedBox(width: 8),
+                      //           Text(
+                      //             '=',
+                      //             style: TextStyle(
+                      //               fontSize: 14,
+                      //               fontWeight: FontWeight.w500,
+                      //               color: textColor,
+                      //             ),
+                      //           ),
+                      //           const SizedBox(width: 8),
+                      //           Image.asset(
+                      //             'assets/images/mmk.png',
+                      //             width: 28,
+                      //             height: 28,
+                      //           ),
+                      //           const SizedBox(width: 4),
+                      //           Flexible(
+                      //             child: Text(
+                      //               '${exchangeRate?.rate.toStringAsFixed(0) ?? '4,500'} MMK',
+                      //               style: TextStyle(
+                      //                 fontSize: 14,
+                      //                 fontWeight: FontWeight.w500,
+                      //                 color: textColor,
+                      //               ),
+                      //               overflow: TextOverflow.ellipsis,
+                      //             ),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
                       const SizedBox(height: 24),
                       Row(
                         children: [
@@ -278,9 +273,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder:
-                                        (context) =>
-                                            const WithdrawPage(),
+                                    builder: (context) => const WithdrawPage(),
                                   ),
                                 ).then((_) {
                                   // Refresh data after returning from withdraw page
