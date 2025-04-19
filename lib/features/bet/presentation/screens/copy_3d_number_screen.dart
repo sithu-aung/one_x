@@ -79,7 +79,7 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
-              widget.sessionName,
+              'အရောင်းပိတ်ချိန် - 01:30',
               style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
             ),
           ),
@@ -472,6 +472,12 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
 
         print('Processing line: $line');
 
+        // Check for direct formula pattern first (e.g., "အပူး500", "AP700", "1ထိပ်1000")
+        // Handle specific formula formats before generic line processing
+        if (_processFormulaLine(line, result)) {
+          continue; // Skip regular processing for this line
+        }
+
         // First, separate the line by common amount separators (=, -, :)
         final RegExp amountSeparator = RegExp(r'[=\-:]');
         final parts = line.split(amountSeparator);
@@ -523,44 +529,167 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
     }
   }
 
+  // Check if a line contains a formula and process it if found
+  bool _processFormulaLine(String line, List<Map<String, dynamic>> result) {
+    // Formula patterns - updated to properly include Myanmar digits ၀-၉
+    final headPattern = RegExp(
+      r'^([0-9๐-๙၀-၉]+)(T|ထိပ်|ထိပ်စီး|ရှေ့)([0-9๐-๙၀-၉]+)$',
+    );
+    final middlePattern = RegExp(r'^([0-9๐-๙၀-၉]+)(M|အလယ်)([0-9๐-๙၀-၉]+)$');
+    final tailPattern = RegExp(
+      r'^([0-9๐-๙၀-၉]+)(N|နောက်|နောက်ပိတ်|ပိတ်)([0-9๐-๙၀-၉]+)$',
+    );
+    final allPairsPattern = RegExp(r'^(AP|ap|အပူး|ပူး)([0-9๐-๙၀-၉]+)$');
+    final evenPairsPattern = RegExp(r'^(SP|sp|စုံပူး|စပ)([0-9๐-๙၀-၉]+)$');
+    final oddPairsPattern = RegExp(r'^(MP|mp|မပူး|မပ)([0-9๐-๙၀-၉]+)$');
+
+    print('Checking formula pattern for: $line');
+
+    RegExpMatch? match;
+    String formulaType = "";
+    String digit = "";
+    int amount = 0;
+
+    // Check each formula pattern
+    if ((match = headPattern.firstMatch(line)) != null) {
+      formulaType = "HEAD";
+      digit = _normalizeNumber(match!.group(1) ?? "");
+      String amountStr = match.group(3) ?? "0";
+      amount = int.parse(_normalizeNumber(amountStr).replaceAll(',', ''));
+      print(
+        'Matched HEAD pattern: digit=$digit, amount=$amount, raw amount=$amountStr',
+      );
+    } else if ((match = middlePattern.firstMatch(line)) != null) {
+      formulaType = "MIDDLE";
+      digit = _normalizeNumber(match!.group(1) ?? "");
+      String amountStr = match.group(3) ?? "0";
+      amount = int.parse(_normalizeNumber(amountStr).replaceAll(',', ''));
+      print(
+        'Matched MIDDLE pattern: digit=$digit, amount=$amount, raw amount=$amountStr',
+      );
+    } else if ((match = tailPattern.firstMatch(line)) != null) {
+      formulaType = "TAIL";
+      digit = _normalizeNumber(match!.group(1) ?? "");
+      String amountStr = match.group(3) ?? "0";
+      amount = int.parse(_normalizeNumber(amountStr).replaceAll(',', ''));
+      print(
+        'Matched TAIL pattern: digit=$digit, amount=$amount, raw amount=$amountStr',
+      );
+    } else if ((match = allPairsPattern.firstMatch(line)) != null) {
+      formulaType = "AP";
+      String amountStr = match!.group(2) ?? "0";
+      amount = int.parse(_normalizeNumber(amountStr).replaceAll(',', ''));
+      print('Matched ALL PAIRS pattern: amount=$amount, raw amount=$amountStr');
+    } else if ((match = evenPairsPattern.firstMatch(line)) != null) {
+      formulaType = "SP";
+      String amountStr = match!.group(2) ?? "0";
+      amount = int.parse(_normalizeNumber(amountStr).replaceAll(',', ''));
+      print(
+        'Matched EVEN PAIRS pattern: amount=$amount, raw amount=$amountStr',
+      );
+    } else if ((match = oddPairsPattern.firstMatch(line)) != null) {
+      formulaType = "MP";
+      String amountStr = match!.group(2) ?? "0";
+      amount = int.parse(_normalizeNumber(amountStr).replaceAll(',', ''));
+      print('Matched ODD PAIRS pattern: amount=$amount, raw amount=$amountStr');
+    }
+
+    if (formulaType.isNotEmpty) {
+      try {
+        // Apply the formula to get the numbers
+        final numbers = _applyFormula(formulaType, digit);
+        print(
+          'Generated ${numbers.length} numbers from formula $formulaType: $numbers',
+        );
+
+        // Add each generated number with the specified amount
+        for (final num in numbers) {
+          result.add({'number': num, 'amount': amount});
+          print('Added number from formula: $num with amount: $amount');
+        }
+        return true; // Formula was processed
+      } catch (e) {
+        print('Error processing formula: $e');
+      }
+    }
+
+    return false; // No formula was processed
+  }
+
+  // Apply formula to generate numbers
+  List<String> _applyFormula(String formulaType, String digit) {
+    List<String> numbers = [];
+
+    switch (formulaType) {
+      case "HEAD":
+        // Generate all 3D numbers starting with the specified digit
+        if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
+          for (int i = 0; i <= 9; i++) {
+            for (int j = 0; j <= 9; j++) {
+              numbers.add('$digit$i$j');
+            }
+          }
+        }
+        break;
+
+      case "MIDDLE":
+        // Generate all 3D numbers with the specified middle digit
+        if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
+          for (int i = 0; i <= 9; i++) {
+            for (int j = 0; j <= 9; j++) {
+              numbers.add('$i$digit$j');
+            }
+          }
+        }
+        break;
+
+      case "TAIL":
+        // Generate all 3D numbers ending with the specified digit
+        if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
+          for (int i = 0; i <= 9; i++) {
+            for (int j = 0; j <= 9; j++) {
+              numbers.add('$i$j$digit');
+            }
+          }
+        }
+        break;
+
+      case "AP":
+        // Generate all 3D numbers with the same digits (000, 111, ..., 999)
+        for (int i = 0; i <= 9; i++) {
+          numbers.add('$i$i$i');
+        }
+        break;
+
+      case "SP":
+        // Generate all 3D numbers with the same even digits (000, 222, ..., 888)
+        for (int i = 0; i <= 8; i += 2) {
+          numbers.add('$i$i$i');
+        }
+        break;
+
+      case "MP":
+        // Generate all 3D numbers with the same odd digits (111, 333, ..., 999)
+        for (int i = 1; i <= 9; i += 2) {
+          numbers.add('$i$i$i');
+        }
+        break;
+    }
+
+    return numbers;
+  }
+
   // Process a line to extract numbers and their amounts
   void _processLine(
     String line,
     int amount,
     List<Map<String, dynamic>> result,
   ) {
-    // Check if we have a reverse formula indicator in the whole line
-    final hasReverseFormula = RegExp(r'[Rr@]').hasMatch(line);
-
-    if (hasReverseFormula) {
-      print('Reverse formula detected in: $line');
-      // Try to extract the full pattern: number followed by reverse indicator
-      final formulaParts = RegExp(r'([0-9๐-๙]+)[Rr@]').firstMatch(line);
-      if (formulaParts != null && formulaParts.group(1) != null) {
-        final numberStr = _normalizeNumber(formulaParts.group(1)!);
-
-        // Remove any remaining non-digit characters
-        final cleanNumberStr = numberStr.replaceAll(RegExp(r'[^0-9]'), '');
-
-        // Validate it's a 3-digit number
-        if (_isValid3DNumber(cleanNumberStr)) {
-          // Add the original number
-          result.add({'number': cleanNumberStr, 'amount': amount});
-          print('Added original number: $cleanNumberStr with amount: $amount');
-
-          // Add the reverse number
-          final reversedNumber = cleanNumberStr.split('').reversed.join('');
-          if (reversedNumber != cleanNumberStr) {
-            result.add({'number': reversedNumber, 'amount': amount});
-            print(
-              'Added reversed number: $reversedNumber with amount: $amount',
-            );
-          }
-
-          // We're done with this special pattern
-          return;
-        }
-      }
+    // Check if we have a formula in the line
+    if (_hasFormula(line)) {
+      print('Formula detected in line: $line');
+      _processFormulaInLine(line, amount, result);
+      return;
     }
 
     // If not a whole-line formula, split by separators and process each part
@@ -633,13 +762,131 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
     }
   }
 
+  // Check if text contains a formula pattern
+  bool _hasFormula(String text) {
+    return RegExp(
+      r'[Rr@]|[0-9๐-๙]+(T|ထိပ်|ထိပ်စီး|ရှေ့)|[0-9๐-๙]+(M|အလယ်)|[0-9๐-๙]+(N|နောက်|နောက်ပိတ်|ပိတ်)|AP|ap|အပူး|ပူး|SP|sp|စုံပူး|စပ|MP|mp|မပူး|မပ',
+    ).hasMatch(text);
+  }
+
+  // Process a formula found within a line
+  void _processFormulaInLine(
+    String line,
+    int amount,
+    List<Map<String, dynamic>> result,
+  ) {
+    // Check for reverse formula
+    if (RegExp(r'[Rr@]').hasMatch(line)) {
+      print('Reverse formula detected in: $line');
+      // Try to extract the full pattern: number followed by reverse indicator
+      final formulaParts = RegExp(r'([0-9๐-๙]+)[Rr@]').firstMatch(line);
+      if (formulaParts != null && formulaParts.group(1) != null) {
+        final numberStr = _normalizeNumber(formulaParts.group(1)!);
+
+        // Remove any remaining non-digit characters
+        final cleanNumberStr = numberStr.replaceAll(RegExp(r'[^0-9]'), '');
+
+        // Validate it's a 3-digit number
+        if (_isValid3DNumber(cleanNumberStr)) {
+          // Add the original number
+          result.add({'number': cleanNumberStr, 'amount': amount});
+          print('Added original number: $cleanNumberStr with amount: $amount');
+
+          // Add the reverse number
+          final reversedNumber = cleanNumberStr.split('').reversed.join('');
+          if (reversedNumber != cleanNumberStr) {
+            result.add({'number': reversedNumber, 'amount': amount});
+            print(
+              'Added reversed number: $reversedNumber with amount: $amount',
+            );
+          }
+        }
+      }
+      return;
+    }
+
+    // Check for head/top formula
+    RegExpMatch? match = RegExp(
+      r'([0-9๐-๙]+)(T|ထိပ်|ထိပ်စီး|ရှေ့)',
+    ).firstMatch(line);
+    if (match != null) {
+      String digit = _normalizeNumber(match.group(1) ?? "");
+      if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
+        for (int i = 0; i <= 9; i++) {
+          for (int j = 0; j <= 9; j++) {
+            result.add({'number': '$digit$i$j', 'amount': amount});
+          }
+        }
+      }
+      return;
+    }
+
+    // Check for middle formula
+    match = RegExp(r'([0-9๐-๙]+)(M|အလယ်)').firstMatch(line);
+    if (match != null) {
+      String digit = _normalizeNumber(match.group(1) ?? "");
+      if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
+        for (int i = 0; i <= 9; i++) {
+          for (int j = 0; j <= 9; j++) {
+            result.add({'number': '$i$digit$j', 'amount': amount});
+          }
+        }
+      }
+      return;
+    }
+
+    // Check for tail formula
+    match = RegExp(r'([0-9๐-๙]+)(N|နောက်|နောက်ပိတ်|ပိတ်)').firstMatch(line);
+    if (match != null) {
+      String digit = _normalizeNumber(match.group(1) ?? "");
+      if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
+        for (int i = 0; i <= 9; i++) {
+          for (int j = 0; j <= 9; j++) {
+            result.add({'number': '$i$j$digit', 'amount': amount});
+          }
+        }
+      }
+      return;
+    }
+
+    // All Pairs (AP) formula
+    if (RegExp(r'AP|ap|အပူး|ပူး').hasMatch(line)) {
+      for (int i = 0; i <= 9; i++) {
+        result.add({'number': '$i$i$i', 'amount': amount});
+      }
+      return;
+    }
+
+    // Even Pairs (SP) formula
+    if (RegExp(r'SP|sp|စုံပူး|စပ').hasMatch(line)) {
+      for (int i = 0; i <= 8; i += 2) {
+        result.add({'number': '$i$i$i', 'amount': amount});
+      }
+      return;
+    }
+
+    // Odd Pairs (MP) formula
+    if (RegExp(r'MP|mp|မပူး|မပ').hasMatch(line)) {
+      for (int i = 1; i <= 9; i += 2) {
+        result.add({'number': '$i$i$i', 'amount': amount});
+      }
+      return;
+    }
+  }
+
   void _addNumber(String number, int amount) {
     _parsedNumbers.add({'number': number, 'amount': amount});
     _totalAmount += amount;
   }
 
   String _normalizeNumber(String input) {
-    // Convert Myanmar digits to Arabic digits if needed
+    if (input.isEmpty) {
+      return input;
+    }
+
+    print('Normalizing number: $input');
+
+    // Convert Myanmar digits to Arabic digits
     const myanmarDigits = '၀၁၂၃၄၅၆၇၈၉';
     const arabicDigits = '0123456789';
 
@@ -648,6 +895,7 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
       result = result.replaceAll(myanmarDigits[i], arabicDigits[i]);
     }
 
+    print('After normalization: $result');
     return result;
   }
 

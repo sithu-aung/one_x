@@ -126,7 +126,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                                   ? Colors.grey.shade800
                                   : Colors.grey.shade300,
                           image: const DecorationImage(
-                            image: AssetImage('assets/images/dp.png'),
+                            image: AssetImage('assets/images/avatar.png'),
                             fit: BoxFit.cover,
                           ),
                         ),

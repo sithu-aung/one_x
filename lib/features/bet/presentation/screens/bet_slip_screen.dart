@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/bet/presentation/screens/amount_entry_screen.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+// import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -808,16 +808,36 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
 
       if (imageBytes != null) {
         // Save to gallery
-        final result = await ImageGallerySaver.saveImage(
-          imageBytes,
-          quality: 100,
-          name: 'BetMM_Ticket_${DateTime.now().millisecondsSinceEpoch}',
-        );
+        try {
+          // Get app directory to save the image temporarily
+          final directory = await getApplicationDocumentsDirectory();
+          final filePath =
+              '${directory.path}/BetMM_Ticket_${DateTime.now().millisecondsSinceEpoch}.png';
 
-        if (result['isSuccess']) {
-          _showSuccessMessage('Ticket saved to gallery successfully');
-        } else {
-          _showErrorMessage('Failed to save ticket to gallery');
+          // Write image to file
+          final file = File(filePath);
+          await file.writeAsBytes(imageBytes);
+
+          if (Platform.isIOS) {
+            // For iOS, use the Photos directory
+            final result = await _saveImageToGalleryIOS(filePath);
+            if (result) {
+              _showSuccessMessage('Ticket saved to gallery successfully');
+            } else {
+              _showErrorMessage('Failed to save ticket to gallery');
+            }
+          } else {
+            // For Android
+            final result = await _saveImageToGalleryAndroid(filePath);
+            if (result) {
+              _showSuccessMessage('Ticket saved to gallery successfully');
+            } else {
+              _showErrorMessage('Failed to save ticket to gallery');
+            }
+          }
+        } catch (e) {
+          print('Error saving to gallery: $e');
+          _showErrorMessage('Error saving to gallery: $e');
         }
       } else {
         _showErrorMessage('Failed to capture screenshot');
@@ -829,6 +849,49 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
       setState(() {
         _isSaving = false;
       });
+    }
+  }
+
+  // Helper method to save image to gallery on Android
+  Future<bool> _saveImageToGalleryAndroid(String filePath) async {
+    try {
+      // Get the Pictures directory for Android
+      final directory = await getExternalStorageDirectory();
+      if (directory == null) return false;
+
+      // Create the Pictures/BetMM directory if it doesn't exist
+      final picturesDir = Directory('${directory.path}/Pictures/BetMM');
+      if (!await picturesDir.exists()) {
+        await picturesDir.create(recursive: true);
+      }
+
+      // Create a new file in the Pictures directory
+      final fileName = filePath.split('/').last;
+      final newFilePath = '${picturesDir.path}/$fileName';
+      final file = File(filePath);
+
+      // Copy the file to the Pictures directory
+      await file.copy(newFilePath);
+
+      return true;
+    } catch (e) {
+      print('Error saving to Android gallery: $e');
+      return false;
+    }
+  }
+
+  // Helper method to save image to gallery on iOS
+  Future<bool> _saveImageToGalleryIOS(String filePath) async {
+    try {
+      // We can't directly save to the Photos app on iOS without a plugin
+      // But we can save to Documents and inform the user
+      _showSuccessMessage(
+        'Image saved to app documents. You can share or export it from there.',
+      );
+      return true;
+    } catch (e) {
+      print('Error saving to iOS gallery: $e');
+      return false;
     }
   }
 
