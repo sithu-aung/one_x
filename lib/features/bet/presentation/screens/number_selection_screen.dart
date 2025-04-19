@@ -1614,8 +1614,8 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
     // Get total scroll extent
     final double maxExtent = _marqueeScrollController.position.maxScrollExtent;
 
-    // Define animation duration based on content length - slower speed
-    final int duration = 25000; // 25 seconds for full cycle (was 15 seconds)
+    // Define animation duration based on content length - faster speed
+    final int duration = 18000; // 18 seconds for full cycle (was 25 seconds)
 
     // Animate to end
     _marqueeScrollController

@@ -214,37 +214,37 @@ class _PlayHistoryListWidgetState extends State<PlayHistoryListWidget> {
         ),
 
         // Total section at bottom
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: isLightTheme ? Colors.white : AppTheme.cardExtraColor,
-            borderRadius: BorderRadius.circular(12),
-            border:
-                isLightTheme ? Border.all(color: Colors.grey.shade300) : null,
-            boxShadow:
-                isLightTheme
-                    ? [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
-                      ),
-                    ]
-                    : null,
-          ),
-          child: Text(
-            'စုစုပေါင်း  ${_calculateTotalAmount()} ks',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppTheme.textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Pyidaungsu',
-            ),
-          ),
-        ),
+        // Container(
+        //   width: double.infinity,
+        //   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        //   padding: const EdgeInsets.symmetric(vertical: 16),
+        //   decoration: BoxDecoration(
+        //     color: isLightTheme ? Colors.white : AppTheme.cardExtraColor,
+        //     borderRadius: BorderRadius.circular(12),
+        //     border:
+        //         isLightTheme ? Border.all(color: Colors.grey.shade300) : null,
+        //     boxShadow:
+        //         isLightTheme
+        //             ? [
+        //               BoxShadow(
+        //                 color: Colors.black.withOpacity(0.05),
+        //                 blurRadius: 2,
+        //                 offset: const Offset(0, 1),
+        //               ),
+        //             ]
+        //             : null,
+        //   ),
+        //   child: Text(
+        //     'စုစုပေါင်း  ${_calculateTotalAmount()} ks',
+        //     textAlign: TextAlign.center,
+        //     style: TextStyle(
+        //       color: AppTheme.textColor,
+        //       fontSize: 16,
+        //       fontWeight: FontWeight.bold,
+        //       fontFamily: 'Pyidaungsu',
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }
