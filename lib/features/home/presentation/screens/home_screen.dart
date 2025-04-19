@@ -25,6 +25,7 @@ import 'package:one_x/features/payment/presentation/screens/withdraw_amount_defi
 import 'package:one_x/features/payment/presentation/screens/change_currency_page.dart';
 import 'package:one_x/features/profile/presentation/screens/faq/faq_screen.dart';
 import 'package:one_x/features/profile/presentation/screens/contact_us_screen.dart';
+import 'package:one_x/features/lottery/presentation/screens/coming_soon_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -553,28 +554,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     title: title,
                                     subtitle: subtitle,
                                     onTap: () {
-                                      if (isActive) {
-                                        if (gameType == '2d') {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) =>
-                                                      const TwoDScreen(),
-                                            ),
-                                          );
-                                        } else if (gameType == '3d') {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) =>
-                                                      const ThreeDScreen(),
-                                            ),
-                                          );
-                                        }
-                                        // Add navigation for other active games as needed
+                                      if (gameType == '2d') {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => const TwoDScreen(),
+                                          ),
+                                        );
+                                      } else if (gameType == '3d') {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    const ThreeDScreen(),
+                                          ),
+                                        );
+                                      } else if (gameType == 'power_ball' ||
+                                          gameType == 'mega_million') {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => ComingSoonScreen(
+                                                  title:
+                                                      gameType == 'power_ball'
+                                                          ? 'Power Ball'
+                                                          : 'Mega Millions',
+                                                ),
+                                          ),
+                                        );
                                       }
+                                      // Add navigation for other active games as needed
                                     },
                                     isComingSoon: !isActive,
                                   );
@@ -1186,14 +1198,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             });
           },
         ),
-        IconButton(
-          icon: Image.asset(
-            'assets/images/announcement.png',
-            width: 24,
-            height: 24,
-          ),
-          onPressed: () {},
-        ),
+        // IconButton(
+        //   icon: Image.asset(
+        //     'assets/images/announcement.png',
+        //     width: 24,
+        //     height: 24,
+        //   ),
+        //   onPressed: () {},
+        // ),
       ],
     );
   }

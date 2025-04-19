@@ -437,47 +437,47 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
       _parsedNumbers.clear();
       _totalAmount = 0;
 
-      // Call the API to parse the input
-      // This is a placeholder - you would typically call your backend API here
-      // For now, we'll do a simple parsing to demonstrate
-
-      // Split by newlines and other common separators
-      final lines = input.split(RegExp(r'[\n;]'));
+      // Split by newlines
+      final lines = input.split('\n');
 
       for (var line in lines) {
         line = line.trim();
         if (line.isEmpty) continue;
 
-        // Try to match patterns like "123=1000" or "123:1000" or "123-1000"
-        final separatorMatch = RegExp(
-          r'([0-9๐-๙]{3})[=:\-]([0-9๐-๙]+)',
-        ).firstMatch(line);
+        // First, separate the line by common amount separators (=, -, :)
+        final RegExp amountSeparator = RegExp(r'[=\-:]');
+        final parts = line.split(amountSeparator);
 
-        if (separatorMatch != null) {
-          final number = _normalizeNumber(separatorMatch.group(1)!);
-          final amount = int.parse(_normalizeNumber(separatorMatch.group(2)!));
+        if (parts.length >= 2) {
+          // Last part is assumed to be the amount
+          final amountStr = parts.last.trim();
+          final numbersPart =
+              line.substring(0, line.lastIndexOf(parts.last)).trim();
 
-          if (_isValid3DNumber(number)) {
-            _addNumber(number, amount);
+          // Convert amount from Myanmar to Arabic digits if needed
+          final normalizedAmountStr = _normalizeNumber(amountStr);
+          int? amount;
+
+          try {
+            amount = int.parse(normalizedAmountStr.replaceAll(',', ''));
+          } catch (e) {
+            print('Failed to parse amount: $amountStr');
+            continue;
           }
-        }
-        // Try to match patterns like "123 456 789 - 1000" (multiple numbers with same amount)
-        else {
-          final lastSeparatorIndex = line.lastIndexOf(RegExp(r'[=:\-]'));
 
-          if (lastSeparatorIndex != -1) {
-            final numbersText = line.substring(0, lastSeparatorIndex).trim();
-            final amountText = line.substring(lastSeparatorIndex + 1).trim();
-            final amount = int.parse(_normalizeNumber(amountText));
+          // Split numbers by various separators
+          final RegExp numberSeparator = RegExp(r'[.,*/|\s]+');
+          final numberStrings = numbersPart.split(numberSeparator);
 
-            // Split the numbers by various delimiters
-            final numbers = numbersText.split(RegExp(r'[,.*/ |]'));
+          for (final numStr in numberStrings) {
+            if (numStr.trim().isEmpty) continue;
 
-            for (var numberText in numbers) {
-              final number = _normalizeNumber(numberText.trim());
-              if (_isValid3DNumber(number)) {
-                _addNumber(number, amount);
-              }
+            // Normalize the number (Myanmar to Arabic digits)
+            final normalizedNumber = _normalizeNumber(numStr.trim());
+
+            // Validate that it's a 3-digit number
+            if (_isValid3DNumber(normalizedNumber)) {
+              _addNumber(normalizedNumber, amount);
             }
           }
         }

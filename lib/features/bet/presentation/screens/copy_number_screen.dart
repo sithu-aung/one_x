@@ -242,10 +242,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
             '  - . (full stop)',
             style: TextStyle(color: AppTheme.textColor, fontSize: 14),
           ),
-          Text(
-            '  - (space)',
-            style: TextStyle(color: AppTheme.textColor, fontSize: 14),
-          ),
+
           Text(
             '  - * (star)',
             style: TextStyle(color: AppTheme.textColor, fontSize: 14),
@@ -614,24 +611,58 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
     for (final line in lines) {
       if (line.trim().isEmpty) continue;
 
-      // Try to match the "number = amount" pattern
-      final RegExp basicPattern = RegExp(r'(\d{2})\s*[=\s-]\s*(\d+)');
-      final match = basicPattern.firstMatch(line);
+      // First, separate the line by common amount separators (=, space, -)
+      final RegExp amountSeparator = RegExp(r'[=\s-]');
+      final parts = line.split(amountSeparator);
 
-      if (match != null) {
-        final number = match.group(1);
-        final amountStr = match.group(2);
+      if (parts.length >= 2) {
+        // Last part is assumed to be the amount
+        final amountStr = parts.last.trim();
+        final numbersPart =
+            line.substring(0, line.lastIndexOf(parts.last)).trim();
 
-        if (number != null && amountStr != null) {
-          try {
-            final amount = double.parse(amountStr.replaceAll(',', ''));
-            result.add({'number': number, 'amount': amount});
-          } catch (e) {
-            // If parsing fails, skip this line
-            print('Failed to parse amount: $amountStr');
+        // Convert amount from Myanmar to Arabic digits if needed
+        final normalizedAmountStr = _normalizeNumber(amountStr);
+        double? amount;
+
+        try {
+          amount = double.parse(normalizedAmountStr.replaceAll(',', ''));
+        } catch (e) {
+          print('Failed to parse amount: $amountStr');
+          continue;
+        }
+
+        // Split numbers by various separators
+        final RegExp numberSeparator = RegExp(r'[.,*/\s]+');
+        final numberStrings = numbersPart.split(numberSeparator);
+
+        for (final numStr in numberStrings) {
+          if (numStr.trim().isEmpty) continue;
+
+          // Normalize the number (Myanmar to Arabic digits)
+          final normalizedNumber = _normalizeNumber(numStr.trim());
+
+          // Validate that it's a 2-digit number
+          if (normalizedNumber.length == 2 &&
+              int.tryParse(normalizedNumber) != null) {
+            result.add({'number': normalizedNumber, 'amount': amount});
           }
         }
       }
+    }
+
+    return result;
+  }
+
+  // Helper method to convert Myanmar digits to Arabic digits
+  String _normalizeNumber(String input) {
+    // Convert Myanmar digits to Arabic digits if needed
+    const myanmarDigits = '၀၁၂၃၄၅၆၇၈၉';
+    const arabicDigits = '0123456789';
+
+    String result = input;
+    for (int i = 0; i < myanmarDigits.length; i++) {
+      result = result.replaceAll(myanmarDigits[i], arabicDigits[i]);
     }
 
     return result;

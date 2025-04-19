@@ -242,9 +242,32 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
           firstDate: DateTime(2020),
           lastDate: DateTime.now(),
           builder: (context, child) {
+            final isDarkMode =
+                AppTheme.backgroundColor.computeLuminance() < 0.5;
             return Theme(
               data: Theme.of(context).copyWith(
-                colorScheme: ColorScheme.light(primary: AppTheme.primaryColor),
+                colorScheme:
+                    isDarkMode
+                        ? ColorScheme.dark(
+                          primary: AppTheme.primaryColor,
+                          onPrimary: Colors.white,
+                          surface: AppTheme.cardColor,
+                          onSurface: AppTheme.textColor,
+                        )
+                        : ColorScheme.light(
+                          primary: AppTheme.primaryColor,
+                          onPrimary: Colors.white,
+                          surface: Colors.white,
+                          onSurface: Colors.black87,
+                        ),
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                  ),
+                ),
+                dialogTheme: DialogThemeData(
+                  backgroundColor: AppTheme.cardColor,
+                ),
               ),
               child: child!,
             );
