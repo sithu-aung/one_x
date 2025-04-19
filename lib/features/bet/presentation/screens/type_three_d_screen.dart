@@ -134,6 +134,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
 
     // Add the entry to the list
     setState(() {
+      // Add the original number
       _entries.add(ThreeDEntry(number: number, amount: amount));
       _entryAmountControllers.add(
         TextEditingController(text: amount.toString()),
