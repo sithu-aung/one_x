@@ -496,9 +496,15 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
     });
 
     try {
+      print('Processing input text: ${_textController.text}');
       final List<Map<String, dynamic>> parsedData = _parseFormattedText(
         _textController.text,
       );
+
+      print('Parsed data results: ${parsedData.length} entries');
+      for (var entry in parsedData) {
+        print('Number: ${entry['number']}, Amount: ${entry['amount']}');
+      }
 
       if (parsedData.isEmpty) {
         _showErrorMessage(
@@ -522,16 +528,31 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
 
       final user = homeData.value!.user;
 
-      // Extract numbers and create a map of number:amount
-      List<String> numbers = [];
+      // Create a map of number:amount and deduplicate numbers
       Map<String, int> numberAmounts = {};
 
       for (var item in parsedData) {
         String number = item['number'];
         double amount = item['amount'];
-        numbers.add(number);
-        numberAmounts[number] = amount.toInt();
+
+        // For the map, we'll combine amounts for the same number
+        if (numberAmounts.containsKey(number)) {
+          numberAmounts[number] = numberAmounts[number]! + amount.toInt();
+          print('Combined amount for $number: ${numberAmounts[number]}');
+        } else {
+          numberAmounts[number] = amount.toInt();
+        }
       }
+
+      // Create a deduplicated list of numbers
+      List<String> uniqueNumbers = numberAmounts.keys.toList();
+
+      print(
+        'Deduplicated numbers list (${uniqueNumbers.length}): $uniqueNumbers',
+      );
+      print(
+        'Final numberAmounts map (${numberAmounts.length}): $numberAmounts',
+      );
 
       setState(() {
         _isLoading = false;
@@ -544,7 +565,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
           MaterialPageRoute(
             builder:
                 (context) => AmountEntryScreen(
-                  selectedNumbers: numbers,
+                  selectedNumbers: uniqueNumbers,
                   betType: '2D နံပါတ်',
                   sessionName: widget.sessionName,
                   userName: user.username,
@@ -605,21 +626,139 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
   }
 
   List<Map<String, dynamic>> _parseFormattedText(String text) {
+    // Store parsed results directly in a list to preserve all entries including duplicates
     final List<Map<String, dynamic>> result = [];
     final List<String> lines = text.split('\n');
 
+    print('Parsing ${lines.length} lines of input');
+
+    // Process each line
     for (final line in lines) {
       if (line.trim().isEmpty) continue;
+      print('Processing line: $line');
 
-      // First, separate the line by common amount separators (=, space, -)
+      // Check for direct formula + amount format (e.g., "AP500", "ညီကို၅၀၀")
+      print('Checking for direct formula pattern in: "$line"');
+
+      // Updated patterns for formula detection - simpler with better debugging
+      final apPattern = RegExp(r'^(AP|ap|A|a|အပူး|ပူး|အပူးစုံ)([0-9๐-๙၀-၉]+)$');
+      final spPattern = RegExp(r'^(SP|sp|စုံပူး|စပ)([0-9๐-๙၀-၉]+)$');
+      final mpPattern = RegExp(r'^(MP|mp|မပူး|မပ)([0-9๐-๙၀-၉]+)$');
+      final nkPattern = RegExp(
+        r'^(NK|Nk|nk|နက္ခတ်|နတ်ခက်|နတ်ခတ်|နခ)([0-9๐-๙၀-၉]+)$',
+      );
+      final pwPattern = RegExp(r'^(PW|Pw|pw|ပါဝါ|ပဝ)([0-9๐-๙၀-၉]+)$');
+      final nyikoPattern = RegExp(r'^(ညီကို|ညီနောင်)([0-9๐-๙၀-၉]+)$');
+
+      // Debug direct matches
+      print('NK pattern match: ${nkPattern.hasMatch(line)}');
+      print('PW pattern match: ${pwPattern.hasMatch(line)}');
+      print('AP pattern match: ${apPattern.hasMatch(line)}');
+      print('SP pattern match: ${spPattern.hasMatch(line)}');
+      print('MP pattern match: ${mpPattern.hasMatch(line)}');
+      print('ညီကို pattern match: ${nyikoPattern.hasMatch(line)}');
+
+      RegExpMatch? match;
+      String formulaType = "";
+      String formula = "";
+      String amountStr = "";
+
+      // Try each pattern until we find a match
+      if ((match = apPattern.firstMatch(line)) != null) {
+        formulaType = "AP";
+        formula = match!.group(1) ?? "";
+        amountStr = match.group(2) ?? "";
+        print('Matched AP pattern: formula=$formula, amount=$amountStr');
+      } else if ((match = spPattern.firstMatch(line)) != null) {
+        formulaType = "SP";
+        formula = match!.group(1) ?? "";
+        amountStr = match.group(2) ?? "";
+        print('Matched SP pattern: formula=$formula, amount=$amountStr');
+      } else if ((match = mpPattern.firstMatch(line)) != null) {
+        formulaType = "MP";
+        formula = match!.group(1) ?? "";
+        amountStr = match.group(2) ?? "";
+        print('Matched MP pattern: formula=$formula, amount=$amountStr');
+      } else if ((match = nkPattern.firstMatch(line)) != null) {
+        formulaType = "NK";
+        formula = match!.group(1) ?? "";
+        amountStr = match.group(2) ?? "";
+        print('Matched NK pattern: formula=$formula, amount=$amountStr');
+      } else if ((match = pwPattern.firstMatch(line)) != null) {
+        formulaType = "PW";
+        formula = match!.group(1) ?? "";
+        amountStr = match.group(2) ?? "";
+        print('Matched PW pattern: formula=$formula, amount=$amountStr');
+      } else if ((match = nyikoPattern.firstMatch(line)) != null) {
+        formulaType = "ညီကို";
+        formula = match!.group(1) ?? "";
+        amountStr = match.group(2) ?? "";
+        print('Matched ညီကို pattern: formula=$formula, amount=$amountStr');
+      }
+
+      if (formulaType.isNotEmpty && amountStr.isNotEmpty) {
+        print(
+          'Successfully identified formula type: $formulaType with amount: $amountStr',
+        );
+        try {
+          // Check if amountStr contains Myanmar digits
+          bool containsMyanmarDigits = RegExp(r'[၀-၉]').hasMatch(amountStr);
+          print('Amount contains Myanmar digits: $containsMyanmarDigits');
+
+          // Convert amount from Myanmar to Arabic digits
+          final normalizedAmountStr = _normalizeNumber(amountStr);
+          print(
+            'Original amount: $amountStr, Normalized amount: $normalizedAmountStr',
+          );
+
+          // Make sure we remove any commas before parsing
+          String cleanAmount = normalizedAmountStr.replaceAll(',', '');
+          print('Clean amount for parsing: $cleanAmount');
+
+          double amount = double.parse(cleanAmount);
+          print('Parsed amount as number: $amount');
+
+          // Apply the formula to get the numbers
+          final numbers = _applyFormula("", formulaType, "");
+          print(
+            'Generated ${numbers.length} numbers from formula $formulaType: $numbers',
+          );
+
+          // Add each generated number with the specified amount
+          for (final num in numbers) {
+            result.add({'number': num, 'amount': amount});
+            print(
+              'Added number from direct formula: $num with amount: $amount',
+            );
+          }
+
+          continue; // Skip the rest of the processing for this line
+        } catch (e) {
+          print('Error processing formula: $e');
+        }
+      } else {
+        print(
+          'No direct formula pattern matched, continuing with regular processing',
+        );
+      }
+
+      // Original separator logic for other formats
       final RegExp amountSeparator = RegExp(r'[=\s-]');
       final parts = line.split(amountSeparator);
 
       if (parts.length >= 2) {
         // Last part is assumed to be the amount
         final amountStr = parts.last.trim();
-        final numbersPart =
-            line.substring(0, line.lastIndexOf(parts.last)).trim();
+
+        // Fix: Properly extract the number part without the separator
+        final numbersPart = line.substring(0, line.indexOf(amountStr)).trim();
+        // Remove any trailing separators that might have been left
+        final cleanNumbersPart = numbersPart.replaceAll(
+          RegExp(r'[=\s-]+$'),
+          '',
+        );
+
+        print('Numbers part: $cleanNumbersPart, Amount part: $amountStr');
 
         // Convert amount from Myanmar to Arabic digits if needed
         final normalizedAmountStr = _normalizeNumber(amountStr);
@@ -627,36 +766,404 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
 
         try {
           amount = double.parse(normalizedAmountStr.replaceAll(',', ''));
+          print('Parsed amount: $amount');
         } catch (e) {
           print('Failed to parse amount: $amountStr');
           continue;
         }
 
-        // Split numbers by various separators
-        final RegExp numberSeparator = RegExp(r'[.,*/\s]+');
-        final numberStrings = numbersPart.split(numberSeparator);
-
-        for (final numStr in numberStrings) {
-          if (numStr.trim().isEmpty) continue;
-
-          // Normalize the number (Myanmar to Arabic digits)
-          final normalizedNumber = _normalizeNumber(numStr.trim());
-
-          // Validate that it's a 2-digit number
-          if (normalizedNumber.length == 2 &&
-              int.tryParse(normalizedNumber) != null) {
-            result.add({'number': normalizedNumber, 'amount': amount});
-          }
-        }
+        // Process each line and extract numbers with their amounts
+        _processInputForNumbers(cleanNumbersPart, amount, result);
       }
     }
 
     return result;
   }
 
+  // Process input text to extract numbers and their amounts
+  void _processInputForNumbers(
+    String input,
+    double amount,
+    List<Map<String, dynamic>> result,
+  ) {
+    print('Processing input for numbers: $input');
+
+    // Check if we have formula indicators in the input
+    if (_hasFormula(input)) {
+      print('Formula detected in: $input');
+
+      String formulaType = "";
+      String numericPart = "";
+
+      // Extract the numeric part and identify formula with specific regex patterns
+
+      // BR Formula (Break - numbers with same sum) - Check this BEFORE R formula
+      if (RegExp(r'BR|Br|br|B\b|b\b|ဘရိတ်').hasMatch(input)) {
+        formulaType = "BR";
+        // Extract the digit before the BR formula identifier
+        final match = RegExp(
+          r'([0-9๐-๙]+)(BR|Br|br|B\b|b\b|ဘရိတ်)',
+        ).firstMatch(input);
+        if (match != null) {
+          numericPart = match.group(1) ?? "";
+          print('BR Formula: Extracted numeric part $numericPart from $input');
+        }
+      }
+      // R Formula (Reverse) - Check AFTER BR to avoid misidentification
+      else if (RegExp(r'[Rr@]').hasMatch(input)) {
+        formulaType = "R";
+        final match = RegExp(r'([0-9๐-๙]+)[Rr@]').firstMatch(input);
+        if (match != null) {
+          numericPart = match.group(1) ?? "";
+        }
+      }
+      // TS Formula (Head/Top numbers)
+      else if (RegExp(r'TS|ts|T\b|t\b|ထိပ်စီး|ထိပ်|ရှေ့').hasMatch(input)) {
+        formulaType = "TS";
+        final match = RegExp(
+          r'([0-9๐-๙]+)(TS|ts|T\b|t\b|ထိပ်စီး|ထိပ်|ရှေ့)',
+        ).firstMatch(input);
+        if (match != null) {
+          numericPart = match.group(1) ?? "";
+        }
+      }
+      // NP Formula (Tail numbers) - Check BEFORE P formula to avoid misidentification
+      else if (RegExp(
+        r'NP|Np|np|N\b|n\b|နောက်ပိတ်|နောက်|ပိတ်',
+      ).hasMatch(input)) {
+        formulaType = "NP";
+        final match = RegExp(
+          r'([0-9๐-๙]+)(NP|Np|np|N\b|n\b|နောက်ပိတ်|နောက်|ပိတ်)|^(NP|Np|np|N\b|n\b|နောက်ပိတ်|နောက်|ပိတ်)([0-9๐-๙]+)',
+        ).firstMatch(input);
+        if (match != null) {
+          // Check which capture group has the numeric part
+          numericPart = match.group(1) ?? match.group(4) ?? "";
+        }
+      }
+      // P Formula (Loop - numbers containing a digit)
+      else if (RegExp(r'P\b|p\b|ပါ|အပါ|ပတ်').hasMatch(input)) {
+        formulaType = "P";
+        final match = RegExp(
+          r'([0-9๐-๙]+)(P\b|p\b|ပါ|အပါ|ပတ်)|^(P\b|p\b|ပါ|အပါ|ပတ်)([0-9๐-๙]+)',
+        ).firstMatch(input);
+        if (match != null) {
+          // Check which capture group has the numeric part
+          numericPart = match.group(1) ?? match.group(4) ?? "";
+        }
+      }
+      // KP Formula (Combinations with pairs) - Check BEFORE K formula to avoid misidentification
+      else if (RegExp(r'KP|Kp|kp|ခွေပူး|ခပူး').hasMatch(input)) {
+        formulaType = "KP";
+        final match = RegExp(
+          r'([0-9๐-๙]+)(KP|Kp|kp|ခွေပူး|ခပူး)|^(KP|Kp|kp|ခွေပူး|ခပူး)([0-9๐-๙]+)',
+        ).firstMatch(input);
+        if (match != null) {
+          numericPart = match.group(1) ?? match.group(4) ?? "";
+        }
+      }
+      // K Formula (Combinations without pairs)
+      else if (RegExp(r'K\b|k\b|ခွေ|ခ\b').hasMatch(input)) {
+        formulaType = "K";
+        final match = RegExp(
+          r'([0-9๐-๙]+)(K\b|k\b|ခွေ|ခ\b)|^(K\b|k\b|ခွေ|ခ\b)([0-9๐-๙]+)',
+        ).firstMatch(input);
+        if (match != null) {
+          numericPart = match.group(1) ?? match.group(4) ?? "";
+        }
+      }
+      // Other formulas (NK, PW, etc.) that don't require numeric part
+      else if (RegExp(r'NK|Nk|nk|နက္ခတ်|နတ်ခက်|နတ်ခတ်|နခ').hasMatch(input)) {
+        formulaType = "NK";
+      } else if (RegExp(r'PW|Pw|pw|ပါဝါ|ပဝ').hasMatch(input)) {
+        formulaType = "PW";
+      } else if (RegExp(r'ညီကို|ညီနောင်').hasMatch(input)) {
+        formulaType = "ညီကို";
+      } else if (RegExp(r'AP|ap|A\b|a\b|အပူး|ပူး|အပူးစုံ').hasMatch(input)) {
+        formulaType = "AP";
+      } else if (RegExp(r'SP|sp|စုံပူး|စပ').hasMatch(input)) {
+        formulaType = "SP";
+      } else if (RegExp(r'MP|mp|မပူး|မပ').hasMatch(input)) {
+        formulaType = "MP";
+      }
+
+      // For formulas that need a numeric part, normalize it
+      if (numericPart.isNotEmpty) {
+        numericPart = _normalizeNumber(numericPart);
+      }
+
+      print('Formula type detected: $formulaType, Numeric part: $numericPart');
+
+      // Apply the formula
+      final numbers = _applyFormula(input, formulaType, numericPart);
+      print('Applied formula result, ${numbers.length} numbers: $numbers');
+
+      if (numbers.isNotEmpty) {
+        for (final num in numbers) {
+          // Always add the number with its amount to preserve duplicates
+          result.add({'number': num, 'amount': amount});
+          print('Added number: $num with amount: $amount');
+        }
+        return;
+      } else {
+        print('Formula produced no numbers, skipping: $input');
+      }
+    }
+
+    // Regular parsing (no formulas or formula not recognized)
+    // Split numbers by various separators
+    final RegExp numberSeparator = RegExp(r'[.,*/\s]+');
+    final numberStrings = input.split(numberSeparator);
+    print('Split input into ${numberStrings.length} parts: $numberStrings');
+
+    for (final numStr in numberStrings) {
+      if (numStr.trim().isEmpty) continue;
+
+      // Check if individual number contains formula, but avoid recursive call with same input
+      if (_hasFormula(numStr.trim()) && numStr.trim() != input) {
+        print('Individual number has formula: $numStr');
+        // Process this individually as it contains a formula
+        _processInputForNumbers(numStr.trim(), amount, result);
+        continue;
+      }
+
+      // Check if the input starts with valid digits or formula indicators
+      final startsWithValid = RegExp(r'^[0-9๐-๙]').hasMatch(numStr.trim());
+      if (!startsWithValid) continue; // Skip invalid formats
+
+      // Normalize the number (Myanmar to Arabic digits)
+      String normalizedNumber = _normalizeNumber(numStr.trim());
+
+      // Remove any remaining non-digit characters that might have been left
+      normalizedNumber = normalizedNumber.replaceAll(RegExp(r'[^0-9]'), '');
+
+      print('Normalized number: $normalizedNumber');
+
+      // Validate that it's a 2-digit number
+      if (normalizedNumber.length == 2 &&
+          int.tryParse(normalizedNumber) != null) {
+        // Add the number with its amount directly to the result list
+        result.add({'number': normalizedNumber, 'amount': amount});
+        print('Added 2-digit number: $normalizedNumber with amount: $amount');
+      }
+    }
+  }
+
+  // Check if text contains a formula indicator
+  bool _hasFormula(String text) {
+    // Check for various formula indicators - order matters here, check longer patterns first
+    return RegExp(
+      r'BR|Br|br|B\b|b\b|ဘရိတ်|TS|ts|T\b|t\b|ထိပ်စီး|ထိပ်|ရှေ့|NP|Np|np|N\b|n\b|နောက်ပိတ်|နောက်|ပိတ်|KP|Kp|kp|ခွေပူး|ခပူး|K\b|k\b|ခွေ|ခ\b|NK|Nk|nk|နက္ခတ်|နတ်ခက်|နတ်ခတ်|နခ|PW|Pw|pw|ပါဝါ|ပဝ|P\b|p\b|ပါ|အပါ|ပတ်|[Rr@]|ညီကို|ညီနောင်|AP|ap|A\b|a\b|အပူး|ပူး|အပူးစုံ|SP|sp|စုံပူး|စပ|MP|mp|မပူး|မပ',
+    ).hasMatch(text);
+  }
+
+  // Apply formula to get numbers
+  List<String> _applyFormula(
+    String formulaText,
+    String formulaType,
+    String normalizedDigits,
+  ) {
+    List<String> numbers = [];
+
+    print('Applying formula $formulaType with digits "$normalizedDigits"');
+
+    // R Formula (Reverse)
+    if (formulaType == "R") {
+      if (normalizedDigits.length == 2 &&
+          int.tryParse(normalizedDigits) != null) {
+        numbers.add(normalizedDigits);
+        final reversed = normalizedDigits.split('').reversed.join('');
+        if (reversed != normalizedDigits) {
+          numbers.add(reversed);
+        }
+      }
+    }
+    // BR Formula (Break - numbers with same sum)
+    else if (formulaType == "BR") {
+      // Get the single digit that represents the sum we're looking for
+      int? sumDigit;
+
+      // Handle empty input case - use the first character from formulaText
+      if (normalizedDigits.isEmpty) {
+        // Try to extract the first digit from the formula text (e.g., "5BR")
+        final match = RegExp(r'^([0-9๐-๙]+)').firstMatch(formulaText);
+        if (match != null) {
+          String extractedDigit = _normalizeNumber(match.group(1) ?? "");
+          if (extractedDigit.isNotEmpty) {
+            sumDigit = int.tryParse(extractedDigit[0]);
+            print(
+              'BR Formula: Extracted sum digit $sumDigit from formula text $formulaText',
+            );
+          }
+        }
+      } else if (normalizedDigits.isNotEmpty) {
+        // Use the first character if provided directly
+        sumDigit = int.tryParse(normalizedDigits[0]);
+      }
+
+      print('BR Formula: Looking for pairs that sum to $sumDigit');
+
+      if (sumDigit != null && sumDigit >= 0 && sumDigit <= 18) {
+        // Add all pairs that sum to this digit
+        for (int i = 0; i <= 9; i++) {
+          final j = sumDigit - i;
+          if (j >= 0 && j <= 9) {
+            // Format with leading zero for first digit if needed
+            final formattedNumber = '$i$j';
+            numbers.add(formattedNumber);
+            print(
+              'BR Formula: Added number $formattedNumber because $i + $j = $sumDigit',
+            );
+          }
+        }
+      } else {
+        print(
+          'BR Formula: Invalid sum value $sumDigit, must be between 0 and 18',
+        );
+      }
+    }
+    // TS Formula (Head/Top numbers)
+    else if (formulaType == "TS") {
+      final digit = normalizedDigits.isNotEmpty ? normalizedDigits[0] : '';
+      if (digit.isNotEmpty && RegExp(r'[0-9]').hasMatch(digit)) {
+        // Add all numbers starting with this digit
+        for (int i = 0; i <= 9; i++) {
+          numbers.add('$digit$i');
+        }
+      }
+    }
+    // P Formula (Loop - numbers containing a digit)
+    else if (formulaType == "P") {
+      final digit = normalizedDigits.isNotEmpty ? normalizedDigits[0] : '';
+      if (digit.isNotEmpty && RegExp(r'[0-9]').hasMatch(digit)) {
+        // Add all numbers containing this digit
+        for (int i = 0; i <= 9; i++) {
+          // First digit is the selected one
+          numbers.add('$digit$i');
+          // Second digit is the selected one
+          if ('$i$digit' != '$digit$i') {
+            numbers.add('$i$digit');
+          }
+        }
+      }
+    }
+    // NP Formula (Tail numbers)
+    else if (formulaType == "NP") {
+      final digit = normalizedDigits.isNotEmpty ? normalizedDigits[0] : '';
+      if (digit.isNotEmpty && RegExp(r'[0-9]').hasMatch(digit)) {
+        // Add all numbers ending with this digit
+        for (int i = 0; i <= 9; i++) {
+          numbers.add('$i$digit');
+        }
+      }
+    }
+    // K Formula (Combinations without pairs)
+    else if (formulaType == "K") {
+      // Get unique digits
+      final uniqueDigits = normalizedDigits.split('').toSet().toList();
+
+      // Generate all combinations without pairs
+      for (int i = 0; i < uniqueDigits.length; i++) {
+        for (int j = 0; j < uniqueDigits.length; j++) {
+          if (i != j) {
+            numbers.add('${uniqueDigits[i]}${uniqueDigits[j]}');
+          }
+        }
+      }
+    }
+    // KP Formula (Combinations with pairs)
+    else if (formulaType == "KP") {
+      // Get unique digits and ensure pairs are included
+      final digits = normalizedDigits.split('');
+      final uniqueDigits = digits.toSet().toList();
+
+      // Generate all combinations including pairs
+      for (int i = 0; i < uniqueDigits.length; i++) {
+        for (int j = 0; j < uniqueDigits.length; j++) {
+          numbers.add('${uniqueDigits[i]}${uniqueDigits[j]}');
+        }
+      }
+
+      // Ensure all same-digit pairs (11, 22, etc.) are included
+      // This ensures all possible pairs for each digit in the input
+      for (int i = 0; i <= 9; i++) {
+        if (digits.contains(i.toString())) {
+          numbers.add('$i$i');
+        }
+      }
+
+      // Remove duplicates if any
+      numbers = numbers.toSet().toList();
+    }
+    // NK Formula (Nekkat/Zodiac)
+    else if (formulaType == "NK") {
+      // Updated correct Zodiac numbers
+      numbers = ['07', '18', '24', '35', '69', '70', '81', '42', '53', '96'];
+    }
+    // PW Formula (Power)
+    else if (formulaType == "PW") {
+      // Updated correct Power numbers
+      numbers = ['05', '16', '27', '38', '49', '50', '61', '72', '83', '94'];
+    }
+    // ညီကို/ညီနောင် Formula
+    else if (formulaType == "ညီကို") {
+      // Updated with complete set of ညီကို numbers (both directions)
+      numbers = [
+        '10',
+        '21',
+        '32',
+        '43',
+        '54',
+        '65',
+        '76',
+        '87',
+        '98',
+        '09',
+        '01',
+        '12',
+        '23',
+        '34',
+        '45',
+        '56',
+        '67',
+        '78',
+        '89',
+        '90',
+      ];
+    }
+    // AP Formula (All Pairs)
+    else if (formulaType == "AP") {
+      // Updated to include 00 in all pairs
+      for (int i = 0; i <= 9; i++) {
+        numbers.add('$i$i');
+      }
+    }
+    // SP Formula (Even Pairs)
+    else if (formulaType == "SP") {
+      // Updated to include 00 in even pairs
+      for (int i = 0; i <= 8; i += 2) {
+        numbers.add('$i$i');
+      }
+    }
+    // MP Formula (Odd Pairs)
+    else if (formulaType == "MP") {
+      // Odd pairs (already correct)
+      for (int i = 1; i <= 9; i += 2) {
+        numbers.add('$i$i');
+      }
+    }
+
+    return numbers;
+  }
+
   // Helper method to convert Myanmar digits to Arabic digits
   String _normalizeNumber(String input) {
-    // Convert Myanmar digits to Arabic digits if needed
+    if (input.isEmpty) {
+      return input;
+    }
+
+    print('Normalizing number: $input');
+
+    // Convert Myanmar digits to Arabic digits
     const myanmarDigits = '၀၁၂၃၄၅၆၇၈၉';
     const arabicDigits = '0123456789';
 
@@ -665,6 +1172,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
       result = result.replaceAll(myanmarDigits[i], arabicDigits[i]);
     }
 
+    print('After normalization: $result');
     return result;
   }
 

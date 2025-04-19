@@ -9,8 +9,13 @@ import 'package:one_x/features/payment/presentation/screens/transaction_history_
 
 class TransactionDetailScreen extends ConsumerWidget {
   final String transactionId;
+  final String status;
 
-  const TransactionDetailScreen({super.key, required this.transactionId});
+  const TransactionDetailScreen({
+    super.key,
+    required this.transactionId,
+    required this.status,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -253,44 +258,47 @@ class TransactionDetailScreen extends ConsumerWidget {
 
                 // Bottom Button
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // If transaction is pending, show cancel confirmation dialog
-                      if (transaction.transactionStatus == 'pending') {
-                        _showCancelConfirmationDialog(
-                          context,
-                          ref,
-                          transaction.id.toString(),
-                        );
-                      } else {
-                        Navigator.pop(context);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          transaction.transactionStatus == 'pending'
-                              ? AppTheme.cardExtraColor
-                              : Colors.grey.shade400.withOpacity(0.2),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      transaction.transactionStatus == 'pending'
-                          ? 'တောင်းဆိုမှုအား ဖျက်သိမ်းမည်'
-                          : (transaction.transactionStatus == 'complete'
-                              ? 'ငွေလွှဲခြင်းအောင်မြင်ပါသည်'
-                              : 'ဆောင်ရွက်ဆဲဖြစ်သည် ဖြစ်ပါသည်'),
-                      style: TextStyle(
-                        color:
+                Visibility(
+                  visible: status == 'pending',
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // If transaction is pending, show cancel confirmation dialog
+                        if (transaction.transactionStatus == 'pending') {
+                          _showCancelConfirmationDialog(
+                            context,
+                            ref,
+                            transaction.id.toString(),
+                          );
+                        } else {
+                          Navigator.pop(context);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
                             transaction.transactionStatus == 'pending'
-                                ? AppTheme.textColor
-                                : textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                                ? AppTheme.cardExtraColor
+                                : Colors.grey.shade400.withOpacity(0.2),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        transaction.transactionStatus == 'pending'
+                            ? 'တောင်းဆိုမှုအား ဖျက်သိမ်းမည်'
+                            : (transaction.transactionStatus == 'complete'
+                                ? 'ငွေလွှဲခြင်းအောင်မြင်ပါသည်'
+                                : 'ဆောင်ရွက်ဆဲဖြစ်သည် ဖြစ်ပါသည်'),
+                        style: TextStyle(
+                          color:
+                              transaction.transactionStatus == 'pending'
+                                  ? AppTheme.textColor
+                                  : textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),

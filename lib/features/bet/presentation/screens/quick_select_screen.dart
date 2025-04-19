@@ -1622,48 +1622,163 @@ class _QuickSelectScreenState extends State<QuickSelectScreen> {
   void _applyBreakFormula(String digit) {
     List<String> numbers = [];
 
-    // Apply the appropriate break formula based on the selected digit
-    switch (digit) {
-      case '0':
-        // ZeroBreakFormula (0ဘရိတ်)
-        numbers = ['00', '19', '91', '28', '82', '37', '73', '46', '64', '55'];
-        break;
-      case '1':
-        // OneBreakFormula (1ဘရိတ်)
-        numbers = ['01', '10', '29', '92', '38', '83', '47', '74', '56', '65'];
-        break;
-      case '2':
-        // TwoBreakFormula (2ဘရိတ်)
-        numbers = ['02', '20', '11', '39', '93', '48', '84', '57', '76', '66'];
-        break;
-      case '3':
-        // ThreeBreakFormula (3ဘရိတ်)
-        numbers = ['03', '30', '12', '21', '49', '94', '58', '85', '67', '76'];
-        break;
-      case '4':
-        // FourBreakFormula (4ဘရိတ်)
-        numbers = ['04', '40', '13', '31', '22', '59', '95', '68', '86', '77'];
-        break;
-      case '5':
-        // FiveBreakFormula (5ဘရိတ်)
-        numbers = ['05', '50', '14', '41', '23', '32', '69', '96', '78', '87'];
-        break;
-      case '6':
-        // SixBreakFormula (6ဘရိတ်)
-        numbers = ['06', '60', '15', '51', '24', '42', '33', '97', '79', '88'];
-        break;
-      case '7':
-        // SevenBreakFormula (7ဘရိတ်)
-        numbers = ['07', '70', '16', '61', '25', '52', '34', '43', '89', '98'];
-        break;
-      case '8':
-        // EightBreakFormula (8ဘရိတ်)
-        numbers = ['08', '80', '17', '71', '26', '62', '35', '53', '44', '99'];
-        break;
-      case '9':
-        // NineBreakFormula (9ဘရိတ်)
-        numbers = ['09', '90', '18', '81', '27', '72', '36', '63', '45', '54'];
-        break;
+    // Get the digit value
+    int? sumDigit = int.tryParse(digit);
+
+    if (sumDigit != null && sumDigit >= 0 && sumDigit <= 9) {
+      // Generate all pairs of digits that sum to this digit
+      for (int i = 0; i <= 9; i++) {
+        final j = sumDigit - i;
+        if (j >= 0 && j <= 9) {
+          // Format with leading zeros as needed
+          final formattedNumber = '$i$j';
+          numbers.add(formattedNumber);
+        }
+      }
+    } else {
+      // Fallback to hardcoded lists if parsing fails
+      switch (digit) {
+        case '0':
+          numbers = [
+            '00',
+            '19',
+            '91',
+            '28',
+            '82',
+            '37',
+            '73',
+            '46',
+            '64',
+            '55',
+          ];
+          break;
+        case '1':
+          numbers = [
+            '01',
+            '10',
+            '29',
+            '92',
+            '38',
+            '83',
+            '47',
+            '74',
+            '56',
+            '65',
+          ];
+          break;
+        case '2':
+          numbers = [
+            '02',
+            '20',
+            '11',
+            '39',
+            '93',
+            '48',
+            '84',
+            '57',
+            '76',
+            '66',
+          ];
+          break;
+        case '3':
+          numbers = [
+            '03',
+            '30',
+            '12',
+            '21',
+            '49',
+            '94',
+            '58',
+            '85',
+            '67',
+            '76',
+          ];
+          break;
+        case '4':
+          numbers = [
+            '04',
+            '40',
+            '13',
+            '31',
+            '22',
+            '59',
+            '95',
+            '68',
+            '86',
+            '77',
+          ];
+          break;
+        case '5':
+          numbers = [
+            '05',
+            '50',
+            '14',
+            '41',
+            '23',
+            '32',
+            '69',
+            '96',
+            '78',
+            '87',
+          ];
+          break;
+        case '6':
+          numbers = [
+            '06',
+            '60',
+            '15',
+            '51',
+            '24',
+            '42',
+            '33',
+            '97',
+            '79',
+            '88',
+          ];
+          break;
+        case '7':
+          numbers = [
+            '07',
+            '70',
+            '16',
+            '61',
+            '25',
+            '52',
+            '34',
+            '43',
+            '89',
+            '98',
+          ];
+          break;
+        case '8':
+          numbers = [
+            '08',
+            '80',
+            '17',
+            '71',
+            '26',
+            '62',
+            '35',
+            '53',
+            '44',
+            '99',
+          ];
+          break;
+        case '9':
+          numbers = [
+            '09',
+            '90',
+            '18',
+            '81',
+            '27',
+            '72',
+            '36',
+            '63',
+            '45',
+            '54',
+          ];
+          break;
+      }
     }
 
     // Store these numbers as coming from this break selection
@@ -1777,6 +1892,40 @@ class _QuickSelectScreenState extends State<QuickSelectScreen> {
     // First, check exact matches for specific predefined patterns (break and formulas)
 
     // Check for break patterns
+    for (var digit in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
+      // Generate the expected numbers for this digit's break pattern
+      List<String> breakNumbers = [];
+      int sumDigit = int.parse(digit);
+
+      // Generate all pairs of digits that sum to this digit
+      for (int i = 0; i <= 9; i++) {
+        final j = sumDigit - i;
+        if (j >= 0 && j <= 9) {
+          breakNumbers.add('$i$j');
+        }
+      }
+
+      // If all generated numbers are selected, mark this break as selected
+      final breakNumbersSet = breakNumbers.toSet();
+
+      // If the selected numbers contain all numbers from this break pattern
+      // and the counts match or are proportional, consider it a match
+      if (breakNumbersSet.isNotEmpty &&
+          selectedNumbersSet.containsAll(breakNumbersSet) &&
+          (selectedNumbersSet.length == breakNumbersSet.length ||
+              selectedNumbersSet.length % breakNumbersSet.length == 0)) {
+        _selectedBreakNumbers.add(digit);
+        _selectionToNumbers['break_$digit'] = breakNumbersSet;
+
+        // If exact match, return immediately; otherwise continue checking
+        if (selectedNumbersSet.length == breakNumbersSet.length) {
+          return;
+        }
+      }
+    }
+
+    // Continue with the rest of the pattern detection
+    // Fallback to hardcoded break patterns if the dynamic detection fails
     final breakFormulas = {
       '0': ['00', '19', '91', '28', '82', '37', '73', '46', '64', '55'],
       '1': ['01', '10', '29', '92', '38', '83', '47', '74', '56', '65'],
@@ -1790,6 +1939,7 @@ class _QuickSelectScreenState extends State<QuickSelectScreen> {
       '9': ['09', '90', '18', '81', '27', '72', '36', '63', '45', '54'],
     };
 
+    // Check hardcoded break patterns for backward compatibility
     for (var entry in breakFormulas.entries) {
       final breakNumbersSet = entry.value.toSet();
       if (selectedNumbersSet.length == breakNumbersSet.length &&

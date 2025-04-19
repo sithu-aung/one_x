@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:one_x/core/theme/app_theme.dart' hide ThemeType;
+import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/core/theme/app_theme.dart' as theme show ThemeType;
 import 'package:one_x/core/providers/theme_provider.dart';
 import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
@@ -26,6 +26,7 @@ import 'package:one_x/features/payment/presentation/screens/change_currency_page
 import 'package:one_x/features/profile/presentation/screens/faq/faq_screen.dart';
 import 'package:one_x/features/profile/presentation/screens/contact_us_screen.dart';
 import 'package:one_x/features/lottery/presentation/screens/coming_soon_screen.dart';
+import 'package:one_x/core/utils/secure_storage.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -1127,7 +1128,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
       ),
-      title: Image.asset('assets/images/appbar_logo.png', height: 28),
+      title: SvgPicture.asset(
+        _isDarkMode()
+            ? 'assets/icons/home_logo_dark.svg'
+            : 'assets/icons/home_logo_light.svg',
+        height: 28,
+      ),
       centerTitle: false,
       actions: [
         IconButton(
@@ -1241,13 +1247,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Perform logout
   void _performLogout(BuildContext context) async {
-    // Clear all secure storage and logout from auth provider
-    await ref.read(authProvider.notifier).logout();
+    _logout();
+  }
 
-    // Navigate to login screen
+  void _logout() async {
+    // await SecureStorage.clearAll();
+    // ref.read(navIndexProvider.notifier).reset();
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const LoginScreen()),
       (route) => false,
     );
+  }
+
+  // Helper method to determine if dark mode is active
+  bool _isDarkMode() {
+    final themeState = ref.read(themeProvider);
+    return themeState.currentTheme == ThemeType.darkIndigo ||
+        themeState.currentTheme == ThemeType.darkPurple ||
+        themeState.currentTheme == ThemeType.darkGreen ||
+        themeState.currentTheme == ThemeType.blackRed ||
+        themeState.currentTheme == ThemeType.purpleGold;
   }
 }

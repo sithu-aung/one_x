@@ -63,27 +63,39 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
   }
 
   void _initBetItems() {
-    _betItems =
-        widget.selectedNumbers.map((number) {
-          // Initialize with amount if provided in numberAmounts or use initialAmount
-          String formattedAmount = '';
+    print(
+      'Initializing bet items from selectedNumbers: ${widget.selectedNumbers}',
+    );
+    if (widget.numberAmounts != null) {
+      print('Number amounts map: ${widget.numberAmounts}');
+    }
 
-          // First check if we have a specific amount for this number
-          if (widget.numberAmounts != null &&
-              widget.numberAmounts!.containsKey(number)) {
-            formattedAmount = _formatAmount(widget.numberAmounts![number]!);
-          }
-          // Otherwise use initialAmount if provided
-          else if (widget.initialAmount > 0) {
-            formattedAmount = _formatAmount(widget.initialAmount);
-          }
+    _betItems = [];
 
-          return BetItem(
-            number: number,
-            betType: widget.betType,
-            amount: formattedAmount,
-          );
-        }).toList();
+    // Process each number in the selectedNumbers list - the list is now deduplicated
+    for (String number in widget.selectedNumbers) {
+      String formattedAmount = '';
+
+      // Get the amount for this number from the numberAmounts map
+      if (widget.numberAmounts != null &&
+          widget.numberAmounts!.containsKey(number)) {
+        formattedAmount = _formatAmount(widget.numberAmounts![number]!);
+        print('Number $number, setting amount to $formattedAmount');
+      }
+      // Otherwise use initialAmount if provided
+      else if (widget.initialAmount > 0) {
+        formattedAmount = _formatAmount(widget.initialAmount);
+        print('Using initialAmount for $number: $formattedAmount');
+      }
+
+      _betItems.add(
+        BetItem(
+          number: number,
+          betType: widget.betType,
+          amount: formattedAmount,
+        ),
+      );
+    }
 
     // Initialize controllers for each item
     for (int i = 0; i < _betItems.length; i++) {
@@ -182,9 +194,7 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
             (homeData) => Column(
               children: [
                 _buildBalanceInfo(homeData.user.balance),
-                Expanded(
-                  child: SingleChildScrollView(child: _buildBetItemsList()),
-                ),
+                Expanded(child: _buildBetItemsList()),
                 _buildBottomButtons(),
               ],
             ),
@@ -233,40 +243,40 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
     // Determine if we're in a white/light theme
     final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
 
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow:
-            isLightTheme
-                ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-                : null,
-        border: isLightTheme ? Border.all(color: Colors.grey.shade300) : null,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildListHeader(),
-          const SizedBox(height: 10),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _betItems.length,
-            itemBuilder: (context, index) {
-              return _buildBetItemRow(index);
-            },
-          ),
-          Divider(color: AppTheme.textSecondaryColor.withOpacity(0.3)),
-          _buildTotalRow(),
-        ],
+    return SingleChildScrollView(
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow:
+              isLightTheme
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                  : null,
+          border: isLightTheme ? Border.all(color: Colors.grey.shade300) : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildListHeader(),
+            const SizedBox(height: 10),
+            Column(
+              children: List.generate(
+                _betItems.length,
+                (index) => _buildBetItemRow(index),
+              ),
+            ),
+            Divider(color: AppTheme.textSecondaryColor.withOpacity(0.3)),
+            _buildTotalRow(),
+          ],
+        ),
       ),
     );
   }

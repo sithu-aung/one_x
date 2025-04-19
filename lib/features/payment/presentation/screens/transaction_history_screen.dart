@@ -522,6 +522,7 @@ class _TransactionHistoryScreenState
                                                 TransactionDetailScreen(
                                                   transactionId:
                                                       transaction.id.toString(),
+                                                      status: transaction.transactionStatus ?? '',
                                                 ),
                                       ),
                                     );
@@ -543,6 +544,7 @@ class _TransactionHistoryScreenState
                                       builder:
                                           (context) => TransactionDetailScreen(
                                             transactionId: transId.toString(),
+                                            status: transaction.transactionStatus ?? '',
                                           ),
                                     ),
                                   );
