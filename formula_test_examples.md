@@ -109,6 +109,16 @@
     - 07, 17, 27, 37, 47, 57, 67, 77, 87, 97 with 500 each
     - Total numbers: 21 (note: 77 appears twice), Total amount: 11,800
 
+## Handling Duplicate Numbers
+When multiple formulas generate the same number, the amounts should be combined:
+
+Example: If "AP500" and "7NP600" both generate number "77":
+- From AP: 77 with 500
+- From NP: 77 with 600
+- **Final result:** 77 with 1,100 (combined amount)
+
+This applies whenever multiple formulas or number groups in a single input generate the same number. The number should appear once in the final list with the sum of all its amounts.
+
 ## Combined Multi-line Input Test
 ```
 AP၅၀၀
@@ -139,11 +149,29 @@ Expected results:
 - 11, 33, 55, 77, 99 with 300 each (MP) - 5 numbers, 1,500 total
 - 45, 54, 67, 76, 89, 98 with 500 each (regular numbers) - 6 numbers, 3,000 total
 
-**Grand Total for Multi-line Test:**
-- Total numbers: 107 (may contain some duplicates)
-- Total bet amount: 45,200
+**Overlap Analysis - Numbers appearing in multiple formulas:**
+- 00: AP(500) + SP(400) = 900
+- 05: BR(300) + PW(400) = 700
+- 07: NK(350) + NP7(600) = 950
+- 10, 21, 32: ညီကို(500) (also appear in other formulas)
+- 11: AP(500) + TS(200) + MP(300) = 1,000
+- 22: AP(500) + SP(400) = 900
+- 33: AP(500) + MP(300) = 800
+- 44: AP(500) + SP(400) = 900
+- 45, 54: K(500) + regular(500) = 1,000
+- 50: BR(300) + PW(400) = 700
+- 55: AP(500) + MP(300) = 800
+- 66: AP(500) + SP(400) = 900
+- 77: AP(500) + NP7(600) + MP(300) + KP(600) = 2,000
+- 88: AP(500) + SP(400) = 900
+- 99: AP(500) + MP(300) + KP(600) = 1,400
+
+**Final Stats After Combining Duplicates:**
+- Unique numbers: approximately 50 (reduced from 107 due to overlap)
+- Total bet amount: 45,200 (unchanged - sum of all original amounts)
+- Average amount per number: approximately 904
 
 ## Summary of All Examples
 - Total distinct betting patterns: 33
-- Approximate total numbers across all examples: 300+
-- Approximate total betting amount: 150,000+
+- Approximate total unique numbers across all examples: 200 (accounting for duplicates)
+- Total betting amount: 150,000+

@@ -23,6 +23,10 @@ class TransactionDetailScreen extends ConsumerWidget {
     final backgroundColor = AppTheme.backgroundColor;
     final textColor = AppTheme.textColor;
 
+    // Get current user data
+    final homeDataAsync = ref.watch(homeDataProvider);
+    final currentUser = homeDataAsync.value?.user;
+
     // Validate transaction ID
     if (transactionId.isEmpty) {
       return Scaffold(
@@ -98,8 +102,9 @@ class TransactionDetailScreen extends ConsumerWidget {
           final amountText =
               isWithdraw ? '-$formattedAmount' : '+$formattedAmount';
 
-          // Use fixed date format for now since the model doesn't have a date field
-          const formattedDate = '24,09,2024 / 12:30 AM';
+          // Format current date properly
+          final dateFormatter = DateFormat('dd,MM,yyyy / hh:mm a');
+          final formattedDate = dateFormatter.format(DateTime.now());
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -121,17 +126,15 @@ class TransactionDetailScreen extends ConsumerWidget {
                                   ? Colors.grey.shade800
                                   : Colors.grey.shade300,
                           image: const DecorationImage(
-                            image: AssetImage(
-                              'assets/images/default_profile.png',
-                            ),
+                            image: AssetImage('assets/images/dp.png'),
                             fit: BoxFit.cover,
                           ),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Username
+                      // Username - Using current user's profile
                       Text(
-                        transaction.senderName ?? 'Thuzar Win',
+                        currentUser?.username ?? 'My Account',
                         style: TextStyle(
                           color: textColor,
                           fontSize: 18,
@@ -141,7 +144,9 @@ class TransactionDetailScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       // User ID
                       Text(
-                        'UserID-${transaction.senderId ?? '234567'}',
+                        currentUser?.id != null
+                            ? 'UserID-${currentUser!.id}'
+                            : '-',
                         style: TextStyle(
                           color: textColor.withOpacity(0.7),
                           fontSize: 14,
@@ -157,12 +162,34 @@ class TransactionDetailScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
-                          child: Text(
-                            amountText,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text:
+                                      transaction.transactionType == 'CREDIT'
+                                          ? '+ '
+                                          : '- ',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: NumberFormat.currency(
+                                    locale: 'en_US',
+                                    symbol: '',
+                                    decimalDigits: 0,
+                                  ).format(transaction.senderAmount ?? 0),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -173,12 +200,23 @@ class TransactionDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 // Transaction Details Label
-                Text(
-                  'ငွေလွှဲအချက်အလက်',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'ငွေလွှဲအချက်အလက်',
+                    style: TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -247,8 +285,9 @@ class TransactionDetailScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    transaction.remark ??
-                        'Lorem ipsum dolor sit amet consectetur. Nulla donec tortor proin arcu turpis auctor ut viverra. Pretium fermentum cras sed lectus in urna dignissim. Porta urna vitae.',
+                    transaction.remark?.isNotEmpty == true
+                        ? transaction.remark!
+                        : '-',
                     style: TextStyle(
                       color: textColor.withOpacity(0.8),
                       fontSize: 14,

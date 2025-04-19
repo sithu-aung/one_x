@@ -75,7 +75,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
-              'အရောင်းပိတ်ရန် - 01:30',
+              'အရောင်းပိတ်ချိန် - 01:30',
               style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
             ),
           ),
@@ -528,12 +528,16 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
 
       final user = homeData.value!.user;
 
-      // Create a map of number:amount and deduplicate numbers
+      // Create a map of number:amount and combine amounts for duplicate numbers
       Map<String, int> numberAmounts = {};
+      int totalBetAmount = 0;
 
       for (var item in parsedData) {
         String number = item['number'];
         double amount = item['amount'];
+
+        // Add to the total bet amount
+        totalBetAmount += amount.toInt();
 
         // For the map, we'll combine amounts for the same number
         if (numberAmounts.containsKey(number)) {
@@ -553,6 +557,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
       print(
         'Final numberAmounts map (${numberAmounts.length}): $numberAmounts',
       );
+      print('Total bet amount: $totalBetAmount');
 
       setState(() {
         _isLoading = false;

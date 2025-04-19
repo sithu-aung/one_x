@@ -296,7 +296,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
-              'အရောင်းပိတ်ရန် - 01:30',
+              'အရောင်းပိတ်ချိန် - 01:30',
               style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
             ),
           ),

@@ -628,7 +628,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
-              'အရောင်းပိတ်ရန် - ${widget.selectedTimeSection}',
+              'အရောင်းပိတ်ချိန် - ${widget.selectedTimeSection}',
               style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
             ),
           ),
