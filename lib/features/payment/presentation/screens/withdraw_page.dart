@@ -118,7 +118,7 @@ class _WithdrawPageState extends ConsumerState<WithdrawPage> {
     // Add print statement to debug the provider key
     print('Provider Key: $providerId');
 
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder:

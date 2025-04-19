@@ -82,7 +82,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                   // Use imageLocation if available, otherwise fallback to assets
                   imagePath: provider.imageLocation,
                   title: provider.providerName,
-                  subtitle: 'Payment Provider',
+                  subtitle: provider.billing?.providerPhone ?? '',
                   onTap:
                       () => _navigateToAmountDefineScreen(
                         context,
