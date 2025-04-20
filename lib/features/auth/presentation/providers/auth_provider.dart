@@ -86,24 +86,38 @@ class AuthNotifier extends StateNotifier<AuthStateData> {
   }
 
   // Login
-  Future<void> login(String username, String password, bool rememberMe) async {
+  Future<Map<String, dynamic>> login(
+    String username,
+    String password,
+    bool rememberMe,
+  ) async {
     try {
       state = state.copyWith(state: AuthState.loading);
 
-      // Login just saves the token now, no user data
-      await _authRepository.login(username, password);
+      // Login with the repository and get the result
+      final result = await _authRepository.login(username, password);
 
       // Save remember me status
       final storageService = StorageService();
       await storageService.setRememberMeStatus(rememberMe);
 
-      // Set authenticated state without user data
-      state = state.copyWith(state: AuthState.authenticated, user: null);
+      // If login was successful, update state
+      if (result['success']) {
+        state = state.copyWith(state: AuthState.authenticated, user: null);
+      } else {
+        // Don't update state to error since we're handling errors directly in UI
+        // Just return to loading state
+        state = state.copyWith(state: AuthState.unauthenticated);
+      }
+
+      // Return the result to UI
+      return result;
     } catch (e) {
-      state = state.copyWith(
-        state: AuthState.error,
-        errorMessage: e.toString(),
-      );
+      // Revert to unauthenticated state
+      state = state.copyWith(state: AuthState.unauthenticated);
+
+      // Return error to UI
+      return {'success': false, 'statusCode': 0, 'message': e.toString()};
     }
   }
 

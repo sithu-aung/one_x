@@ -38,6 +38,8 @@ class Transaction {
   String? remark;
   ReceiptUser? receiptUser;
   Provider? provider;
+  String? requestedAt;
+  String? approvedAt;
 
   Transaction({
     this.id,
@@ -58,6 +60,8 @@ class Transaction {
     this.remark,
     this.receiptUser,
     this.provider,
+    this.requestedAt,
+    this.approvedAt,
   });
 
   Transaction.fromJson(Map<String, dynamic> json) {
@@ -83,6 +87,8 @@ class Transaction {
             : null;
     provider =
         json['provider'] != null ? Provider.fromJson(json['provider']) : null;
+    requestedAt = json['requested_at'];
+    approvedAt = json['approved_at'];
   }
 
   Map<String, dynamic> toJson() {
@@ -109,6 +115,8 @@ class Transaction {
     if (provider != null) {
       data['provider'] = provider!.toJson();
     }
+    data['requested_at'] = requestedAt;
+    data['approved_at'] = approvedAt;
     return data;
   }
 }

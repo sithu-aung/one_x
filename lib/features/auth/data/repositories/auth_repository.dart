@@ -30,18 +30,37 @@ class AuthRepository {
   }
 
   // Login user
-  Future<User?> login(String login, String password) async {
-    final response = await _apiService.publicPost(
-      AppConstants.loginEndpoint,
-      body: {'login': login, 'password': password},
-    );
+  Future<Map<String, dynamic>> login(String login, String password) async {
+    try {
+      final response = await _apiService.publicPost(
+        AppConstants.loginEndpoint,
+        body: {'login': login, 'password': password},
+        returnStatusCode: true, // Request to get status code
+      );
 
-    // Response format: {message: "Login successful", token: "token-value"}
-    // Save only the auth token to secure storage
-    await _storageService.saveAuthToken(response['token']);
+      // Check for success status code
+      if (response['statusCode'] >= 200 && response['statusCode'] < 300) {
+        // Save auth token on success
+        await _storageService.saveAuthToken(response['data']['token']);
 
-    // Return null as we no longer receive user data in the response
-    return null;
+        // Return success result
+        return {'success': true, 'statusCode': response['statusCode']};
+      }
+
+      // Return error result with status code
+      return {
+        'success': false,
+        'statusCode': response['statusCode'],
+        'message': response['data']?['message'] ?? 'Invalid credentials',
+      };
+    } catch (e) {
+      // Handle network or other errors
+      return {
+        'success': false,
+        'statusCode': 0,
+        'message': 'Network error: Unable to connect to server',
+      };
+    }
   }
 
   // Register user

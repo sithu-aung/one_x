@@ -13,6 +13,7 @@ class QuickSelectScreen extends StatefulWidget {
 class _QuickSelectScreenState extends State<QuickSelectScreen> {
   // Selection type: regular or reversed
   bool _isRegular = true;
+  bool _hasTwin = false; // Added for အပူးပါ (twin) option
   String _enteredNumber = '';
   List<String> _selectedNumbers = [];
 
@@ -107,16 +108,29 @@ class _QuickSelectScreenState extends State<QuickSelectScreen> {
                         ),
                         Row(
                           children: [
-                            _buildRadioOption(
-                              value: true,
-                              groupValue: _isRegular,
-                              label: 'အပူးပါ',
+                            Checkbox(
+                              value: _hasTwin,
+                              onChanged: (value) {
+                                setState(() {
+                                  _hasTwin = value ?? false;
+                                });
+                              },
+                              activeColor: AppTheme.primaryColor,
                             ),
-                            const SizedBox(width: 20),
-                            _buildRadioOption(
-                              value: false,
-                              groupValue: _isRegular,
-                              label: 'အပူးမပါ',
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _hasTwin = !_hasTwin;
+                                });
+                              },
+                              child: Text(
+                                'အပူးပါ',
+                                style: TextStyle(
+                                  color: AppTheme.textColor,
+                                  fontSize: 14,
+                                  fontFamily: 'Pyidaungsu',
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -149,13 +163,13 @@ class _QuickSelectScreenState extends State<QuickSelectScreen> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                            padding: const EdgeInsets.fromLTRB(8, 0, 4, 4),
                             child: TextField(
                               controller: _numberController,
                               keyboardType: TextInputType.number,
                               style: TextStyle(
                                 color: AppTheme.textColor,
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                               decoration: InputDecoration(
@@ -424,6 +438,9 @@ class _QuickSelectScreenState extends State<QuickSelectScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     _applySelection();
+                    if (_enteredNumber.isNotEmpty) {
+                      _processInputText();
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
@@ -2065,5 +2082,102 @@ class _QuickSelectScreenState extends State<QuickSelectScreen> {
         _selectionToNumbers['tail_$digit'] = tailNumbersSet;
       }
     }
+  }
+
+  // Add new method to process input text for ခွေ or ခွေပူး formula
+  void _processInputText() {
+    if (_enteredNumber.isEmpty) return;
+
+    // Clear current selection
+    setState(() {
+      _selectedNumbers.clear();
+      _selectedFormulas.clear();
+      _selectedLoopNumbers.clear();
+      _selectedTailNumbers.clear();
+      _selectedBreakNumbers.clear();
+      _selectionToNumbers.clear();
+    });
+
+    // Normalize and clean the input
+    String input = _normalizeDigits(_enteredNumber.trim());
+
+    // Remove any non-digit characters
+    input = input.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (input.isEmpty) return;
+
+    // Apply the appropriate formula based on _hasTwin state
+    if (_hasTwin) {
+      // Apply ခွေပူး formula (with pairs)
+      _applyKPFormula(input);
+    } else {
+      // Apply ခွေ formula (without pairs)
+      _applyKFormula(input);
+    }
+  }
+
+  // Apply ခွေပူး formula (with pairs)
+  void _applyKPFormula(String digits) {
+    digits = _normalizeDigits(digits);
+    List<String> numbers = [];
+
+    // Generate all combinations including pairs
+    for (int i = 0; i < digits.length; i++) {
+      for (int j = 0; j < digits.length; j++) {
+        String number = '${digits[i]}${digits[j]}';
+        numbers.add(number);
+      }
+    }
+
+    // Store these numbers
+    _selectionToNumbers['KP_formula'] = numbers.toSet();
+
+    // Add to the selected numbers
+    setState(() {
+      _selectedNumbers.addAll(numbers);
+      _selectedNumbers = _selectedNumbers.toSet().toList();
+    });
+  }
+
+  // Apply ခွေ formula (without pairs)
+  void _applyKFormula(String digits) {
+    digits = _normalizeDigits(digits);
+    List<String> numbers = [];
+
+    // Generate combinations excluding pairs
+    for (int i = 0; i < digits.length; i++) {
+      for (int j = 0; j < digits.length; j++) {
+        if (i != j) {
+          // Skip pairs (digits that are the same)
+          String number = '${digits[i]}${digits[j]}';
+          numbers.add(number);
+        }
+      }
+    }
+
+    // Store these numbers
+    _selectionToNumbers['K_formula'] = numbers.toSet();
+
+    // Add to the selected numbers
+    setState(() {
+      _selectedNumbers.addAll(numbers);
+      _selectedNumbers = _selectedNumbers.toSet().toList();
+    });
+  }
+
+  // Helper method to normalize Myanmar digits to Arabic digits
+  String _normalizeDigits(String input) {
+    if (input.isEmpty) return input;
+
+    // Convert Myanmar digits to Arabic digits
+    const myanmarDigits = '၀၁၂၃၄၅၆၇၈၉';
+    const arabicDigits = '0123456789';
+
+    String result = input;
+    for (int i = 0; i < myanmarDigits.length; i++) {
+      result = result.replaceAll(myanmarDigits[i], arabicDigits[i]);
+    }
+
+    return result;
   }
 }

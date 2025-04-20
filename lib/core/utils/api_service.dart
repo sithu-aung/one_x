@@ -214,6 +214,7 @@ class ApiService {
   Future<dynamic> publicPost(
     String endpoint, {
     Map<String, dynamic>? body,
+    bool returnStatusCode = false,
   }) async {
     try {
       final response = await _httpClient
@@ -224,6 +225,35 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 30));
 
+      // If returnStatusCode is true, return both status code and data
+      if (returnStatusCode) {
+        // For successful responses
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          if (response.body.isEmpty) {
+            return {'statusCode': response.statusCode, 'data': null};
+          }
+          return {
+            'statusCode': response.statusCode,
+            'data': jsonDecode(response.body),
+          };
+        }
+        // For error responses
+        else {
+          try {
+            return {
+              'statusCode': response.statusCode,
+              'data': jsonDecode(response.body),
+            };
+          } catch (e) {
+            return {
+              'statusCode': response.statusCode,
+              'data': {'message': response.reasonPhrase ?? 'Unknown error'},
+            };
+          }
+        }
+      }
+
+      // Original behavior when returnStatusCode is false
       // For registration and other public endpoints, don't navigate to error page
       // Just return the response or throw the exception for the calling code to handle
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -436,7 +466,13 @@ class ApiService {
       final errorMessage = errorData?['message'] ?? 'Unauthorized';
       print('API 401 Unauthorized error: $errorMessage');
 
-      // Clear auth token since it's no longer valid
+      // For login endpoint, just throw the exception so it can be handled by the login screen
+      final requestUrl = response.request?.url.toString() ?? '';
+      if (requestUrl.contains(AppConstants.loginEndpoint)) {
+        throw ApiException(errorMessage, statusCode: response.statusCode);
+      }
+
+      // For other endpoints, clear auth token and navigate to login
       _storageService.clearAuthData();
 
       // Show message in SnackBar if present
@@ -454,6 +490,16 @@ class ApiService {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? 'Validation failed';
         final errors = errorData['errors'] as Map<String, dynamic>?;
+
+        // For login endpoint, just throw the exception so it can be handled by the login screen
+        final requestUrl = response.request?.url.toString() ?? '';
+        if (requestUrl.contains(AppConstants.loginEndpoint)) {
+          throw ApiException(
+            errorMessage,
+            statusCode: response.statusCode,
+            errors: errors,
+          );
+        }
 
         // Display the most specific error message available
         String messageToDisplay = '';

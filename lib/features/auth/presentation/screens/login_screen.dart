@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:one_x/core/theme/app_theme.dart';
+import 'package:one_x/core/utils/api_service.dart';
 import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
 import 'package:one_x/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:one_x/features/auth/presentation/screens/register_screen.dart';
@@ -65,7 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final authNotifier = ref.read(authProvider.notifier);
 
-      // Set up a listener for auth state changes
+      // Set up a listener for auth state changes - but only for successful login navigation
       ref.listenManual(authProvider, (previous, next) {
         if (!mounted) return;
 
@@ -75,29 +76,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             MaterialPageRoute(builder: (context) => const HomeScreen()),
             (route) => false, // Remove all routes below
           );
-        } else if (next.state == AuthState.error) {
-          // Set loading to false
-          setState(() {
-            _isLoading = false;
-          });
-
-          // Show error dialog instead of setting error message
-          _showErrorDialog();
-
-          authNotifier.clearError();
         }
+        // We don't handle error states here anymore
       });
 
-      // Perform login
-      await authNotifier.login(username, password, rememberMe);
+      // Call login directly and get the result
+      final result = await authNotifier.login(username, password, rememberMe);
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        // Check if login was successful
+        if (!result['success']) {
+          // Show error dialog with the error message or default message
+          _showErrorDialog('Invalid credentials');
+        }
+        // Success case is handled by the listener above
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
 
-        // Show error dialog on any exception
-        _showErrorDialog();
+        // Show error dialog for any exception
+        _showErrorDialog('Invalid credentials');
       }
     }
   }
@@ -131,8 +136,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  // Show error dialog with generic "Invalid credentials" message
-  void _showErrorDialog() {
+  // Show error dialog with the provided message or a fallback message
+  void _showErrorDialog([String? errorMessage]) {
     showDialog(
       context: context,
       barrierDismissible: false,

@@ -287,7 +287,13 @@ class _TransactionDetailScreenState
                 ),
                 _buildDetailRow(
                   'Requested Date / Time',
-                  '• $formattedDate',
+                  '• ${transaction.requestedAt ?? ''}',
+                  textColor,
+                  null,
+                ),
+                _buildDetailRow(
+                  'Approved Date / Time',
+                  '• ${transaction.approvedAt ?? ''}',
                   textColor,
                   null,
                 ),
