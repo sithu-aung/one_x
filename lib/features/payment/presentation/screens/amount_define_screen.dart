@@ -318,7 +318,12 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _buildAmountButton('5,000', buttonWidth),
+                        _buildAmountButton(
+                          widget.type == PaymentActionType.topUp
+                              ? '3,000'
+                              : '5,000',
+                          buttonWidth,
+                        ),
                         _buildAmountButton('10,000', buttonWidth),
                         _buildAmountButton('50,000', buttonWidth),
                         _buildAmountButton('100,000', buttonWidth),

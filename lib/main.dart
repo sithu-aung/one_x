@@ -32,7 +32,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     Future.delayed(Duration.zero, () {
       // Load saved theme
       ref.read(themeProvider.notifier).loadSavedTheme();
-      
+
       // Check authentication status
       ref.read(authProvider.notifier).checkAuth();
     });
@@ -41,21 +41,26 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    // Add this to watch for theme changes
-    ref.watch(themeProvider);
+    // Watch the theme state to rebuild when theme changes (including restartKey)
+    final themeState = ref.watch(themeProvider);
 
-    return ScreenUtilInit(
-      designSize: const Size(390, 844),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return MaterialApp(
-          title: 'BetMM App',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme(),
-          home: _buildHomeScreen(authState),
-        );
-      },
+    // Rebuild the entire app when theme changes by using the restart key
+    return KeyedSubtree(
+      key: ValueKey(themeState.restartKey),
+      child: ScreenUtilInit(
+        designSize: const Size(390, 844),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        builder: (context, child) {
+          return MaterialApp(
+            key: appKey, // Use global navigator key from theme provider
+            title: 'BetMM App',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme(),
+            home: _buildHomeScreen(authState),
+          );
+        },
+      ),
     );
   }
 

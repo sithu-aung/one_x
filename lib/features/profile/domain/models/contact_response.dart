@@ -21,6 +21,7 @@ class Contacts {
   List<ContactData>? phone;
   List<ContactData>? viber;
   List<ContactData>? facebook;
+  List<ContactData>? whatsApp;
 
   Contacts({this.phone, this.viber, this.facebook});
 
@@ -43,6 +44,12 @@ class Contacts {
         facebook!.add(ContactData.fromJson(v));
       });
     }
+    if (json['WhatsApp'] != null) {
+      whatsApp = <ContactData>[];
+      json['WhatsApp'].forEach((v) {
+        whatsApp!.add(ContactData.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -55,6 +62,9 @@ class Contacts {
     }
     if (facebook != null) {
       data['Facebook'] = facebook!.map((v) => v.toJson()).toList();
+    }
+    if (whatsApp != null) {
+      data['WhatsApp'] = whatsApp!.map((v) => v.toJson()).toList();
     }
     return data;
   }

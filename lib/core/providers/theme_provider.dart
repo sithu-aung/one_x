@@ -3,23 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/core/utils/secure_storage.dart';
 
+// Global key for app restart when theme changes
+final GlobalKey<NavigatorState> appKey = GlobalKey<NavigatorState>();
+
 // Theme state
 class ThemeState {
   final ThemeType currentTheme;
   final bool isLoading;
+  final UniqueKey restartKey; // Add key for forcing rebuilds
 
   ThemeState({
     required this.currentTheme,
     this.isLoading = false,
-  });
+    UniqueKey? restartKey,
+  }) : restartKey = restartKey ?? UniqueKey();
 
   ThemeState copyWith({
     ThemeType? currentTheme,
     bool? isLoading,
+    bool forceRestart = false,
   }) {
     return ThemeState(
       currentTheme: currentTheme ?? this.currentTheme,
       isLoading: isLoading ?? this.isLoading,
+      restartKey: forceRestart ? UniqueKey() : restartKey,
     );
   }
 }
@@ -37,7 +44,10 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
       final savedTheme = await SecureStorage.getTheme();
       if (savedTheme != null) {
         final themeType = _stringToThemeType(savedTheme);
-        _updateTheme(themeType);
+        _updateTheme(
+          themeType,
+          forceRestart: false,
+        ); // Don't restart on initial load
       }
     } catch (e) {
       // If there's an error, keep using the default theme
@@ -57,9 +67,12 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   // Set theme
   Future<void> setTheme(ThemeType themeType) async {
     if (themeType == state.currentTheme) return;
-    
-    _updateTheme(themeType);
-    
+
+    _updateTheme(
+      themeType,
+      forceRestart: true,
+    ); // Force restart when theme changes
+
     // Save to secure storage
     try {
       await SecureStorage.saveTheme(themeType.toString().split('.').last);
@@ -69,9 +82,9 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   }
 
   // Update theme in AppTheme class and state
-  void _updateTheme(ThemeType themeType) {
+  void _updateTheme(ThemeType themeType, {required bool forceRestart}) {
     AppTheme.setTheme(themeType);
-    state = state.copyWith(currentTheme: themeType);
+    state = state.copyWith(currentTheme: themeType, forceRestart: forceRestart);
   }
 }
 

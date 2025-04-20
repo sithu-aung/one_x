@@ -80,6 +80,32 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
     }
   }
 
+  // Launch WhatsApp
+  Future<void> _openWhatsApp(String phoneNumber) async {
+    try {
+      // Format the phone number (remove any non-numeric characters)
+      final formattedNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+
+      // WhatsApp deep link
+      final Uri whatsappUri = Uri.parse(
+        "whatsapp://send?phone=$formattedNumber",
+      );
+      if (await canLaunchUrl(whatsappUri)) {
+        await launchUrl(whatsappUri);
+      } else {
+        // Fall back to web link
+        final Uri browserUri = Uri.parse("https://wa.me/$formattedNumber");
+        if (await canLaunchUrl(browserUri)) {
+          await launchUrl(browserUri, mode: LaunchMode.externalApplication);
+        } else {
+          _showSnackBar('Could not open WhatsApp');
+        }
+      }
+    } catch (e) {
+      _showSnackBar('Error opening WhatsApp: $e');
+    }
+  }
+
   // Copy to clipboard
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
@@ -156,6 +182,19 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
                     iconColor: Colors.blue,
                     contacts: contactResponse.contacts!.facebook!,
                     onTap: (contact) => _openFacebook(contact.contact ?? ''),
+                    onLongPress:
+                        (contact) => _copyToClipboard(contact.contact ?? ''),
+                  ),
+
+                // WhatsApp section
+                if (contactResponse.contacts?.whatsApp != null &&
+                    contactResponse.contacts!.whatsApp!.isNotEmpty)
+                  _buildContactSection(
+                    title: 'WhatsApp',
+                    icon: Icons.message,
+                    iconColor: const Color(0xFF25D366), // WhatsApp green color
+                    contacts: contactResponse.contacts!.whatsApp!,
+                    onTap: (contact) => _openWhatsApp(contact.contact ?? ''),
                     onLongPress:
                         (contact) => _copyToClipboard(contact.contact ?? ''),
                   ),
@@ -267,6 +306,8 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
                             ? Icons.call
                             : title == 'Viber'
                             ? Icons.chat
+                            : title == 'WhatsApp'
+                            ? Icons.chat_bubble
                             : Icons.facebook,
                         color: iconColor,
                       ),

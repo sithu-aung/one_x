@@ -299,14 +299,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ).withOpacity(0.5),
                         inactiveTrackColor: const Color(0xFF7C4DFF),
                         onChanged: (bool value) {
-                          // No longer close the drawer
-                          ref
-                              .read(themeProvider.notifier)
-                              .setTheme(
-                                value
-                                    ? theme.ThemeType.darkIndigo
-                                    : theme.ThemeType.whiteIndigo,
-                              );
+                          // Close drawer and set theme with slight delay to allow animations to complete
+                          Navigator.pop(context);
+                          Future.delayed(const Duration(milliseconds: 100), () {
+                            ref
+                                .read(themeProvider.notifier)
+                                .setTheme(
+                                  value
+                                      ? theme.ThemeType.darkIndigo
+                                      : theme.ThemeType.whiteIndigo,
+                                );
+                          });
                         },
                       ),
                     );
@@ -1136,15 +1139,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       centerTitle: false,
       actions: [
-        IconButton(
-          icon: Image.asset(
-            'assets/images/search.png',
-            width: 24,
-            height: 24,
-            color: AppTheme.primaryColor,
-          ),
-          onPressed: () {},
-        ),
+        // IconButton(
+        //   icon: Image.asset(
+        //     'assets/images/search.png',
+        //     width: 24,
+        //     height: 24,
+        //     color: AppTheme.primaryColor,
+        //   ),
+        //   onPressed: () {},
+        // ),
         IconButton(
           icon: Stack(
             clipBehavior: Clip.none,
@@ -1247,16 +1250,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Perform logout
   void _performLogout(BuildContext context) async {
-    _logout();
-  }
+    // Call the auth provider's logout method to properly clear all data
+    await ref.read(authProvider.notifier).logout();
 
-  void _logout() async {
-    // await SecureStorage.clearAll();
-    // ref.read(navIndexProvider.notifier).reset();
+    // Navigation to login screen is handled by the state change listener in main.dart
+    // But we'll force navigation here as well for redundancy
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const LoginScreen()),
       (route) => false,
     );
+  }
+
+  void _logout() async {
+    // Call _performLogout with context
+    _performLogout(context);
   }
 
   // Helper method to determine if dark mode is active

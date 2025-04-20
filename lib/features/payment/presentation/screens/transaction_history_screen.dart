@@ -214,7 +214,7 @@ class _TransactionHistoryScreenState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Today\'s beginning balance',
+                          'Total Deposit',
                           style: TextStyle(
                             color: textColor.withOpacity(0.8),
                             fontSize: 14,
@@ -268,7 +268,7 @@ class _TransactionHistoryScreenState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Pending transaction total',
+                          'Total Withdraw',
                           style: TextStyle(
                             color: textColor.withOpacity(0.8),
                             fontSize: 14,
@@ -522,7 +522,10 @@ class _TransactionHistoryScreenState
                                                 TransactionDetailScreen(
                                                   transactionId:
                                                       transaction.id.toString(),
-                                                      status: transaction.transactionStatus ?? '',
+                                                  status:
+                                                      transaction
+                                                          .transactionStatus ??
+                                                      '',
                                                 ),
                                       ),
                                     );
@@ -544,7 +547,9 @@ class _TransactionHistoryScreenState
                                       builder:
                                           (context) => TransactionDetailScreen(
                                             transactionId: transId.toString(),
-                                            status: transaction.transactionStatus ?? '',
+                                            status:
+                                                transaction.transactionStatus ??
+                                                '',
                                           ),
                                     ),
                                   );
