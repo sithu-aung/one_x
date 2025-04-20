@@ -12,10 +12,10 @@ class AvailableResponse {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['available'] = this.available;
-    data['information'] = this.information;
-    data['countdown'] = this.countdown;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['available'] = available;
+    data['information'] = information;
+    data['countdown'] = countdown;
     return data;
   }
 }

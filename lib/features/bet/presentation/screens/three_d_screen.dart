@@ -882,18 +882,6 @@ class _ThreeDScreenState extends State<ThreeDScreen>
       if (mounted) Navigator.of(context).pop();
 
       if (response.available ?? false) {
-        // 3D is available, proceed to number selection
-        if (_activeSessions.isEmpty) {
-          // Show error if no active sessions
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('No active sessions available'),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-          return;
-        }
-
         // Get the first active session
         final selectedSession = _activeSessions[0];
 
@@ -905,6 +893,7 @@ class _ThreeDScreenState extends State<ThreeDScreen>
                 (context) => NumberSelection3DScreen(
                   sessionName: selectedSession['session_name'] ?? '',
                   sessionData: selectedSession,
+                  countdown: response.countdown ?? 0,
                 ),
           ),
         );

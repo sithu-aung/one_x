@@ -17,7 +17,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -45,7 +44,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
     });
 
     final loginForm = ref.read(loginFormProvider);
@@ -58,8 +56,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Username and password are required';
         });
+        _showValidationErrorDialog('Username and password are required');
       }
       return;
     }
@@ -78,10 +76,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             (route) => false, // Remove all routes below
           );
         } else if (next.state == AuthState.error) {
+          // Set loading to false
           setState(() {
-            _errorMessage = next.errorMessage;
             _isLoading = false;
           });
+
+          // Show error dialog instead of setting error message
+          _showErrorDialog();
+
           authNotifier.clearError();
         }
       });
@@ -91,16 +93,71 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString();
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
           _isLoading = false;
         });
+
+        // Show error dialog on any exception
+        _showErrorDialog();
       }
     }
+  }
+
+  // Show generic validation error dialog
+  void _showValidationErrorDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: customText('Error', fontSize: 18, fontWeight: FontWeight.bold),
+          content: customText(message, fontSize: 16),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: customText(
+                'OK',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: AppTheme.cardColor,
+        );
+      },
+    );
+  }
+
+  // Show error dialog with generic "Invalid credentials" message
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: customText('Error', fontSize: 18, fontWeight: FontWeight.bold),
+          content: customText('Invalid credentials', fontSize: 16),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: customText(
+                'OK',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: AppTheme.cardColor,
+        );
+      },
+    );
   }
 
   void _forgotPassword() {
@@ -448,18 +505,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           ),
                                 ),
                               ),
-
-                              // Error message
-                              if (_errorMessage != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: customText(
-                                    _errorMessage!,
-                                    fontSize: 14,
-                                    color: AppTheme.primaryColor,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
                             ],
                           ),
                         ),

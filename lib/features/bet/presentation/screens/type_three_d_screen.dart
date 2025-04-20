@@ -3,15 +3,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/bet/data/repositories/bet_repository.dart';
-import 'package:one_x/features/bet/presentation/providers/bet_providers.dart';
+import 'package:one_x/features/bet/presentation/providers/bet_providers.dart'
+    as bet_providers;
+import 'package:one_x/features/bet/presentation/providers/bet_provider.dart';
+import 'package:one_x/features/bet/presentation/screens/copy_3d_number_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/copy_number_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/dream_number_screen.dart';
+import 'package:one_x/features/bet/presentation/screens/number_selection_3d_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/number_selection_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/quick_select_screen.dart';
 import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/home/data/models/home_model.dart';
+import 'package:one_x/features/bet/domain/models/available_response.dart';
 import 'package:intl/intl.dart';
 import 'dart:math' as math;
+import 'dart:async';
 import 'package:one_x/features/bet/presentation/screens/bet_slip_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/amount_entry_screen.dart';
 import 'package:one_x/core/utils/api_service.dart';
@@ -37,6 +43,12 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
   final FocusNode _numberFocusNode = FocusNode();
   final FocusNode _amountFocusNode = FocusNode();
 
+  // Session data for passing to other screens
+  late final Map<String, dynamic> _sessionData = {
+    'session_name': widget.selectedTimeSection,
+    'status': 'active',
+  };
+
   // List to store the 3D entries
   final List<ThreeDEntry> _entries = [];
 
@@ -46,9 +58,13 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
   // Total amount
   int _totalAmount = 0;
 
+  // Countdown timer
+  late Timer _countdownTimer;
+  late int _remainingSeconds = 90; // Default to 1:30 until API data is loaded
+  bool _isLoadingCountdown = true;
+
   // Start time and remaining time
   final String _startTime = "06:07";
-  final String _remainingTime = "00:01:02";
   Set<String> selectedNumbers = {};
   final int _amount = 0;
   final int _minAmount = 100;
@@ -61,6 +77,63 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
   bool _isBulkEntryMode = false;
   final TextEditingController _bulkAmountController = TextEditingController();
 
+  // Format countdown from seconds to dd:hh:mm:ss
+  String _formatCountdown(int seconds) {
+    int days = seconds ~/ (24 * 3600);
+    seconds = seconds % (24 * 3600);
+    int hours = seconds ~/ 3600;
+    seconds = seconds % 3600;
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+
+    return '${days.toString().padLeft(2, '0')}:${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  void _startCountdown() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _countdownTimer.cancel();
+          // You could add a callback here when the countdown reaches zero
+          // For example, show a message or navigate away
+        }
+      });
+    });
+  }
+
+  Future<void> _fetchCountdownData() async {
+    setState(() {
+      _isLoadingCountdown = true;
+    });
+
+    try {
+      // Get the BetRepository from the provider
+      final repository = ref.read(betRepositoryProvider);
+
+      // Call the check3DAvailability API
+      final AvailableResponse response = await repository.check3DAvailability();
+
+      // Update the countdown with the value from the API
+      setState(() {
+        _remainingSeconds =
+            response.countdown ?? 90; // Default to 90 seconds if null
+        _isLoadingCountdown = false;
+      });
+
+      // Start the countdown timer
+      _startCountdown();
+    } catch (e) {
+      print('Error fetching countdown data: $e');
+      setState(() {
+        _isLoadingCountdown = false;
+        // Still start the timer with default value if API fails
+        _startCountdown();
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +141,9 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
     Future.delayed(Duration.zero, () {
       _numberFocusNode.requestFocus();
     });
+
+    // Fetch countdown data from API
+    _fetchCountdownData();
   }
 
   @override
@@ -80,6 +156,11 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
     // Dispose all entry amount controllers
     for (var controller in _entryAmountControllers) {
       controller.dispose();
+    }
+
+    // Cancel the timer to prevent memory leaks
+    if (mounted) {
+      _countdownTimer.cancel();
     }
 
     super.dispose();
@@ -617,6 +698,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
+        centerTitle: false,
         backgroundColor: AppTheme.backgroundColor,
         title: Text('3D ထိုးရန်', style: TextStyle(color: AppTheme.textColor)),
         leading: IconButton(
@@ -627,10 +709,25 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
           Container(
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Text(
-              'အရောင်းပိတ်ချိန် - ${widget.selectedTimeSection}',
-              style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
-            ),
+            child:
+                _isLoadingCountdown
+                    ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppTheme.primaryColor,
+                        ),
+                      ),
+                    )
+                    : Text(
+                      'အရောင်းပိတ်ချိန် - ${_formatCountdown(_remainingSeconds)}',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 13,
+                      ),
+                    ),
           ),
         ],
       ),
@@ -839,30 +936,6 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                     ),
           ),
 
-          // Bottom time info
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'ဖွင့်ချိန်: $_startTime',
-                  style: TextStyle(
-                    color: AppTheme.textSecondaryColor,
-                    fontSize: 12,
-                  ),
-                ),
-                Text(
-                  'ပိတ်ချိန်ကျန်: $_remainingTime',
-                  style: TextStyle(
-                    color: AppTheme.textSecondaryColor,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Button rows
           _buildActionButtons(),
           Padding(
@@ -960,13 +1033,15 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) => NumberSelectionScreen(
+                          (context) => NumberSelection3DScreen(
                             sessionName: widget.sessionName,
-                            selectedTimeSection: widget.selectedTimeSection,
+                            sessionData: _sessionData,
+                            countdown: _remainingSeconds,
+                            type: '3D',
                           ),
                     ),
                   );
@@ -990,17 +1065,17 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
               const SizedBox(width: 8),
               GestureDetector(
                 onTap:
-                    () => Navigator.push(
+                    () => Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder:
-                            (context) => CopyNumberScreen(
+                            (context) => Copy3DNumberScreen(
                               sessionName:
                                   widget.sessionName == "morning" ||
                                           widget.sessionName == "evening"
                                       ? widget.sessionName
                                       : "morning", // Use "morning" as a fallback
-                              selectedTimeSection: widget.selectedTimeSection,
+                              sessionData: _sessionData,
                             ),
                       ),
                     ),
@@ -1131,6 +1206,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
       child: Row(
         children: [
           Expanded(
+            flex: 2,
             child: ElevatedButton(
               onPressed: () {
                 // Clear all entries
@@ -1142,7 +1218,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor:
                     isLightTheme ? Colors.grey.shade200 : Color(0xFF3A3A3A),
-                minimumSize: const Size(double.infinity, 45),
+                minimumSize: const Size(double.infinity, 32),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1153,7 +1229,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                 'ဖျက်မည်',
                 style: TextStyle(
                   color: AppTheme.textColor,
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1161,6 +1237,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
+            flex: 3,
             child: ElevatedButton(
               onPressed: selectedNumbers.isEmpty ? _addEntry : _addBulkEntries,
               style: ElevatedButton.styleFrom(
@@ -1180,7 +1257,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                 'အကွက်ဖြည့်မည်',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1188,6 +1265,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
+            flex: 2,
             child: ElevatedButton(
               onPressed: _submitEntries,
               style: ElevatedButton.styleFrom(
@@ -1204,7 +1282,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
                 'ထိုးမည်',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                 ),
               ),

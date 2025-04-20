@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/bet/presentation/screens/bet_slip_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/amount_entry_screen.dart';
+import 'package:one_x/features/bet/presentation/screens/number_selection_3d_screen.dart';
+import 'package:one_x/features/bet/presentation/screens/type_three_d_screen.dart';
 import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/threed/presentation/providers/threed_provider.dart';
 import 'package:one_x/features/bet/data/repositories/bet_repository.dart';
@@ -10,8 +12,12 @@ import 'package:one_x/core/utils/api_service.dart';
 import 'package:one_x/core/services/storage_service.dart';
 import 'package:one_x/core/constants/app_constants.dart';
 import 'package:one_x/features/threed/data/models/threed_models.dart';
+import 'package:one_x/features/bet/domain/models/play_session.dart';
+import 'package:one_x/features/bet/domain/models/available_response.dart';
+import 'package:one_x/features/bet/presentation/providers/bet_provider.dart';
 import '../screens/amount_entry_screen.dart';
 import 'dart:convert';
+import 'dart:async';
 
 class Copy3DNumberScreen extends ConsumerStatefulWidget {
   final String sessionName;
@@ -30,11 +36,73 @@ class Copy3DNumberScreen extends ConsumerStatefulWidget {
 class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
   final TextEditingController _textController = TextEditingController();
   bool _isLoading = false;
+  bool _isLoadingCountdown = true;
   late ScaffoldMessengerState _scaffoldMessenger;
+
+  // Countdown timer
+  late Timer _countdownTimer;
+  late int _remainingSeconds = 90; // Default to 1:30 until API data is loaded
 
   // Data storage
   final List<Map<String, dynamic>> _parsedNumbers = [];
   double _totalAmount = 0;
+
+  // Format countdown from seconds to dd:hh:mm:ss
+  String _formatCountdown(int seconds) {
+    int days = seconds ~/ (24 * 3600);
+    seconds = seconds % (24 * 3600);
+    int hours = seconds ~/ 3600;
+    seconds = seconds % 3600;
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+
+    return '${days.toString().padLeft(2, '0')}:${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  void _startCountdown() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _countdownTimer.cancel();
+          // You could add a callback here when the countdown reaches zero
+          // For example, show a message or navigate away
+        }
+      });
+    });
+  }
+
+  Future<void> _fetchCountdownData() async {
+    setState(() {
+      _isLoadingCountdown = true;
+    });
+
+    try {
+      // Get the BetRepository from the provider
+      final repository = ref.read(betRepositoryProvider);
+
+      // Call the check3DAvailability API
+      final AvailableResponse response = await repository.check3DAvailability();
+
+      // Update the countdown with the value from the API
+      setState(() {
+        _remainingSeconds =
+            response.countdown ?? 90; // Default to 90 seconds if null
+        _isLoadingCountdown = false;
+      });
+
+      // Start the countdown timer
+      _startCountdown();
+    } catch (e) {
+      print('Error fetching countdown data: $e');
+      setState(() {
+        _isLoadingCountdown = false;
+        // Still start the timer with default value if API fails
+        _startCountdown();
+      });
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -47,12 +115,19 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
     super.initState();
     // Add listener to update UI when text changes
     _textController.addListener(_onTextChanged);
+
+    // Fetch countdown data from API
+    _fetchCountdownData();
   }
 
   @override
   void dispose() {
     _textController.removeListener(_onTextChanged);
     _textController.dispose();
+    // Cancel the timer to prevent memory leaks
+    if (mounted) {
+      _countdownTimer.cancel();
+    }
     super.dispose();
   }
 
@@ -68,6 +143,7 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
+        centerTitle: false,
         backgroundColor: AppTheme.backgroundColor,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
@@ -78,10 +154,25 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
           Container(
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Text(
-              'အရောင်းပိတ်ချိန် - 01:30',
-              style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
-            ),
+            child:
+                _isLoadingCountdown
+                    ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppTheme.primaryColor,
+                        ),
+                      ),
+                    )
+                    : Text(
+                      'အရောင်းပိတ်ချိန် - ${_formatCountdown(_remainingSeconds)}',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 13,
+                      ),
+                    ),
           ),
         ],
       ),
@@ -89,10 +180,10 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
         data:
             (homeData) => Column(
               children: [
-                _buildBalanceInfo(homeData.user.balance),
+                _buildBalanceBar(),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       children: [
                         _buildInputSection(),
@@ -116,11 +207,11 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
     );
   }
 
-  Widget _buildBalanceInfo(int balance) {
+  Widget _buildBalanceBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.centerLeft,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
             padding: const EdgeInsets.all(6),
@@ -128,20 +219,137 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
               color: AppTheme.cardColor,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.account_balance_wallet,
-                  color: AppTheme.textColor,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Balance ${_formatAmount(balance)} Ks.',
-                  style: TextStyle(color: AppTheme.textColor, fontSize: 13),
-                ),
-              ],
+            child: Consumer(
+              builder: (context, ref, _) {
+                final homeData = ref.watch(homeDataProvider);
+                return homeData.when(
+                  data: (data) {
+                    final balance = data.user.balance;
+                    return Row(
+                      children: [
+                        Icon(
+                          Icons.account_balance_wallet,
+                          color: AppTheme.textColor,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${_formatAmount(balance)} Ks.',
+                          style: TextStyle(
+                            color: AppTheme.textColor,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  loading:
+                      () => Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet,
+                            color: AppTheme.textColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                  error:
+                      (_, __) => Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet,
+                            color: AppTheme.textColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Error loading balance',
+                            style: TextStyle(
+                              color: AppTheme.textColor,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                );
+              },
             ),
+          ),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => NumberSelection3DScreen(
+                            sessionName: widget.sessionName,
+                            sessionData: widget.sessionData,
+                            countdown: _remainingSeconds,
+                            type: '3D',
+                          ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.primaryColor),
+                  ),
+                  child: Text(
+                    'ၐဏန်းရွေးထိုးရန်',
+                    style: TextStyle(color: AppTheme.textColor, fontSize: 11),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap:
+                    () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => TypeThreeDScreen(
+                              sessionName: widget.sessionName,
+                              selectedTimeSection:
+                                  widget.sessionData['session_name'],
+                            ),
+                      ),
+                    ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.primaryColor),
+                  ),
+                  child: Text(
+                    'ၐဏန်းရိုက်ထိုးရန်',
+                    style: TextStyle(color: AppTheme.textColor, fontSize: 11),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

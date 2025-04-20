@@ -10,6 +10,7 @@ import 'package:one_x/features/bet/domain/models/play_session.dart';
 import 'package:one_x/features/bet/presentation/screens/type_three_d_screen.dart';
 import 'dart:convert';
 import 'dart:math' show min;
+import 'dart:async';
 import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/home/data/models/home_model.dart';
 import 'package:one_x/features/bet/presentation/providers/bet_provider.dart';
@@ -21,12 +22,14 @@ class NumberSelection3DScreen extends ConsumerStatefulWidget {
   final String sessionName;
   final Map<String, dynamic> sessionData;
   final String type;
+  final int countdown;
 
   const NumberSelection3DScreen({
     super.key,
     required this.sessionName,
     required this.sessionData,
     this.type = '3D',
+    required this.countdown,
   });
 
   @override
@@ -41,6 +44,10 @@ class _NumberSelection3DScreenState
   int _amount = 0;
   final int _minAmount = 100; // Minimum bet amount
 
+  // Countdown timer
+  late Timer _countdownTimer;
+  late int _remainingSeconds;
+
   // API data
   bool _isLoading = true;
   Map<String, dynamic> _apiData = {};
@@ -48,6 +55,34 @@ class _NumberSelection3DScreenState
   Map<String, dynamic> _userRemainingAmounts = {};
   Set<String> unavailableNumbers = {};
   Map<String, Map<String, dynamic>> numberIndicators = {};
+
+  // Format countdown from seconds to dd:hh:mm:ss
+  String _formatCountdown(int seconds) {
+    int days = seconds ~/ (24 * 3600);
+    seconds = seconds % (24 * 3600);
+    int hours = seconds ~/ 3600;
+    seconds = seconds % 3600;
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+
+    return '${days.toString().padLeft(2, '0')}:${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  void _startCountdown() {
+    _remainingSeconds = widget.countdown;
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _countdownTimer.cancel();
+          // You could add a callback here when the countdown reaches zero
+          // For example, show a message or navigate away
+        }
+      });
+    });
+  }
 
   @override
   void initState() {
@@ -58,6 +93,9 @@ class _NumberSelection3DScreenState
     _amountController.text = '';
     _amount = 0;
 
+    // Start the countdown timer
+    _startCountdown();
+
     // Fetch digit data based on session name
     _fetchDigitData();
   }
@@ -65,6 +103,8 @@ class _NumberSelection3DScreenState
   @override
   void dispose() {
     _amountController.dispose();
+    // Cancel the timer to prevent memory leaks
+    _countdownTimer.cancel();
     super.dispose();
   }
 
@@ -368,7 +408,7 @@ class _NumberSelection3DScreenState
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
-              'အရောင်းပိတ်ချိန် - 01:30',
+              'အရောင်းပိတ်ချိန် - ${_formatCountdown(_remainingSeconds)}',
               style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
             ),
           ),
