@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/payment/application/payment_provider.dart';
 import 'package:one_x/features/payment/domain/models/payment_model.dart';
+import 'package:one_x/features/home/presentation/screens/home_screen.dart';
 
 enum PaymentActionType { topUp, withdraw }
 
@@ -488,7 +489,15 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                                   ),
                                 );
                               }
-                              Navigator.pop(context);
+                              // Navigate back to Home and set Wallet tab
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) =>
+                                          HomeScreen(initialTabIndex: 2),
+                                ),
+                                (route) => false,
+                              );
                             }
                           } else {
                             // For withdraw, use an empty string for transactionId
@@ -507,7 +516,15 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text(response['message'])),
                                 );
-                                Navigator.pop(context);
+                                // Navigate back to Home and set Wallet tab
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) =>
+                                            HomeScreen(initialTabIndex: 2),
+                                  ),
+                                  (route) => false,
+                                );
                               } else if (response['status'] != 'success') {
                                 // Show error message if status is not success
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -519,6 +536,15 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                                     backgroundColor: Colors.red,
                                   ),
                                 );
+                                // Navigate back to Home and set Wallet tab
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) =>
+                                            HomeScreen(initialTabIndex: 2),
+                                  ),
+                                  (route) => false,
+                                );
                               } else {
                                 // Fallback message if no message in response
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -528,7 +554,15 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                                     ),
                                   ),
                                 );
-                                Navigator.pop(context);
+                                // Navigate back to Home and set Wallet tab
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) =>
+                                            HomeScreen(initialTabIndex: 2),
+                                  ),
+                                  (route) => false,
+                                );
                               }
                             }
                           }

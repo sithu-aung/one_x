@@ -601,4 +601,61 @@ class ApiService {
       return null;
     }
   }
+
+  // Upload profile photo with multipart request
+  Future<dynamic> uploadProfilePhoto(File profilePhoto) async {
+    try {
+      final uri = Uri.parse('${AppConstants.baseUrl}/api/user/profile/photo');
+      final headers = await _getAuthHeaders();
+
+      // Create a new multipart request
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add headers (except Content-Type which is set automatically for multipart)
+      headers.forEach((key, value) {
+        if (key != 'Content-Type') {
+          request.headers[key] = value;
+        }
+      });
+
+      // Add the file
+      request.files.add(
+        await http.MultipartFile.fromPath('profile_photo', profilePhoto.path),
+      );
+
+      // Send the request
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 30),
+      );
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _handleResponse(response);
+    } on SocketException {
+      const message = 'No internet connection';
+      NavigationService.showSnackBar(message: message);
+      throw NetworkException(message);
+    } on HttpException {
+      const message = 'Could not find the requested resource';
+      NavigationService.showSnackBar(message: message);
+      throw NetworkException(message);
+    } on FormatException {
+      const message = 'Bad response format';
+      NavigationService.showSnackBar(message: message);
+      throw NetworkException(message);
+    } on TimeoutException {
+      const message = 'Request timeout';
+      NavigationService.showSnackBar(message: message);
+      throw NetworkException(message);
+    } catch (e) {
+      // If it's already an ApiException, don't wrap it again
+      if (e is ApiException) {
+        // The error message will already be shown by the code that threw the ApiException
+        rethrow;
+      } else {
+        final message = 'Failed to upload profile photo: $e';
+        NavigationService.showSnackBar(message: message);
+        throw ApiException(message);
+      }
+    }
+  }
 }

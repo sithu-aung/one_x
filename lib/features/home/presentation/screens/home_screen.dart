@@ -27,9 +27,13 @@ import 'package:one_x/features/profile/presentation/screens/faq/faq_screen.dart'
 import 'package:one_x/features/profile/presentation/screens/contact_us_screen.dart';
 import 'package:one_x/features/lottery/presentation/screens/coming_soon_screen.dart';
 import 'package:one_x/core/utils/secure_storage.dart';
+import 'package:one_x/core/constants/app_constants.dart';
+import 'package:one_x/shared/widgets/profile_avatar.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  final int? initialTabIndex;
+
+  const HomeScreen({super.key, this.initialTabIndex});
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -43,6 +47,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Set initial tab index if provided
+    if (widget.initialTabIndex != null) {
+      _currentNavIndex = widget.initialTabIndex!;
+    }
+
     // Auto-scroll the banner every 3 seconds
     Future.delayed(const Duration(milliseconds: 500), () {
       _startAutoScroll();
@@ -109,15 +118,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Consumer(
                         builder: (context, ref, _) {
                           final user = ref.watch(homeUserProvider);
-                          return CircleAvatar(
+                          return ProfileAvatar(
                             radius: 20,
-                            backgroundImage:
-                                user?.profilePhoto != null
-                                    ? NetworkImage(user!.profilePhoto)
-                                    : const AssetImage(
-                                          'assets/images/avatar.png',
-                                        )
-                                        as ImageProvider,
+                            useHomeUserData:
+                                true, // Use cached home data for better performance
                           );
                         },
                       ),

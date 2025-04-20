@@ -6,6 +6,7 @@ import 'package:one_x/features/profile/domain/models/policy.dart';
 import 'package:one_x/features/profile/domain/models/faq_list_response.dart';
 import 'package:one_x/features/profile/domain/models/profile_response.dart';
 import 'package:one_x/features/profile/domain/models/contact_response.dart';
+import 'dart:io';
 
 // Profile Repository
 class ProfileRepository {
@@ -203,6 +204,17 @@ class ProfileRepository {
   //     rethrow;
   //   }
   // }
+
+  // Upload profile photo
+  Future<Map<String, dynamic>> uploadProfilePhoto(File photo) async {
+    try {
+      final response = await _apiService.uploadProfilePhoto(photo);
+      return response;
+    } catch (error) {
+      print('Error uploading profile photo: $error');
+      rethrow;
+    }
+  }
 }
 
 // Profile Repository Provider
@@ -381,6 +393,23 @@ final updatePasswordWithUserKeyProvider =
         return response;
       } catch (e) {
         print('Error in updatePasswordWithUserKeyProvider: $e');
+        rethrow;
+      }
+    });
+
+// Upload Profile Photo Provider
+final uploadProfilePhotoProvider =
+    FutureProvider.family<Map<String, dynamic>, File>((ref, photo) async {
+      final repository = ref.watch(profileRepositoryProvider);
+      try {
+        final response = await repository.uploadProfilePhoto(photo);
+
+        // Ensure we force a complete refresh of user profile data
+        await ref.refresh(userProfileProvider.future);
+
+        return response;
+      } catch (e) {
+        print('Error in uploadProfilePhotoProvider: $e');
         rethrow;
       }
     });

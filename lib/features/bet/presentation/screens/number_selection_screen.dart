@@ -586,6 +586,13 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
                   isLightTheme: isLightTheme,
                 ),
                 _buildColorLegendItem(
+                  text: 'အရောင်းပိတ်ထားသည်',
+                  isUnavailable: true,
+                  progressColor: Colors.grey,
+                  progressValue: 1.0,
+                  isLightTheme: isLightTheme,
+                ),
+                _buildColorLegendItem(
                   text: 'Hot Number',
                   dotColor: Colors.red,
                   isLightTheme: isLightTheme,

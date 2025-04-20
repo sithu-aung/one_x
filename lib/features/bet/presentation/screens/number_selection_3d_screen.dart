@@ -652,6 +652,13 @@ class _NumberSelection3DScreenState
                   isLightTheme: isLightTheme,
                 ),
                 _buildColorLegendItem(
+                  text: 'အရောင်းပိတ်ထားသည်',
+                  isUnavailable: true,
+                  progressColor: Colors.grey,
+                  progressValue: 1.0,
+                  isLightTheme: isLightTheme,
+                ),
+                _buildColorLegendItem(
                   text: 'ရွေးချယ်ထားသည်',
                   isLightTheme: isLightTheme,
                   backgroundColor: AppTheme.primaryColor,

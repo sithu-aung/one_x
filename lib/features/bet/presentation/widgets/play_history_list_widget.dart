@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/bet/domain/models/play_history_list_response.dart';
 import 'package:intl/intl.dart';
+import 'package:one_x/features/bet/presentation/screens/bet_slip_screen.dart';
 
 class PlayHistoryListWidget extends StatefulWidget {
   final List<Histories>? histories;
@@ -341,90 +342,104 @@ class _PlayHistoryListWidgetState extends State<PlayHistoryListWidget> {
       }
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isLightTheme ? Colors.white : AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow:
-            isLightTheme
-                ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-                : null,
-        border:
-            isLightTheme
-                ? Border.all(color: Colors.grey.shade300, width: 1)
-                : null,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          history.invoiceNumber ?? 'N/A',
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => BetSlipScreen(
+                  invoiceId: history.lotteryId,
+                  fromWinningRecords: true,
+                ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: isLightTheme ? Colors.white : AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow:
+              isLightTheme
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                  : null,
+          border:
+              isLightTheme
+                  ? Border.all(color: Colors.grey.shade300, width: 1)
+                  : null,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            history.invoiceNumber ?? 'N/A',
+                            style: TextStyle(
+                              color: AppTheme.textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            maxLines: 1,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '(${digitCount.toString()} ကွက်)',
                           style: TextStyle(
                             color: AppTheme.textColor,
                             fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            overflow: TextOverflow.ellipsis,
+                            fontFamily: 'Pyidaungsu',
                           ),
-                          maxLines: 1,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '(${digitCount.toString()} ကွက်)',
-                        style: TextStyle(
-                          color: AppTheme.textColor,
-                          fontSize: 14,
-                          fontFamily: 'Pyidaungsu',
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Text(
-                  '${history.amount ?? '0'} Ks',
-                  style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    '${history.amount ?? '0'} Ks',
+                    style: TextStyle(
+                      color: AppTheme.textColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  history.user?.username ?? 'Unknown User',
-                  style: TextStyle(color: Colors.purple, fontSize: 13),
-                ),
-                Text(
-                  '$formattedDate | $formattedTime',
-                  style: TextStyle(
-                    color: AppTheme.textSecondaryColor,
-                    fontSize: 12,
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    history.user?.username ?? 'Unknown User',
+                    style: TextStyle(color: Colors.purple, fontSize: 13),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  Text(
+                    '$formattedDate | $formattedTime',
+                    style: TextStyle(
+                      color: AppTheme.textSecondaryColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,17 +1,27 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
 import 'package:one_x/features/profile/application/profile_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:one_x/core/constants/app_constants.dart';
+import 'package:one_x/shared/widgets/profile_avatar.dart';
 
-class ProfileScreen extends ConsumerWidget {
+// Convert to StatefulConsumerWidget for state management with access to ref
+class ProfileScreen extends ConsumerStatefulWidget {
   final bool fromHomeDrawer;
 
   const ProfileScreen({super.key, this.fromHomeDrawer = false});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final authUser = authState.user;
 
@@ -24,7 +34,7 @@ class ProfileScreen extends ConsumerWidget {
       backgroundColor: AppTheme.backgroundColor,
       // Only show AppBar if coming from home drawer, otherwise show no AppBar
       appBar:
-          fromHomeDrawer
+          widget.fromHomeDrawer
               ? AppBar(
                 backgroundColor: AppTheme.backgroundColor,
                 elevation: 0,
@@ -85,7 +95,7 @@ class ProfileScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile title at top left - only show if coming from home drawer
-            if (fromHomeDrawer)
+            if (widget.fromHomeDrawer)
               Padding(
                 padding: const EdgeInsets.only(
                   left: 16.0,
@@ -106,34 +116,13 @@ class ProfileScreen extends ConsumerWidget {
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(top: 12),
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundImage:
-                          user?.profilePhoto != null
-                              ? NetworkImage(user.profilePhoto)
-                              : const AssetImage('assets/images/avatar.png')
-                                  as ImageProvider,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        height: 35,
-                        width: 35,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.edit,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
+                child: ProfileAvatar(
+                  radius: 50,
+                  showEditButton: true,
+                  onEditTap: () => _showProfilePhotoOptions(context),
+                  useHomeUserData:
+                      false, // Always use fresh data on profile screen
+                  profilePhotoUrl: user?.profilePhoto,
                 ),
               ),
             ),
@@ -227,44 +216,44 @@ class ProfileScreen extends ConsumerWidget {
             ),
 
             // Edit Profile button
-            GestureDetector(
-              onTap: () {
-                // Navigate to edit profile screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfileEditScreen(user: user),
-                  ),
-                );
-              },
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.cardColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.edit, color: AppTheme.textColor, size: 20),
-                    const SizedBox(width: 16),
-                    Text(
-                      'Edit Profile',
-                      style: TextStyle(color: AppTheme.textColor, fontSize: 16),
-                    ),
-                    const Spacer(),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppTheme.textColor,
-                      size: 16,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     // Navigate to edit profile screen
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (context) => ProfileEditScreen(user: user),
+            //       ),
+            //     );
+            //   },
+            //   child: Container(
+            //     margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+            //     padding: const EdgeInsets.symmetric(
+            //       horizontal: 16,
+            //       vertical: 12,
+            //     ),
+            //     decoration: BoxDecoration(
+            //       color: AppTheme.cardColor,
+            //       borderRadius: BorderRadius.circular(8),
+            //     ),
+            //     child: Row(
+            //       children: [
+            //         Icon(Icons.edit, color: AppTheme.textColor, size: 20),
+            //         const SizedBox(width: 16),
+            //         Text(
+            //           'Edit Profile',
+            //           style: TextStyle(color: AppTheme.textColor, fontSize: 16),
+            //         ),
+            //         const Spacer(),
+            //         Icon(
+            //           Icons.arrow_forward_ios,
+            //           color: AppTheme.textColor,
+            //           size: 16,
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
 
             // Contact Information section
             _buildSectionHeader('Contact Information'),
@@ -362,6 +351,147 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  // Show dialog with options to take photo or pick from gallery
+  void _showProfilePhotoOptions(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardColor,
+          title: Text(
+            'Change Profile Photo',
+            style: TextStyle(color: AppTheme.textColor),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library,
+                  color: AppTheme.primaryColor,
+                ),
+                title: Text(
+                  'Choose from gallery',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.camera_alt, color: AppTheme.primaryColor),
+                title: Text(
+                  'Take a photo',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: AppTheme.primaryColor),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Pick image from gallery or camera and upload it
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final File imageFile = File(pickedFile.path);
+        // Show loading indicator
+        _showLoadingDialog(context);
+
+        // Upload profile photo
+        await ref
+            .read(uploadProfilePhotoProvider(imageFile).future)
+            .then((_) async {
+              // Force a complete refresh of user profile data
+              ref.refreshProfileData();
+
+              // Close loading dialog
+              if (mounted && context.mounted) {
+                Navigator.pop(context);
+                // Show success message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Profile photo updated successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            })
+            .catchError((error) {
+              // Close loading dialog
+              if (mounted && context.mounted) {
+                Navigator.pop(context);
+                // Show error message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to update profile photo: $error'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            });
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      if (mounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Show loading dialog
+  void _showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardColor,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Uploading profile photo...',
+                style: TextStyle(color: AppTheme.textColor),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -716,34 +846,12 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               children: [
                 // Profile Picture
                 Center(
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundImage:
-                            widget.user?.profilePhoto != null
-                                ? NetworkImage(widget.user.profilePhoto)
-                                : const AssetImage('assets/images/avatar.png')
-                                    as ImageProvider,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          height: 35,
-                          width: 35,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: ProfileAvatar(
+                    radius: 50,
+                    showEditButton: true,
+                    useHomeUserData: false,
+                    // Use the user's profile photo directly if available
+                    profilePhotoUrl: widget.user?.profilePhoto,
                   ),
                 ),
 

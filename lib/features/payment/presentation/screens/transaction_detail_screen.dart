@@ -5,9 +5,9 @@ import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/payment/application/payment_provider.dart';
 import 'package:one_x/features/payment/domain/models/transaction_detail.dart';
 import 'package:one_x/features/home/presentation/providers/home_provider.dart';
-import 'package:one_x/features/payment/presentation/screens/transaction_history_screen.dart';
+import 'package:one_x/shared/widgets/profile_avatar.dart';
 
-class TransactionDetailScreen extends ConsumerWidget {
+class TransactionDetailScreen extends ConsumerStatefulWidget {
   final String transactionId;
   final String status;
 
@@ -18,7 +18,14 @@ class TransactionDetailScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TransactionDetailScreen> createState() =>
+      _TransactionDetailScreenState();
+}
+
+class _TransactionDetailScreenState
+    extends ConsumerState<TransactionDetailScreen> {
+  @override
+  Widget build(BuildContext context) {
     final isDarkMode = AppTheme.backgroundColor.computeLuminance() < 0.5;
     final backgroundColor = AppTheme.backgroundColor;
     final textColor = AppTheme.textColor;
@@ -28,7 +35,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     final currentUser = homeDataAsync.value?.user;
 
     // Validate transaction ID
-    if (transactionId.isEmpty) {
+    if (widget.transactionId.isEmpty) {
       return Scaffold(
         backgroundColor: backgroundColor,
         appBar: AppBar(
@@ -39,7 +46,7 @@ class TransactionDetailScreen extends ConsumerWidget {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
-            'ငွေလက်ခံဖြတ်ပိုင်း အသေးစိတ်',
+            'ငွေစာရင်း အသေးစိတ်',
             style: TextStyle(
               color: textColor,
               fontSize: 18,
@@ -57,7 +64,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     }
 
     final transactionDetailAsync = ref.watch(
-      transactionDetailsProvider(transactionId),
+      transactionDetailsProvider(widget.transactionId),
     );
 
     return Scaffold(
@@ -70,7 +77,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'ငွေလက်ခံဖြတ်ပိုင်း အသေးစိတ်',
+          'ငွေစာရင်း အသေးစိတ်',
           style: TextStyle(
             color: textColor,
             fontSize: 18,
@@ -85,10 +92,26 @@ class TransactionDetailScreen extends ConsumerWidget {
           final transaction = detailResponse.transaction;
 
           if (transaction == null) {
-            return Center(
-              child: Text(
-                'Transaction details not found',
-                style: TextStyle(color: textColor),
+            return RefreshIndicator(
+              onRefresh: () async {
+                // Refresh transaction details
+                return ref.refresh(
+                  transactionDetailsProvider(widget.transactionId),
+                );
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.8,
+                    child: Center(
+                      child: Text(
+                        'Transaction details not found',
+                        style: TextStyle(color: textColor),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           }
@@ -102,35 +125,35 @@ class TransactionDetailScreen extends ConsumerWidget {
           final amountText =
               isWithdraw ? '-$formattedAmount' : '+$formattedAmount';
 
+          // Determine prefix sign for the amount display in the TextSpan
+          final amountPrefix =
+              (transaction.transactionType == 'withdraw' ||
+                      transaction.transactionType == 'play_2d' ||
+                      transaction.transactionType == 'play_3d')
+                  ? '- '
+                  : '+ ';
+
           // Format current date properly
           final dateFormatter = DateFormat('dd,MM,yyyy / hh:mm a');
           final formattedDate = dateFormatter.format(DateTime.now());
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Wrap the detailed content in a RefreshIndicator
+          return RefreshIndicator(
+            onRefresh: () async {
+              // Refresh transaction details
+              return ref.refresh(
+                transactionDetailsProvider(widget.transactionId),
+              );
+            },
+            child: ListView(
+              padding: const EdgeInsets.all(16),
               children: [
                 // User Profile Section
                 Center(
                   child: Column(
                     children: [
                       // Profile Image
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color:
-                              isDarkMode
-                                  ? Colors.grey.shade800
-                                  : Colors.grey.shade300,
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/avatar.png'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
+                      ProfileAvatar(radius: 40, useHomeUserData: true),
                       const SizedBox(height: 8),
                       // Username - Using current user's profile
                       Text(
@@ -167,10 +190,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text:
-                                      transaction.transactionType == 'CREDIT'
-                                          ? '+ '
-                                          : '- ',
+                                  text: amountPrefix,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 24,
@@ -224,14 +244,23 @@ class TransactionDetailScreen extends ConsumerWidget {
                 // Transaction Details List
                 _buildDetailRow(
                   'အခြေအနေ',
-                  '• ${transaction.transactionStatus == 'pending' ? 'လုပ်ဆောင်ဆဲ' : (transaction.transactionStatus == 'complete' ? 'အောင်မြင်ပြီး' : 'လုပ်ဆောင်ဆဲ')}',
+                  '• ${transaction.transactionStatus == 'pending' ? 'လုပ်ဆောင်ဆဲ' : transaction.transactionStatus?.toUpperCase()}',
                   textColor,
                   transaction.transactionStatus == 'pending'
                       ? Colors.orange
-                      : (transaction.transactionStatus == 'complete'
+                      : (transaction.transactionStatus == 'approved'
                           ? Colors.green
                           : Colors.orange),
                 ),
+                // Show approver information if status is approved
+                if (transaction.transactionStatus == 'approved' &&
+                    transaction.receiptUser != null)
+                  _buildDetailRow(
+                    'Approved by',
+                    '• ${transaction.receiptUser?.username ?? 'Admin'}',
+                    textColor,
+                    Colors.green,
+                  ),
                 _buildDetailRow(
                   'Type',
                   '• ${transaction.transactionType == 'withdraw' ? 'ငွေထုတ်' : (transaction.transactionType == 'deposit' ? 'ငွေသွင်း' : 'အခြား')}',
@@ -298,17 +327,53 @@ class TransactionDetailScreen extends ConsumerWidget {
                 // Bottom Button
                 const SizedBox(height: 24),
                 Visibility(
-                  visible: status == 'pending',
+                  visible: transaction.transactionStatus == 'pending',
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
                         // If transaction is pending, show cancel confirmation dialog
                         if (transaction.transactionStatus == 'pending') {
-                          _showCancelConfirmationDialog(
-                            context,
-                            ref,
-                            transaction.id.toString(),
+                          showDialog(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  backgroundColor: backgroundColor,
+                                  title: Text(
+                                    'ဖျက်သိမ်းမှု အတည်ပြုပါ',
+                                    style: TextStyle(color: textColor),
+                                  ),
+                                  content: Text(
+                                    'ဤငွေလွှဲခြင်းကို ဖျက်သိမ်းရန် သေချာပါသလား?',
+                                    style: TextStyle(color: textColor),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(
+                                          context,
+                                        ).pop(); // Close the dialog
+                                      },
+                                      child: Text(
+                                        'မလုပ်တော့ပါ',
+                                        style: TextStyle(
+                                          color: AppTheme.textSecondaryColor,
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(
+                                          context,
+                                        ).pop(); // Close the dialog
+                                      },
+                                      child: Text(
+                                        'ဖျက်သိမ်းမည်',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                           );
                         } else {
                           Navigator.pop(context);
@@ -369,19 +434,14 @@ class TransactionDetailScreen extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 2,
+          SizedBox(
+            width: 140,
             child: Text(
               label,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
+              style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 14),
             ),
           ),
           Expanded(
-            flex: 3,
             child: Text(
               value,
               style: TextStyle(
@@ -393,85 +453,6 @@ class TransactionDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _showCancelConfirmationDialog(
-    BuildContext context,
-    WidgetRef ref,
-    String transactionId,
-  ) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppTheme.backgroundColor,
-          title: Text(
-            'ဖျက်သိမ်းမှု အတည်ပြုပါ',
-            style: TextStyle(color: AppTheme.textColor),
-          ),
-          content: Text(
-            'ဤငွေလွှဲခြင်းကို ဖျက်သိမ်းရန် သေချာပါသလား?',
-            style: TextStyle(color: AppTheme.textColor),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text(
-                'မလုပ်တော့ပါ',
-                style: TextStyle(color: AppTheme.textSecondaryColor),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close the dialog
-
-                // Show loading indicator
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('ငွေလွှဲခြင်းကို ဖျက်သိမ်းနေသည်...'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-
-                // Call the cancel transaction API
-                try {
-                  await ref.read(
-                    cancelTransactionProvider(transactionId).future,
-                  );
-
-                  // On success, show success message and navigate back
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'ငွေလွှဲခြင်းကို အောင်မြင်စွာ ဖျက်သိမ်းပြီးပါပြီ',
-                      ),
-                    ),
-                  );
-
-                  // Pop back to transaction history screen
-                  Navigator.of(context).pop();
-
-                  // Refresh the transaction history list and home data
-                  ref.refresh(walletHistoryProvider);
-                  ref.refresh(homeDataProvider);
-                } catch (error) {
-                  // On error, show error message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('ဖျက်သိမ်းရာတွင် အမှား - $error'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              child: Text('ဖျက်သိမ်းမည်', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
     );
   }
 }

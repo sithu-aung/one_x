@@ -23,7 +23,7 @@ class Transaction {
   int? id;
   String? transactionHistoryKey;
   int? senderId;
-  Null actionBy;
+  dynamic actionBy;
   int? receiptId;
   int? providerId;
   int? billingId;
@@ -120,19 +120,19 @@ class ReceiptUser {
   String? userCode;
   int? agree;
   int? parentId;
-  Null oddId;
+  dynamic oddId;
   bool? status;
   int? balance;
   String? phone;
-  Null referral;
+  dynamic referral;
   String? dateOfBirth;
   String? myReferral;
   String? hiddenPhone;
   String? email;
-  Null profilePhoto;
-  Null address;
-  Null country;
-  Null emailVerifiedAt;
+  dynamic profilePhoto;
+  dynamic address;
+  dynamic country;
+  dynamic emailVerifiedAt;
   int? digitUsage;
   String? createdAtHuman;
 
