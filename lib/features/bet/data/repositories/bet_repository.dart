@@ -11,6 +11,7 @@ import 'package:one_x/features/bet/domain/models/winner_list_response.dart';
 import 'package:one_x/features/bet/domain/models/two_d_history_response.dart';
 import 'package:one_x/features/bet/domain/models/holiday_list_response.dart';
 import 'package:one_x/features/bet/domain/models/tape_hot_list_response.dart';
+import 'package:one_x/features/bet/domain/models/available_response.dart';
 
 class BetRepository {
   final ApiService _apiService;
@@ -642,6 +643,20 @@ class BetRepository {
       print('Error in get3DPlayHistory: $error');
       // Return empty model to avoid null errors
       return PlayHistoryListResponse(histories: []);
+    }
+  }
+
+  /// Check 3D availability
+  Future<AvailableResponse> check3DAvailability() async {
+    try {
+      final response = await _apiService.get(
+        AppConstants.checkThreeDAvailabilityEndpoint,
+      );
+      return AvailableResponse.fromJson(response);
+    } catch (error) {
+      print('Error in check3DAvailability: $error');
+      // Return empty model to avoid null errors
+      return AvailableResponse(available: false);
     }
   }
 }

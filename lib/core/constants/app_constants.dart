@@ -56,6 +56,8 @@ class AppConstants {
       '/api/user/history/three/first-half-monthly';
   static const String threeDHistorySecondHalfMonthlyEndpoint =
       '/api/user/history/three/second-half-monthly';
+  static const String checkThreeDAvailabilityEndpoint =
+      '/api/user/check-threed-availability';
 
   // API Endpoints - TwoD Game
   static const String twoDSessionStatusEndpoint =

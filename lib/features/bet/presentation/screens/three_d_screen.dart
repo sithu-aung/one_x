@@ -17,6 +17,7 @@ import 'package:one_x/features/bet/presentation/widgets/three_d_history_numbers_
 import 'package:one_x/features/bet/presentation/widgets/three_d_bet_history_widget.dart';
 import 'package:one_x/features/bet/presentation/providers/bet_providers.dart';
 import 'package:one_x/features/bet/presentation/widgets/three_d_winners_widget.dart';
+import 'package:one_x/features/bet/domain/models/available_response.dart';
 
 class ThreeDScreen extends StatefulWidget {
   const ThreeDScreen({super.key});
@@ -826,32 +827,8 @@ class _ThreeDScreenState extends State<ThreeDScreen>
       ),
       child: ElevatedButton(
         onPressed: () {
-          // Navigate directly to number selection screen using the first active session
-          if (_activeSessions.isEmpty) {
-            // Show error if no active sessions
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('No active sessions available'),
-                duration: const Duration(seconds: 3),
-              ),
-            );
-            return;
-          }
-
-          // Get the first active session
-          final selectedSession = _activeSessions[0];
-
-          // Navigate to number selection screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => NumberSelection3DScreen(
-                    sessionName: selectedSession['session_name'] ?? '',
-                    sessionData: selectedSession,
-                  ),
-            ),
-          );
+          // Check 3D availability before navigating
+          _check3DAvailability();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryColor,
@@ -871,6 +848,111 @@ class _ThreeDScreenState extends State<ThreeDScreen>
         ),
       ),
     );
+  }
+
+  // New method to check 3D availability
+  Future<void> _check3DAvailability() async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(color: AppTheme.primaryColor),
+              const SizedBox(width: 20),
+              Text(
+                "စစ်ဆေးနေသည်...",
+                style: TextStyle(color: AppTheme.textColor),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    try {
+      // Call the API to check availability
+      final AvailableResponse response =
+          await _betRepository.check3DAvailability();
+
+      // Close the loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      if (response.available ?? false) {
+        // 3D is available, proceed to number selection
+        if (_activeSessions.isEmpty) {
+          // Show error if no active sessions
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No active sessions available'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          return;
+        }
+
+        // Get the first active session
+        final selectedSession = _activeSessions[0];
+
+        // Navigate to number selection screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => NumberSelection3DScreen(
+                  sessionName: selectedSession['session_name'] ?? '',
+                  sessionData: selectedSession,
+                ),
+          ),
+        );
+      } else {
+        // 3D is not available, show message dialog
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text(
+                  "3D Not Available",
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+                content: Text(
+                  response.information ??
+                      "3D is currently not available. Please try again later.",
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      "OK",
+                      style: TextStyle(color: AppTheme.primaryColor),
+                    ),
+                  ),
+                ],
+                backgroundColor: AppTheme.cardColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              );
+            },
+          );
+        }
+      }
+    } catch (e) {
+      // Close the loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to check availability: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   Widget _buildLiveResultsTab() {
