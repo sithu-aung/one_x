@@ -3,11 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/bet/presentation/screens/bet_slip_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/amount_entry_screen.dart';
+import 'package:one_x/features/bet/presentation/screens/number_selection_screen.dart';
+import 'package:one_x/features/bet/presentation/screens/type_two_d_screen.dart';
 import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/bet/presentation/providers/bet_provider.dart';
 import 'package:one_x/core/utils/api_service.dart'; // Contains ApiException
 import 'package:one_x/core/services/storage_service.dart';
 import 'dart:convert';
+import 'dart:async';
+import 'package:one_x/features/bet/data/repositories/bet_repository.dart';
+import 'package:one_x/features/bet/domain/models/two_d_session_status_list_response.dart';
 
 class CopyNumberScreen extends ConsumerStatefulWidget {
   final String sessionName;
@@ -32,6 +37,10 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
   final List<Map<String, dynamic>> _parsedNumbers = [];
   double _totalAmount = 0;
 
+  // Countdown timer
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0; // Initialize with default value
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -43,18 +52,125 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
     super.initState();
     // Add listener to update UI when text changes
     _textController.addListener(_onTextChanged);
+
+    // Fetch session list to get countdown
+    _fetchSessionList();
   }
 
   @override
   void dispose() {
     _textController.removeListener(_onTextChanged);
     _textController.dispose();
+    if (_countdownTimer != null && _countdownTimer!.isActive) {
+      _countdownTimer!.cancel();
+    }
     super.dispose();
   }
 
   void _onTextChanged() {
     // Force a rebuild to update button state
     setState(() {});
+  }
+
+  // Format countdown from seconds to dd:hh:mm:ss
+  String _formatCountdown(int seconds) {
+    int days = seconds ~/ (24 * 3600);
+    seconds = seconds % (24 * 3600);
+    int hours = seconds ~/ 3600;
+    seconds = seconds % 3600;
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+
+    // Build the string conditionally
+    String result = '';
+
+    // Only add days if non-zero
+    if (days > 0) {
+      result += '${days.toString()}:';
+    }
+
+    // Only add hours if days or hours are non-zero
+    if (days > 0 || hours > 0) {
+      result += '${hours.toString().padLeft(2, '0')}:';
+    }
+
+    // Always show at least minutes and seconds
+    result +=
+        '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+
+    return result;
+  }
+
+  void _startCountdown() {
+    _countdownTimer?.cancel(); // Cancel any existing timer
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _countdownTimer?.cancel();
+          // You could add a callback here when the countdown reaches zero
+          // For example, show a message or navigate away
+        }
+      });
+    });
+  }
+
+  Future<void> _fetchSessionList() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final repository = ref.read(betRepositoryProvider);
+      final TwoDSessionStatusListResponse response =
+          await repository.getActive2DSessions();
+
+      if (response.session != null && response.session!.isNotEmpty) {
+        // Look for the session matching our sessionName
+        Session? selectedSession;
+        for (var session in response.session!) {
+          if (session.sessionName == widget.sessionName) {
+            selectedSession = session;
+            break;
+          }
+        }
+
+        if (selectedSession != null) {
+          // Set the countdown from the session data
+          setState(() {
+            _remainingSeconds =
+                selectedSession?.countdown ?? 3600; // Default to 1 hour if null
+            _isLoading = false;
+          });
+
+          // Start the countdown timer
+          _startCountdown();
+        } else {
+          // If we can't find matching session, set a default countdown
+          setState(() {
+            _remainingSeconds = 3600; // Default to 1 hour
+            _isLoading = false;
+          });
+          _startCountdown();
+        }
+      } else {
+        // No sessions available, set a default countdown
+        setState(() {
+          _remainingSeconds = 3600; // Default to 1 hour
+          _isLoading = false;
+        });
+        _startCountdown();
+      }
+    } catch (e) {
+      print('Error fetching session list: $e');
+      // Set a default countdown and continue
+      setState(() {
+        _remainingSeconds = 3600; // Default to 1 hour
+        _isLoading = false;
+      });
+      _startCountdown();
+    }
   }
 
   @override
@@ -64,6 +180,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
+        centerTitle: false,
         backgroundColor: AppTheme.backgroundColor,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
@@ -75,48 +192,51 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
-              'အရောင်းပိတ်ချိန် - 01:30',
+              'အရောင်းပိတ်ချိန် - ${_formatCountdown(_remainingSeconds)}',
               style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
             ),
           ),
         ],
       ),
-      body: homeDataValue.when(
-        data:
-            (homeData) => Column(
-              children: [
-                _buildBalanceInfo(homeData.user.balance),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
+      body:
+          _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : homeDataValue.when(
+                data:
+                    (homeData) => Column(
                       children: [
-                        _buildInputSection(),
-                        Expanded(child: _buildInfoText()),
+                        _buildBalanceBar(),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                _buildInputSection(),
+                                Expanded(child: _buildInfoText()),
+                              ],
+                            ),
+                          ),
+                        ),
+                        _buildBottomButton(),
                       ],
                     ),
-                  ),
-                ),
-                _buildBottomButton(),
-              ],
-            ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (error, stack) => Center(
-              child: Text(
-                'Error loading user data: $error',
-                style: TextStyle(color: AppTheme.textColor),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error:
+                    (error, stack) => Center(
+                      child: Text(
+                        'Error loading user data: $error',
+                        style: TextStyle(color: AppTheme.textColor),
+                      ),
+                    ),
               ),
-            ),
-      ),
     );
   }
 
-  Widget _buildBalanceInfo(int balance) {
+  Widget _buildBalanceBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.centerLeft,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
             padding: const EdgeInsets.all(6),
@@ -124,20 +244,135 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
               color: AppTheme.cardColor,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.account_balance_wallet,
-                  color: AppTheme.textColor,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Balance ${_formatAmount(balance)} Ks.',
-                  style: TextStyle(color: AppTheme.textColor, fontSize: 13),
-                ),
-              ],
+            child: Consumer(
+              builder: (context, ref, _) {
+                final homeData = ref.watch(homeDataProvider);
+                return homeData.when(
+                  data: (data) {
+                    final balance = data.user.balance;
+                    return Row(
+                      children: [
+                        Icon(
+                          Icons.account_balance_wallet,
+                          color: AppTheme.textColor,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${_formatAmount(balance)} Ks.',
+                          style: TextStyle(
+                            color: AppTheme.textColor,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  loading:
+                      () => Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet,
+                            color: AppTheme.textColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                  error:
+                      (_, __) => Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet,
+                            color: AppTheme.textColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Error loading balance',
+                            style: TextStyle(
+                              color: AppTheme.textColor,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                );
+              },
             ),
+          ),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => NumberSelectionScreen(
+                            sessionName: widget.sessionName,
+                            selectedTimeSection: widget.selectedTimeSection,
+                          ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.primaryColor),
+                  ),
+                  child: Text(
+                    'ၐဏန်းရွေးထိုးရန်',
+                    style: TextStyle(color: AppTheme.textColor, fontSize: 11),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => TypeTwoDScreen(
+                            sessionName: widget.sessionName,
+                            selectedTimeSection: widget.selectedTimeSection,
+                          ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.primaryColor),
+                  ),
+                  child: Text(
+                    'ၐဏန်းရိုက်ထိုးရန်',
+                    style: TextStyle(color: AppTheme.textColor, fontSize: 11),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -16,6 +16,8 @@ import 'package:one_x/features/bet/presentation/providers/bet_provider.dart';
 import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
 import 'package:one_x/features/bet/presentation/screens/dream_number_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/tape_hot_selection_dialog.dart';
+import 'dart:async';
+import 'package:one_x/features/bet/domain/models/two_d_session_status_list_response.dart';
 
 class NumberSelectionScreen extends ConsumerStatefulWidget {
   final String selectedTimeSection;
@@ -38,6 +40,10 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
   int _amount = 0;
   final int _minAmount = 100; // Minimum bet amount
 
+  // Countdown timer
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0; // Initialize with default value
+
   // API data
   bool _isLoading = true;
   Map<String, dynamic> _apiData = {};
@@ -55,6 +61,50 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
   final ScrollController _marqueeScrollController = ScrollController();
   bool _isScrolling = false; // Non-final variable
 
+  // Format countdown from seconds to dd:hh:mm:ss
+  String _formatCountdown(int seconds) {
+    int days = seconds ~/ (24 * 3600);
+    seconds = seconds % (24 * 3600);
+    int hours = seconds ~/ 3600;
+    seconds = seconds % 3600;
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+
+    // Build the string conditionally
+    String result = '';
+
+    // Only add days if non-zero
+    if (days > 0) {
+      result += '${days.toString()}:';
+    }
+
+    // Only add hours if days or hours are non-zero
+    if (days > 0 || hours > 0) {
+      result += '${hours.toString().padLeft(2, '0')}:';
+    }
+
+    // Always show at least minutes and seconds
+    result +=
+        '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+
+    return result;
+  }
+
+  void _startCountdown() {
+    _countdownTimer?.cancel(); // Cancel any existing timer
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _countdownTimer?.cancel();
+          // You could add a callback here when the countdown reaches zero
+          // For example, show a message or navigate away
+        }
+      });
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -64,8 +114,9 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
     _amountController.text = '';
     _amount = 0;
 
-    // Fetch digit data based on session name
-    _fetchDigitData();
+    // Start by fetching session list
+    _fetchSessionList();
+
     // Prefetch tape and hot numbers
     _fetchTapeHotData();
   }
@@ -74,7 +125,61 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
   void dispose() {
     _amountController.dispose();
     _marqueeScrollController.dispose();
+    if (_countdownTimer != null && _countdownTimer!.isActive) {
+      _countdownTimer!.cancel();
+    }
     super.dispose();
+  }
+
+  Future<void> _fetchSessionList() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final repository = ref.read(betRepositoryProvider);
+      final TwoDSessionStatusListResponse response =
+          await repository.getActive2DSessions();
+
+      if (response.session != null && response.session!.isNotEmpty) {
+        // Look for the session matching our selectedTimeSection
+        Session? selectedSession;
+        for (var session in response.session!) {
+          if (session.sessionName == widget.sessionName) {
+            selectedSession = session;
+            break;
+          }
+        }
+
+        if (selectedSession != null) {
+          // Set the countdown from the session data
+          _remainingSeconds =
+              selectedSession.countdown ?? 0; // Default to 1 hour if null
+
+          // Start the countdown timer
+          _startCountdown();
+
+          // Now fetch digit data based on this session
+          _fetchDigitData();
+        } else {
+          // If we can't find matching session, still fetch digit data with a default countdown
+          _remainingSeconds = 3600; // Default to 1 hour
+          _startCountdown();
+          _fetchDigitData();
+        }
+      } else {
+        // No sessions available, still fetch digit data with a default countdown
+        _remainingSeconds = 3600; // Default to 1 hour
+        _startCountdown();
+        _fetchDigitData();
+      }
+    } catch (e) {
+      print('Error fetching session list: $e');
+      // Set a default countdown and continue
+      _remainingSeconds = 3600; // Default to 1 hour
+      _startCountdown();
+      _fetchDigitData();
+    }
   }
 
   Future<void> _fetchDigitData() async {
@@ -296,7 +401,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
-              'အရောင်းပိတ်ချိန် - 01:30',
+              'အရောင်းပိတ်ချိန် - ${_formatCountdown(_remainingSeconds)}',
               style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
             ),
           ),
@@ -487,7 +592,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
         children: [
           Expanded(
             child: Text(
-              '${_getCurrentFormattedDate()} | ${widget.selectedTimeSection} Section',
+              '${_getCurrentFormattedDate()} | ${widget.selectedTimeSection}',
               style: TextStyle(
                 color: AppTheme.textColor,
                 fontSize: 14,
@@ -500,11 +605,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.circle_outlined,
-                  color: AppTheme.textColor,
-                  size: 18,
-                ),
+                Icon(Icons.info_outline, color: AppTheme.textColor, size: 18),
                 const SizedBox(width: 4),
                 Text(
                   'Color ရှင်းလင်းချက်',

@@ -65,7 +65,24 @@ class _NumberSelection3DScreenState
     int minutes = seconds ~/ 60;
     int remainingSeconds = seconds % 60;
 
-    return '${days.toString().padLeft(2, '0')}:${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+    // Build the string conditionally
+    String result = '';
+
+    // Only add days if non-zero
+    if (days > 0) {
+      result += '${days.toString()}:';
+    }
+
+    // Only add hours if days or hours are non-zero
+    if (days > 0 || hours > 0) {
+      result += '${hours.toString().padLeft(2, '0')}:';
+    }
+
+    // Always show at least minutes and seconds
+    result +=
+        '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+
+    return result;
   }
 
   void _startCountdown() {

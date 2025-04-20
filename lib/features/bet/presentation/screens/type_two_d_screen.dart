@@ -12,9 +12,11 @@ import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/home/data/models/home_model.dart';
 import 'package:intl/intl.dart';
 import 'dart:math' as math;
+import 'dart:async';
 import 'package:one_x/features/bet/presentation/screens/bet_slip_screen.dart';
 import 'package:one_x/features/bet/presentation/screens/amount_entry_screen.dart';
 import 'package:one_x/core/utils/api_service.dart';
+import 'package:one_x/features/bet/domain/models/two_d_session_status_list_response.dart';
 
 class TypeTwoDScreen extends ConsumerStatefulWidget {
   final String selectedTimeSection;
@@ -48,7 +50,6 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
 
   // Start time and remaining time
   final String _startTime = "06:07";
-  final String _remainingTime = "00:01:02";
   Set<String> selectedNumbers = {};
   final int _amount = 0;
   final int _minAmount = 100;
@@ -61,6 +62,13 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
   bool _isBulkEntryMode = false;
   final TextEditingController _bulkAmountController = TextEditingController();
 
+  // Loading state
+  bool _isLoading = false;
+
+  // Countdown timer
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0; // Initialize with default value
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +76,9 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
     Future.delayed(Duration.zero, () {
       _numberFocusNode.requestFocus();
     });
+
+    // Fetch session list to get countdown
+    _fetchSessionList();
   }
 
   @override
@@ -82,7 +93,113 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
       controller.dispose();
     }
 
+    // Cancel the countdown timer
+    if (_countdownTimer != null && _countdownTimer!.isActive) {
+      _countdownTimer!.cancel();
+    }
+
     super.dispose();
+  }
+
+  // Format countdown from seconds to dd:hh:mm:ss
+  String _formatCountdown(int seconds) {
+    int days = seconds ~/ (24 * 3600);
+    seconds = seconds % (24 * 3600);
+    int hours = seconds ~/ 3600;
+    seconds = seconds % 3600;
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+
+    // Build the string conditionally
+    String result = '';
+
+    // Only add days if non-zero
+    if (days > 0) {
+      result += '${days.toString()}:';
+    }
+
+    // Only add hours if days or hours are non-zero
+    if (days > 0 || hours > 0) {
+      result += '${hours.toString().padLeft(2, '0')}:';
+    }
+
+    // Always show at least minutes and seconds
+    result +=
+        '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+
+    return result;
+  }
+
+  void _startCountdown() {
+    _countdownTimer?.cancel(); // Cancel any existing timer
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _countdownTimer?.cancel();
+          // You could add a callback here when the countdown reaches zero
+          // For example, show a message or navigate away
+        }
+      });
+    });
+  }
+
+  Future<void> _fetchSessionList() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final repository = ref.read(betRepositoryProvider);
+      final TwoDSessionStatusListResponse response =
+          await repository.getActive2DSessions();
+
+      if (response.session != null && response.session!.isNotEmpty) {
+        // Look for the session matching our sessionName
+        Session? selectedSession;
+        for (var session in response.session!) {
+          if (session.sessionName == widget.sessionName) {
+            selectedSession = session;
+            break;
+          }
+        }
+
+        if (selectedSession != null) {
+          // Set the countdown from the session data
+          setState(() {
+            _remainingSeconds =
+                selectedSession?.countdown ?? 3600; // Default to 1 hour if null
+            _isLoading = false;
+          });
+
+          // Start the countdown timer
+          _startCountdown();
+        } else {
+          // If we can't find matching session, set a default countdown
+          setState(() {
+            _remainingSeconds = 3600; // Default to 1 hour
+            _isLoading = false;
+          });
+          _startCountdown();
+        }
+      } else {
+        // No sessions available, set a default countdown
+        setState(() {
+          _remainingSeconds = 3600; // Default to 1 hour
+          _isLoading = false;
+        });
+        _startCountdown();
+      }
+    } catch (e) {
+      print('Error fetching session list: $e');
+      // Set a default countdown and continue
+      setState(() {
+        _remainingSeconds = 3600; // Default to 1 hour
+        _isLoading = false;
+      });
+      _startCountdown();
+    }
   }
 
   // Show error snackbar
@@ -615,6 +732,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
+        centerTitle: false,
         backgroundColor: AppTheme.backgroundColor,
         title: Text('2D ထိုးရန်', style: TextStyle(color: AppTheme.textColor)),
         leading: IconButton(
@@ -626,7 +744,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
-              'အရောင်းပိတ်ချိန် - ${widget.selectedTimeSection}',
+              'အရောင်းပိတ်ချိန် - ${_formatCountdown(_remainingSeconds)}',
               style: TextStyle(color: AppTheme.primaryColor, fontSize: 13),
             ),
           ),
@@ -837,30 +955,6 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
                     ),
           ),
 
-          // Bottom time info
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'ဖွင့်ချိန်: $_startTime',
-                  style: TextStyle(
-                    color: AppTheme.textSecondaryColor,
-                    fontSize: 12,
-                  ),
-                ),
-                Text(
-                  'ပိတ်ချိန်ကျန်: $_remainingTime',
-                  style: TextStyle(
-                    color: AppTheme.textSecondaryColor,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Button rows
           _buildActionButtons(),
           Padding(
@@ -958,7 +1052,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder:
@@ -988,7 +1082,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
               const SizedBox(width: 8),
               GestureDetector(
                 onTap:
-                    () => Navigator.push(
+                    () => Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder:
@@ -1129,6 +1223,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
       child: Row(
         children: [
           Expanded(
+            flex: 2,
             child: ElevatedButton(
               onPressed: () {
                 // Clear all entries
@@ -1151,7 +1246,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
                 'ဖျက်မည်',
                 style: TextStyle(
                   color: AppTheme.textColor,
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1159,6 +1254,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
+            flex: 3,
             child: ElevatedButton(
               onPressed: selectedNumbers.isEmpty ? _addEntry : _addBulkEntries,
               style: ElevatedButton.styleFrom(
@@ -1178,7 +1274,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
                 'အကွက်ဖြည့်မည်',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1186,6 +1282,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
+            flex: 2,
             child: ElevatedButton(
               onPressed: _submitEntries,
               style: ElevatedButton.styleFrom(
@@ -1202,7 +1299,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
                 'ထိုးမည်',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                 ),
               ),
