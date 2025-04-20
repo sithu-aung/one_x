@@ -655,6 +655,27 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
       final pwPattern = RegExp(r'^(PW|Pw|pw|ပါဝါ|ပဝ)([0-9๐-๙၀-၉]+)$');
       final nyikoPattern = RegExp(r'^(ညီကို|ညီနောင်)([0-9๐-๙၀-၉]+)$');
 
+      // Add patterns for formulas with numeric arguments
+      final npPattern = RegExp(
+        r'^([0-9๐-๙၀-၉]+)(NP|Np|np|N\b|n\b|နောက်ပိတ်|နောက်|ပိတ်)([0-9๐-๙၀-၉]+)$',
+      );
+      final tsPattern = RegExp(
+        r'^([0-9๐-๙၀-၉]+)(TS|ts|T\b|t\b|ထိပ်စီး|ထိပ်|ရှေ့)([0-9๐-๙၀-၉]+)$',
+      );
+      final pPattern = RegExp(
+        r'^([0-9๐-๙၀-၉]+)(P\b|p\b|ပါ|အပါ|ပတ်)([0-9๐-๙၀-၉]+)$',
+      );
+      final brPattern = RegExp(
+        r'^([0-9๐-๙၀-၉]+)(BR|Br|br|B\b|b\b|ဘရိတ်)([0-9๐-๙၀-၉]+)$',
+      );
+      final kPattern = RegExp(
+        r'^([0-9๐-๙၀-၉]+)(K\b|k\b|ခွေ|ခ\b)([0-9๐-๙၀-၉]+)$',
+      );
+      final kpPattern = RegExp(
+        r'^([0-9๐-๙၀-၉]+)(KP|Kp|kp|ခွေပူး|ခပူး)([0-9๐-๙၀-၉]+)$',
+      );
+      final rPattern = RegExp(r'^([0-9๐-๙၀-၉]+)([Rr@])([0-9๐-๙၀-၉]+)$');
+
       // Debug direct matches
       print('NK pattern match: ${nkPattern.hasMatch(line)}');
       print('PW pattern match: ${pwPattern.hasMatch(line)}');
@@ -662,6 +683,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
       print('SP pattern match: ${spPattern.hasMatch(line)}');
       print('MP pattern match: ${mpPattern.hasMatch(line)}');
       print('ညီကို pattern match: ${nyikoPattern.hasMatch(line)}');
+      print('NP pattern match: ${npPattern.hasMatch(line)}');
 
       RegExpMatch? match;
       String formulaType = "";
@@ -699,6 +721,86 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
         formula = match!.group(1) ?? "";
         amountStr = match.group(2) ?? "";
         print('Matched ညီကို pattern: formula=$formula, amount=$amountStr');
+      }
+      // New patterns with numeric arguments
+      else if ((match = npPattern.firstMatch(line)) != null) {
+        formulaType = "NP";
+        formula = match!.group(2) ?? "";
+        String numericPart = match.group(1) ?? "";
+        amountStr = match.group(3) ?? "";
+        print(
+          'Matched NP pattern: digit=$numericPart, formula=$formula, amount=$amountStr',
+        );
+        // Set normalizedDigits for the formula application later
+        numericPart = _normalizeNumber(numericPart);
+        _processFormulaWithAmount(formulaType, numericPart, amountStr, result);
+        continue;
+      } else if ((match = tsPattern.firstMatch(line)) != null) {
+        formulaType = "TS";
+        formula = match!.group(2) ?? "";
+        String numericPart = match.group(1) ?? "";
+        amountStr = match.group(3) ?? "";
+        print(
+          'Matched TS pattern: digit=$numericPart, formula=$formula, amount=$amountStr',
+        );
+        numericPart = _normalizeNumber(numericPart);
+        _processFormulaWithAmount(formulaType, numericPart, amountStr, result);
+        continue;
+      } else if ((match = pPattern.firstMatch(line)) != null) {
+        formulaType = "P";
+        formula = match!.group(2) ?? "";
+        String numericPart = match.group(1) ?? "";
+        amountStr = match.group(3) ?? "";
+        print(
+          'Matched P pattern: digit=$numericPart, formula=$formula, amount=$amountStr',
+        );
+        numericPart = _normalizeNumber(numericPart);
+        _processFormulaWithAmount(formulaType, numericPart, amountStr, result);
+        continue;
+      } else if ((match = brPattern.firstMatch(line)) != null) {
+        formulaType = "BR";
+        formula = match!.group(2) ?? "";
+        String numericPart = match.group(1) ?? "";
+        amountStr = match.group(3) ?? "";
+        print(
+          'Matched BR pattern: digit=$numericPart, formula=$formula, amount=$amountStr',
+        );
+        numericPart = _normalizeNumber(numericPart);
+        _processFormulaWithAmount(formulaType, numericPart, amountStr, result);
+        continue;
+      } else if ((match = kPattern.firstMatch(line)) != null) {
+        formulaType = "K";
+        formula = match!.group(2) ?? "";
+        String numericPart = match.group(1) ?? "";
+        amountStr = match.group(3) ?? "";
+        print(
+          'Matched K pattern: digit=$numericPart, formula=$formula, amount=$amountStr',
+        );
+        numericPart = _normalizeNumber(numericPart);
+        _processFormulaWithAmount(formulaType, numericPart, amountStr, result);
+        continue;
+      } else if ((match = kpPattern.firstMatch(line)) != null) {
+        formulaType = "KP";
+        formula = match!.group(2) ?? "";
+        String numericPart = match.group(1) ?? "";
+        amountStr = match.group(3) ?? "";
+        print(
+          'Matched KP pattern: digit=$numericPart, formula=$formula, amount=$amountStr',
+        );
+        numericPart = _normalizeNumber(numericPart);
+        _processFormulaWithAmount(formulaType, numericPart, amountStr, result);
+        continue;
+      } else if ((match = rPattern.firstMatch(line)) != null) {
+        formulaType = "R";
+        formula = match!.group(2) ?? "";
+        String numericPart = match.group(1) ?? "";
+        amountStr = match.group(3) ?? "";
+        print(
+          'Matched R pattern: digit=$numericPart, formula=$formula, amount=$amountStr',
+        );
+        numericPart = _normalizeNumber(numericPart);
+        _processFormulaWithAmount(formulaType, numericPart, amountStr, result);
+        continue;
       }
 
       if (formulaType.isNotEmpty && amountStr.isNotEmpty) {
@@ -1196,5 +1298,46 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
+  }
+
+  // Add this new method to process formula with amount
+  void _processFormulaWithAmount(
+    String formulaType,
+    String numericPart,
+    String amountStr,
+    List<Map<String, dynamic>> result,
+  ) {
+    try {
+      // Check if amountStr contains Myanmar digits
+      bool containsMyanmarDigits = RegExp(r'[၀-၉]').hasMatch(amountStr);
+      print('Amount contains Myanmar digits: $containsMyanmarDigits');
+
+      // Convert amount from Myanmar to Arabic digits
+      final normalizedAmountStr = _normalizeNumber(amountStr);
+      print(
+        'Original amount: $amountStr, Normalized amount: $normalizedAmountStr',
+      );
+
+      // Make sure we remove any commas before parsing
+      String cleanAmount = normalizedAmountStr.replaceAll(',', '');
+      print('Clean amount for parsing: $cleanAmount');
+
+      double amount = double.parse(cleanAmount);
+      print('Parsed amount as number: $amount');
+
+      // Apply the formula to get the numbers
+      final numbers = _applyFormula("", formulaType, numericPart);
+      print(
+        'Generated ${numbers.length} numbers from formula $formulaType: $numbers',
+      );
+
+      // Add each generated number with the specified amount
+      for (final num in numbers) {
+        result.add({'number': num, 'amount': amount});
+        print('Added number from formula: $num with amount: $amount');
+      }
+    } catch (e) {
+      print('Error processing formula with amount: $e');
+    }
   }
 }
