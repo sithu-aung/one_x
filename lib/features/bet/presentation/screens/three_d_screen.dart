@@ -18,6 +18,7 @@ import 'package:one_x/features/bet/presentation/widgets/three_d_bet_history_widg
 import 'package:one_x/features/bet/presentation/providers/bet_providers.dart';
 import 'package:one_x/features/bet/presentation/widgets/three_d_winners_widget.dart';
 import 'package:one_x/features/bet/domain/models/available_response.dart';
+import 'package:one_x/features/bet/presentation/screens/three_d_not_available_screen.dart';
 
 class ThreeDScreen extends StatefulWidget {
   const ThreeDScreen({super.key});
@@ -908,36 +909,16 @@ class _ThreeDScreenState extends State<ThreeDScreen>
           ),
         );
       } else {
-        // 3D is not available, show message dialog
+        // 3D is not available, navigate to not available screen
         if (mounted) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text(
-                  "3D Not Available",
-                  style: TextStyle(color: AppTheme.textColor),
-                ),
-                content: Text(
-                  response.information ??
-                      "3D is currently not available. Please try again later.",
-                  style: TextStyle(color: AppTheme.textColor),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      "OK",
-                      style: TextStyle(color: AppTheme.primaryColor),
-                    ),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => ThreeDNotAvailableScreen(
+                    information: response.information,
                   ),
-                ],
-                backgroundColor: AppTheme.cardColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              );
-            },
+            ),
           );
         }
       }
