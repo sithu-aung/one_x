@@ -7,6 +7,7 @@ import 'package:one_x/core/utils/api_service.dart';
 import 'package:one_x/features/bet/domain/models/play_session.dart';
 import 'package:one_x/features/bet/domain/models/dream_list.dart';
 import 'package:one_x/features/bet/domain/models/play_history_list_response.dart';
+import 'package:one_x/features/bet/domain/models/two_d_session_status_list_response.dart';
 import 'package:one_x/features/bet/domain/models/winner_list_response.dart';
 import 'package:one_x/features/bet/domain/models/two_d_history_response.dart';
 import 'package:one_x/features/bet/domain/models/holiday_list_response.dart';
@@ -56,32 +57,29 @@ class BetRepository {
   }
 
   /// Get 2D session status
-  Future<List<dynamic>> get2DSessionStatus() async {
+  Future<TwoDSessionStatusListResponse> get2DSessionStatus() async {
     try {
       final response = await _apiService.post(
         AppConstants.twoDSessionStatusEndpoint,
       );
 
       if (response != null) {
-        if (response['session'] != null && response['session'] is List) {
-          final sessions = response['session'] as List;
-          if (sessions.isEmpty) {
-            print('API returned empty session list');
-          }
-          return sessions;
-        } else {
-          print(
-            'API response missing "session" list field: ${response.toString().substring(0, min(100, response.toString().length))}...',
-          );
-          return [];
-        }
+        return TwoDSessionStatusListResponse.fromJson(response);
       } else {
         print('API response was null for 2D session status');
-        return [];
+        return TwoDSessionStatusListResponse(
+          available: false,
+          information: '',
+          session: [],
+        );
       }
     } catch (e) {
       print('Error fetching 2D session status: $e');
-      return [];
+      return TwoDSessionStatusListResponse(
+        available: false,
+        information: '',
+        session: [],
+      );
     }
   }
 
@@ -117,10 +115,10 @@ class BetRepository {
   }
 
   /// Get active 2D sessions
-  Future<List<dynamic>> getActive2DSessions() async {
+  Future<TwoDSessionStatusListResponse> getActive2DSessions() async {
     try {
-      final sessions = await get2DSessionStatus();
-      return sessions.where((session) => session['status'] == 1).toList();
+      final response = await get2DSessionStatus();
+      return response;
     } catch (e) {
       print('Error fetching active 2D sessions: $e');
       throw Exception('Failed to load active 2D sessions: $e');

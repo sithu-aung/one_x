@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
+import 'package:one_x/features/bet/domain/models/two_d_session_status_list_response.dart';
 import 'package:one_x/features/bet/presentation/screens/number_selection_screen.dart';
 import 'dart:convert';
 import 'package:one_x/features/bet/data/repositories/bet_repository.dart';
 import 'package:one_x/core/utils/api_service.dart';
 import 'package:one_x/core/services/storage_service.dart';
+import 'package:one_x/features/bet/presentation/screens/not_available_screen.dart';
 import 'package:one_x/features/bet/presentation/widgets/bet_history_widget.dart';
 import 'package:one_x/features/bet/presentation/widgets/bet_winners_widget.dart';
 import 'package:one_x/features/bet/presentation/widgets/two_d_history_numbers_widget.dart';
@@ -28,7 +30,7 @@ class _TwoDScreenState extends State<TwoDScreen>
   bool _isLoading = true;
   Map<String, dynamic> _apiData = {};
   String _currentResult = '--';
-  List<dynamic> _activeSessions = [];
+  List<Session> _activeSessions = [];
 
   // Repository
   late BetRepository _betRepository;
@@ -59,7 +61,6 @@ class _TwoDScreenState extends State<TwoDScreen>
 
     // Fetch data when the screen loads
     fetchData();
-    fetchSessionStatus();
   }
 
   void setDefaultTimeSection() {
@@ -77,148 +78,26 @@ class _TwoDScreenState extends State<TwoDScreen>
 
   Future<void> fetchSessionStatus() async {
     try {
-      final dynamic response = await _betRepository.getActive2DSessions();
-      print('API Response: ${jsonEncode(response)}');
+      final TwoDSessionStatusListResponse response =
+          await _betRepository.getActive2DSessions();
 
-      // Extract sessions from the "session" key if it exists
-      List<dynamic> sessions = [];
-
-      if (response is Map) {
-        // API returns an object with a "session" key
-        if (response.containsKey('session')) {
-          sessions = List<dynamic>.from(response['session'] ?? []);
-          print(
-            'Extracted ${sessions.length} sessions from response "session" key',
-          );
-        }
-      } else if (response is List) {
-        // Direct array response
-        sessions = response;
-        print('Response was already a list with ${sessions.length} sessions');
-      } else if (response is String) {
-        // Try to parse as JSON if it's a string
-        try {
-          final decoded = json.decode(response);
-          if (decoded is Map && decoded.containsKey('session')) {
-            sessions = List<dynamic>.from(decoded['session'] ?? []);
-            print(
-              'Parsed string response and found ${sessions.length} sessions',
-            );
-          }
-        } catch (e) {
-          print('Failed to parse string response: $e');
-        }
+      if (response.available ?? false) {
+        setState(() {
+          _activeSessions = response.session ?? [];
+        });
+        showTimeSectionDialog();
       } else {
-        print('Unexpected response format: ${response.runtimeType}');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => NotAvailableScreen(
+                  information: response.information,
+                  title: '2D',
+                ),
+          ),
+        );
       }
-
-      // If no sessions are found, use hardcoded fallback data
-      if (sessions.isEmpty) {
-        print('Using hardcoded fallback session data');
-        sessions = [
-          {
-            "id": 1,
-            "play_timeKey": "85ec8f67-fc44-4fd8-94e8-1bd5c80cac61",
-            "start_time": "00:00:00",
-            "end_time": "08:50:00",
-            "session_name": "80",
-            "route": "100000",
-            "hot_limit": "5",
-            "status": false,
-            "session": "09:00AM",
-            "type": "2D",
-          },
-          {
-            "id": 2,
-            "play_timeKey": "e275f906-0799-4239-aa54-739b122bebe9",
-            "start_time": "00:00:00",
-            "end_time": "11:50:00",
-            "session_name": "morning",
-            "route": "play_morning_session",
-            "hot_limit": "5",
-            "status": true,
-            "session": "12:01PM",
-            "type": "2D",
-          },
-          {
-            "id": 3,
-            "play_timeKey": "f2348158-533b-4920-adf1-48339453f607",
-            "start_time": "00:00:00",
-            "end_time": "01:50:00",
-            "session_name": "80",
-            "route": "100000",
-            "hot_limit": "5",
-            "status": false,
-            "session": "02:00PM",
-            "type": "2D",
-          },
-          {
-            "id": 4,
-            "play_timeKey": "a92690b3-dd50-4854-86ed-a550aa29e873",
-            "start_time": "06:33:00",
-            "end_time": "22:34:00",
-            "session_name": "evening",
-            "route": "play_evening_session",
-            "hot_limit": "5",
-            "status": true,
-            "session": "04:30PM",
-            "type": "2D",
-          },
-        ];
-      }
-
-      // Debug raw data
-      print('Sessions data: ${jsonEncode(sessions)}');
-
-      // Check first session's status type if available
-      if (sessions.isNotEmpty) {
-        var firstSession = sessions[0];
-        print('First session: ${jsonEncode(firstSession)}');
-        if (firstSession.containsKey('status')) {
-          print('Status type: ${firstSession['status'].runtimeType}');
-          print('Status value: ${firstSession['status']}');
-        }
-      }
-
-      setState(() {
-        // More flexible filtering that handles different status formats
-        _activeSessions =
-            sessions.where((session) {
-              if (!session.containsKey('status')) return false;
-
-              var status = session['status'];
-
-              // Handle different possible status formats
-              bool isActive = false;
-
-              if (status is bool) {
-                isActive = status;
-              } else if (status is String) {
-                isActive = status.toLowerCase() == 'true';
-              } else if (status is int) {
-                isActive = status == 1;
-              }
-
-              if (session.containsKey('session')) {
-                print(
-                  'Session: ${session['session']}, Status: $status, IsActive: $isActive',
-                );
-              }
-
-              return isActive;
-            }).toList();
-
-        print('Active Sessions Count: ${_activeSessions.length}');
-        print('Active Sessions: ${jsonEncode(_activeSessions)}');
-
-        // If still empty, show all sessions as fallback
-        if (_activeSessions.isEmpty && sessions.isNotEmpty) {
-          print(
-            'WARNING: No active sessions after filtering. Using all sessions as fallback.',
-          );
-          _activeSessions = sessions;
-        }
-      });
     } catch (e) {
       print('Error fetching session status: $e');
       // Show a snackbar with the error
@@ -971,8 +850,8 @@ class _TwoDScreenState extends State<TwoDScreen>
         bottom: 8 + bottomPadding.toDouble(),
       ),
       child: ElevatedButton(
-        onPressed: () {
-          showTimeSectionDialog();
+        onPressed: () async {
+          await fetchSessionStatus();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryColor,
@@ -996,10 +875,10 @@ class _TwoDScreenState extends State<TwoDScreen>
 
   void showTimeSectionDialog() {
     // Find the matching session object for the current selection
-    Map<String, dynamic> initialSessionObj = {};
+    Session? initialSessionObj;
     if (_activeSessions.isNotEmpty) {
       for (var session in _activeSessions) {
-        if (session['session'] == _selectedTimeSection) {
+        if (session.session == _selectedTimeSection) {
           initialSessionObj = session;
           break;
         }
@@ -1008,10 +887,10 @@ class _TwoDScreenState extends State<TwoDScreen>
 
     // Variables to track selection state inside the dialog
     String dialogSelectedSection = _selectedTimeSection;
-    Map<String, dynamic> selectedSessionObj = initialSessionObj;
+    Session? selectedSessionObj = initialSessionObj;
 
     // Flag to check if a valid selection exists
-    bool isValidSelectionMade = initialSessionObj.isNotEmpty;
+    bool isValidSelectionMade = initialSessionObj != null;
 
     showDialog(
       context: context,
@@ -1079,7 +958,7 @@ class _TwoDScreenState extends State<TwoDScreen>
                           : Column(
                             children:
                                 _activeSessions.map<Widget>((session) {
-                                  String timeSection = session['session'] ?? '';
+                                  String timeSection = session.session ?? '';
                                   bool isSelected =
                                       timeSection == dialogSelectedSection;
 
@@ -1090,7 +969,7 @@ class _TwoDScreenState extends State<TwoDScreen>
                                         selectedSessionObj = session;
                                         isValidSelectionMade = true;
                                         print(
-                                          'Selected: $timeSection, session_name: ${session['session_name']}',
+                                          'Selected: $timeSection, session_name: ${session.sessionName}',
                                         );
                                       });
                                     },
@@ -1203,7 +1082,7 @@ class _TwoDScreenState extends State<TwoDScreen>
 
                                   // Get the session_name from the selected session
                                   String sessionName =
-                                      selectedSessionObj['session_name'] ?? '';
+                                      selectedSessionObj?.sessionName ?? '';
 
                                   // Navigate to number selection screen with session_name
                                   Navigator.push(

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 
-class ThreeDNotAvailableScreen extends StatelessWidget {
+class NotAvailableScreen  extends StatelessWidget {
   final String? information;
+  final String? title;
 
-  const ThreeDNotAvailableScreen({super.key, this.information});
+  const NotAvailableScreen ({super.key, this.information,required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +13,7 @@ class ThreeDNotAvailableScreen extends StatelessWidget {
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppTheme.backgroundColor,
-        title: Text('3D', style: TextStyle(color: AppTheme.textColor)),
+        title: Text(title ?? '', style: TextStyle(color: AppTheme.textColor)),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
           onPressed: () => Navigator.pop(context),

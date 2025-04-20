@@ -18,7 +18,7 @@ import 'package:one_x/features/bet/presentation/widgets/three_d_bet_history_widg
 import 'package:one_x/features/bet/presentation/providers/bet_providers.dart';
 import 'package:one_x/features/bet/presentation/widgets/three_d_winners_widget.dart';
 import 'package:one_x/features/bet/domain/models/available_response.dart';
-import 'package:one_x/features/bet/presentation/screens/three_d_not_available_screen.dart';
+import 'package:one_x/features/bet/presentation/screens/not_available_screen.dart';
 
 class ThreeDScreen extends StatefulWidget {
   const ThreeDScreen({super.key});
@@ -904,9 +904,11 @@ class _ThreeDScreenState extends State<ThreeDScreen>
             context,
             MaterialPageRoute(
               builder:
-                  (context) => ThreeDNotAvailableScreen(
-                    information: response.information,
-                  ),
+                  (context) =>
+                      NotAvailableScreen(
+                        information: response.information,
+                        title: '3D',
+                      ),
             ),
           );
         }
