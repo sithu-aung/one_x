@@ -889,9 +889,7 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
                     _showSuccessMessage('Ticket saved to gallery successfully');
                   } else {
                     print('Failed to move file to gallery');
-                    _showErrorMessage(
-                      'Failed to save ticket to gallery. Please check app permissions.',
-                    );
+                    _showErrorMessage('Failed to save ticket to gallery.');
                   }
                 } else {
                   print('Failed to create temp file');
