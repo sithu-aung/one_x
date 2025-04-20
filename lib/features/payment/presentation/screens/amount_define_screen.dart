@@ -379,12 +379,30 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                       // Validate inputs first before touching providers
                       final amount = _amountController.text.replaceAll(',', '');
 
-                      if (amount.isEmpty ||
-                          double.tryParse(amount) == null ||
-                          double.parse(amount) < 10000) {
+                      if (amount.isEmpty || double.tryParse(amount) == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Minimum amount is 10,000 MMK'),
+                            content: Text('Please enter a valid amount'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (widget.type == PaymentActionType.topUp &&
+                          double.tryParse(amount)! < 3000) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Minimum top up amount is 3,000'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (widget.type == PaymentActionType.withdraw &&
+                          double.tryParse(amount)! < 5000) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Minimum withdraw amount is 5,000'),
                           ),
                         );
                         return;

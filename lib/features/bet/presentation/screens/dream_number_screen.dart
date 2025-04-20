@@ -97,7 +97,7 @@ class _DreamNumberScreenState extends ConsumerState<DreamNumberScreen> {
                             crossAxisCount: 2,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
-                            childAspectRatio: 0.75,
+                            childAspectRatio: 0.74,
                           ),
                       itemCount: _dreams.length,
                       itemBuilder: (context, index) {
@@ -194,7 +194,6 @@ class _DreamNumberScreenState extends ConsumerState<DreamNumberScreen> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(
@@ -204,12 +203,12 @@ class _DreamNumberScreenState extends ConsumerState<DreamNumberScreen> {
               child: Image.network(
                 dream.url ?? '',
                 width: double.infinity,
-                height: 120,
+                height: 110,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     width: double.infinity,
-                    height: 120,
+                    height: 110,
                     color: Colors.grey[800],
                     child: const Icon(
                       Icons.image_not_supported,
@@ -221,22 +220,21 @@ class _DreamNumberScreenState extends ConsumerState<DreamNumberScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     dream.name ?? 'Unknown',
                     style: TextStyle(
                       color: AppTheme.textColor,
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -256,8 +254,8 @@ class _DreamNumberScreenState extends ConsumerState<DreamNumberScreen> {
 
   Widget _buildNumberButton(String number) {
     return Container(
-      width: 50,
-      height: 40,
+      width: 45,
+      height: 35,
       decoration: BoxDecoration(
         color: AppTheme.primaryColor,
         borderRadius: BorderRadius.circular(8),
@@ -267,7 +265,7 @@ class _DreamNumberScreenState extends ConsumerState<DreamNumberScreen> {
           number,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
         ),

@@ -416,7 +416,7 @@ class _NumberSelection3DScreenState
               onTap: () => Navigator.pop(context),
               child: Icon(Icons.arrow_back, color: AppTheme.textColor),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 4),
             Text('3D ထိုးမည်', style: TextStyle(color: AppTheme.textColor)),
           ],
         ),
@@ -462,7 +462,7 @@ class _NumberSelection3DScreenState
     final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       child: Row(
         children: [
           // Balance display
@@ -521,7 +521,7 @@ class _NumberSelection3DScreenState
                 'ၐဏန်းရိုက်ထိုးရန်',
                 style: TextStyle(
                   color: AppTheme.textColor,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontFamily: 'Pyidaungsu',
                 ),
               ),
@@ -562,7 +562,7 @@ class _NumberSelection3DScreenState
                 'ကော်ပီကူးထိုးရန်',
                 style: TextStyle(
                   color: AppTheme.textColor,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontFamily: 'Pyidaungsu',
                 ),
               ),
@@ -1072,24 +1072,26 @@ class _NumberSelection3DScreenState
             // Show alert if no numbers are selected
             _showAlertDialog('ကျေးဇူးပြု၍ အနည်းဆုံး ဂဏန်းတစ်လုံး ရွေးချယ်ပါ။');
           } else {
-            // Add reversed numbers for all selected numbers
+            // Add all permutations for each selected number
             setState(() {
-              Set<String> reversedNumbers = {};
+              Set<String> allPermutations = {};
 
               for (var number in selectedNumbers.toList()) {
-                // Create reversed number (e.g., "123" becomes "321")
-                String reversedNumber = number.split('').reversed.join();
+                // Generate all permutations
+                List<String> permutations = _generatePermutations(number);
 
-                // Only add if it's not already selected and is a valid 3-digit number
-                if (!selectedNumbers.contains(reversedNumber) &&
-                    reversedNumber.length == 3 &&
-                    !unavailableNumbers.contains(reversedNumber)) {
-                  reversedNumbers.add(reversedNumber);
+                // Filter out permutations that are already selected or unavailable
+                for (var perm in permutations) {
+                  if (!selectedNumbers.contains(perm) &&
+                      perm.length == 3 &&
+                      !unavailableNumbers.contains(perm)) {
+                    allPermutations.add(perm);
+                  }
                 }
               }
 
-              // Add all reversed numbers to selection
-              selectedNumbers.addAll(reversedNumbers);
+              // Add all permutations to selection
+              selectedNumbers.addAll(allPermutations);
             });
           }
         }
@@ -1406,5 +1408,27 @@ class _NumberSelection3DScreenState
         ],
       ),
     );
+  }
+
+  // Generate all permutations of a 3-digit number
+  List<String> _generatePermutations(String number) {
+    if (number.length != 3) return [number];
+
+    Set<String> permutations = {};
+
+    // Get the three digits
+    String a = number[0];
+    String b = number[1];
+    String c = number[2];
+
+    // Add all possible permutations
+    permutations.add('$a$b$c'); // Original
+    permutations.add('$a$c$b');
+    permutations.add('$b$a$c');
+    permutations.add('$b$c$a');
+    permutations.add('$c$a$b');
+    permutations.add('$c$b$a');
+
+    return permutations.toList();
   }
 }

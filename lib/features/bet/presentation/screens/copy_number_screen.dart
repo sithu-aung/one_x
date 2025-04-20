@@ -180,13 +180,18 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        centerTitle: false,
+        automaticallyImplyLeading: false,
         backgroundColor: AppTheme.backgroundColor,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
-          onPressed: () => Navigator.pop(context),
+        title: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Icon(Icons.arrow_back, color: AppTheme.textColor),
+            ),
+            const SizedBox(width: 4),
+            Text('2D ထိုးမည်', style: TextStyle(color: AppTheme.textColor)),
+          ],
         ),
-        title: Text('2D ထိုးရန်', style: TextStyle(color: AppTheme.textColor)),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 6),
@@ -234,7 +239,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
 
   Widget _buildBalanceBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

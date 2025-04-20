@@ -968,7 +968,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ? Border.all(color: Colors.grey.withOpacity(0.3), width: 0.5)
                   : null,
         ),
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(4.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

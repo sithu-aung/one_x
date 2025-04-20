@@ -385,6 +385,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppTheme.backgroundColor,
         title: Row(
           children: [
@@ -392,7 +393,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
               onTap: () => Navigator.pop(context),
               child: Icon(Icons.arrow_back, color: AppTheme.textColor),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 4),
             Text('2D ထိုးမည်', style: TextStyle(color: AppTheme.textColor)),
           ],
         ),
@@ -406,7 +407,6 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
             ),
           ),
         ],
-        automaticallyImplyLeading: false,
       ),
       body:
           _isLoading
@@ -436,7 +436,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
 
   Widget _buildBalanceBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

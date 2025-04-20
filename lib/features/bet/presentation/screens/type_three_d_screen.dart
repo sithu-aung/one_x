@@ -698,12 +698,17 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        centerTitle: false,
+        automaticallyImplyLeading: false,
         backgroundColor: AppTheme.backgroundColor,
-        title: Text('3D ထိုးရန်', style: TextStyle(color: AppTheme.textColor)),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
-          onPressed: () => Navigator.pop(context),
+        title: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Icon(Icons.arrow_back, color: AppTheme.textColor),
+            ),
+            const SizedBox(width: 4),
+            Text('3D ထိုးမည်', style: TextStyle(color: AppTheme.textColor)),
+          ],
         ),
         actions: [
           Container(
@@ -952,7 +957,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
 
   Widget _buildBalanceBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1112,8 +1117,6 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
           children: [
             _buildActionButton('အမြန် ရွေးရန်'),
             const SizedBox(width: 8),
-            _buildActionButton('ထိပ်စီး ဂဏန်း'),
-            const SizedBox(width: 8),
             _buildActionButton('အိပ်မက် ဂဏန်း'),
           ],
         ),
@@ -1132,29 +1135,14 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
     return GestureDetector(
       onTap: () async {
         if (text == 'အမြန် ရွေးရန်') {
-          // Navigate to QuickSelectScreen and pass currently selected numbers from quick select
-          final previousQuickSelectNumbers =
-              selectedNumbers.where((number) => true).toList();
-
-          final result = await Navigator.push<List<String>>(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => QuickSelectScreen(
-                    previouslySelectedNumbers: previousQuickSelectNumbers,
-                  ),
-            ),
-          );
-
-          // Process results if we got any back
-          if (result != null && result.isNotEmpty) {
-            _processBulkSelectionResults(result);
-          }
+          _showQuickSelectOptionsDialog();
         } else if (text == 'အိပ်မက် ဂဏန်း') {
           // Navigate to DreamNumberScreen
           final result = await Navigator.push<List<String>>(
             context,
-            MaterialPageRoute(builder: (context) => const DreamNumberScreen()),
+            MaterialPageRoute(
+              builder: (context) => const DreamNumberScreen(type: '3D'),
+            ),
           );
 
           // Process results if we got any back
@@ -1191,6 +1179,117 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
             text,
             textAlign: TextAlign.center,
             style: TextStyle(color: AppTheme.textColor, fontSize: 13),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showQuickSelectOptionsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: AppTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Single and Double size',
+                  style: TextStyle(
+                    color: AppTheme.textColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Three options for quick select
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildQuickSelectOption('အပူး', Colors.red, () {
+                      // Select all same numbers (000, 111, 222, etc.)
+                      final sameDigitNumbers = <String>[];
+                      for (int i = 0; i <= 9; i++) {
+                        final sameDigit = '$i$i$i';
+                        sameDigitNumbers.add(sameDigit);
+                      }
+                      setState(() {
+                        selectedNumbers.addAll(sameDigitNumbers);
+                      });
+                      if (selectedNumbers.isNotEmpty) {
+                        _processBulkSelectionResults(sameDigitNumbers);
+                      }
+                      Navigator.pop(context);
+                    }),
+
+                    _buildQuickSelectOption('စုံပူး', Colors.green, () {
+                      // Select all even same numbers (000, 222, 444, 666, 888)
+                      final evenNumbers = <String>[];
+                      for (int i = 0; i <= 9; i += 2) {
+                        // 0, 2, 4, 6, 8
+                        final digit = '$i$i$i';
+                        evenNumbers.add(digit);
+                      }
+                      setState(() {
+                        selectedNumbers.addAll(evenNumbers);
+                      });
+                      if (selectedNumbers.isNotEmpty) {
+                        _processBulkSelectionResults(evenNumbers);
+                      }
+                      Navigator.pop(context);
+                    }),
+
+                    _buildQuickSelectOption('မပူး', Colors.blue, () {
+                      // Select all odd same numbers (111, 333, 555, 777, 999)
+                      final oddNumbers = <String>[];
+                      for (int i = 1; i <= 9; i += 2) {
+                        // 1, 3, 5, 7, 9
+                        final digit = '$i$i$i';
+                        oddNumbers.add(digit);
+                      }
+                      setState(() {
+                        selectedNumbers.addAll(oddNumbers);
+                      });
+                      if (selectedNumbers.isNotEmpty) {
+                        _processBulkSelectionResults(oddNumbers);
+                      }
+                      Navigator.pop(context);
+                    }),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickSelectOption(String text, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 80,
+        height: 40,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Pyidaungsu',
+            ),
           ),
         ),
       ),

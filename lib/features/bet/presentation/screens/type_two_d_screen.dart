@@ -788,12 +788,17 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        centerTitle: false,
+       automaticallyImplyLeading: false,
         backgroundColor: AppTheme.backgroundColor,
-        title: Text('2D ထိုးရန်', style: TextStyle(color: AppTheme.textColor)),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.textColor),
-          onPressed: () => Navigator.pop(context),
+        title: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Icon(Icons.arrow_back, color: AppTheme.textColor),
+            ),
+            const SizedBox(width: 4),
+            Text('2D ထိုးမည်', style: TextStyle(color: AppTheme.textColor)),
+          ],
         ),
         actions: [
           Container(
@@ -1027,7 +1032,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
 
   Widget _buildBalanceBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1605,6 +1610,31 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
     final Color tapeColor =
         isLightTheme ? Colors.amber.shade800 : Colors.yellow;
 
+    // Check if we actually have valid data to display
+    if (_tapeNumbers.isEmpty && _hotNumbers.isEmpty) {
+      // Show "Coming Soon" if no tape or hot numbers are available
+      return Container(
+        width: double.infinity,
+        height: 24,
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: Text(
+            "Coming Soon",
+            style: TextStyle(
+              color: AppTheme.textColor.withOpacity(0.8),
+              fontSize: 12,
+              fontFamily: 'Pyidaungsu',
+              letterSpacing: 0.3,
+              height: 1.4,
+            ),
+          ),
+        ),
+      );
+    }
+
     final tapeText =
         _tapeNumbers.isNotEmpty
             ? 'ထိပ်စီး - ${_buildColoredNumbersText(_tapeNumbers, tapeColor)}'
@@ -1648,6 +1678,7 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
     ];
 
     if (textWidgets.isEmpty) {
+      // This is an additional check just to be safe
       return const SizedBox.shrink();
     }
 
