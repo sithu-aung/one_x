@@ -221,14 +221,18 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
         TextEditingController(text: amount.toString()),
       );
 
-      // If R is toggled on, also add the reversed number
+      // If R is toggled on, add all permutations of the number
       if (_isRToggled) {
-        final reversedNumber = number.split('').reversed.join();
-        if (number != reversedNumber) {
-          _entries.add(ThreeDEntry(number: reversedNumber, amount: amount));
-          _entryAmountControllers.add(
-            TextEditingController(text: amount.toString()),
-          );
+        final permutations = _generatePermutations(number);
+
+        // Add all permutations except the original number which is already added
+        for (final perm in permutations) {
+          if (perm != number) {
+            _entries.add(ThreeDEntry(number: perm, amount: amount));
+            _entryAmountControllers.add(
+              TextEditingController(text: amount.toString()),
+            );
+          }
         }
       }
 
@@ -241,6 +245,28 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
       // Focus back on the number field
       _numberFocusNode.requestFocus();
     });
+  }
+
+  // Generate all permutations of a 3-digit number
+  List<String> _generatePermutations(String number) {
+    if (number.length != 3) return [number];
+
+    Set<String> permutations = {};
+
+    // Get the three digits
+    String a = number[0];
+    String b = number[1];
+    String c = number[2];
+
+    // Add all possible permutations
+    permutations.add('$a$b$c'); // Original
+    permutations.add('$a$c$b');
+    permutations.add('$b$a$c');
+    permutations.add('$b$c$a');
+    permutations.add('$c$a$b');
+    permutations.add('$c$b$a');
+
+    return permutations.toList();
   }
 
   // Delete an entry
@@ -640,11 +666,26 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
     // Add entries for all selected numbers
     setState(() {
       for (String number in selectedNumbers) {
+        // Add the original number
         _entries.add(ThreeDEntry(number: number, amount: amount));
-        // Create a controller for each entry
         _entryAmountControllers.add(
           TextEditingController(text: amount.toString()),
         );
+
+        // If R is toggled on, also add all permutations of the number
+        if (_isRToggled) {
+          final permutations = _generatePermutations(number);
+
+          // Add all permutations except the original number which is already added
+          for (final perm in permutations) {
+            if (perm != number) {
+              _entries.add(ThreeDEntry(number: perm, amount: amount));
+              _entryAmountControllers.add(
+                TextEditingController(text: amount.toString()),
+              );
+            }
+          }
+        }
       }
 
       _updateTotalAmount();
@@ -736,221 +777,229 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Balance section
-          _buildBalanceBar(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Balance section
+            _buildBalanceBar(),
 
-          // Entries list
-          Expanded(
-            child:
-                _entries.isEmpty
-                    ? Center(
-                      child: Text(
-                        'ထိုးလိုသော 3D ဂဏန်းများကို ထည့်သွင်းပါ',
-                        style: TextStyle(color: AppTheme.textSecondaryColor),
-                      ),
-                    )
-                    : Container(
-                      margin: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          // Header
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    '3D နံပါတ်',
-                                    style: TextStyle(
-                                      color: AppTheme.textColor,
-                                      fontWeight: FontWeight.bold,
+            // Entries list
+            Expanded(
+              child:
+                  _entries.isEmpty
+                      ? Center(
+                        child: Text(
+                          'ထိုးလိုသော 3D ဂဏန်းများကို ထည့်သွင်းပါ',
+                          style: TextStyle(color: AppTheme.textSecondaryColor),
+                        ),
+                      )
+                      : Container(
+                        margin: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.cardColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            // Header
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      '3D နံပါတ်',
+                                      style: TextStyle(
+                                        color: AppTheme.textColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    'ထိုးငွေ (ကျပ်)',
-                                    style: TextStyle(
-                                      color: AppTheme.textColor,
-                                      fontWeight: FontWeight.bold,
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      'ထိုးငွေ (ကျပ်)',
+                                      style: TextStyle(
+                                        color: AppTheme.textColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.right,
                                     ),
-                                    textAlign: TextAlign.right,
                                   ),
-                                ),
-                                const SizedBox(
-                                  width: 40,
-                                ), // Space for delete button
-                              ],
-                            ),
-                          ),
-
-                          // List of entries
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: _entries.length,
-                              itemBuilder: (context, index) {
-                                final entry = _entries[index];
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          entry.number,
-                                          style: TextStyle(
-                                            color: AppTheme.textColor,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: Container(
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            color: AppTheme.cardExtraColor,
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            border:
-                                                AppTheme.backgroundColor
-                                                            .computeLuminance() >
-                                                        0.5
-                                                    ? Border.all(
-                                                      color:
-                                                          Colors.grey.shade300,
-                                                    )
-                                                    : null,
-                                          ),
-                                          child: Center(
-                                            child: TextField(
-                                              controller:
-                                                  index <
-                                                          _entryAmountControllers
-                                                              .length
-                                                      ? _entryAmountControllers[index]
-                                                      : TextEditingController(
-                                                        text:
-                                                            entry.amount
-                                                                .toString(),
-                                                      ),
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              inputFormatters: [
-                                                FilteringTextInputFormatter
-                                                    .digitsOnly,
-                                              ],
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: AppTheme.textColor,
-                                                fontSize: 16,
-                                              ),
-                                              decoration: InputDecoration(
-                                                border: InputBorder.none,
-                                                contentPadding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                    ),
-                                                hintText: 'ငွေပမာဏ',
-                                                hintStyle: TextStyle(
-                                                  color:
-                                                      AppTheme
-                                                          .textSecondaryColor,
-                                                ),
-                                              ),
-                                              onChanged:
-                                                  (value) => _updateEntryAmount(
-                                                    index,
-                                                    value,
-                                                  ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.close,
-                                          color: Colors.red,
-                                          size: 18,
-                                        ),
-                                        onPressed: () => _deleteEntry(index),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-
-                          // Divider
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Divider(
-                              color: AppTheme.textSecondaryColor.withOpacity(
-                                0.3,
+                                  const SizedBox(
+                                    width: 40,
+                                  ), // Space for delete button
+                                ],
                               ),
                             ),
-                          ),
 
-                          // Total
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Text(
-                                  '(${_entries.length} ကွက်)',
-                                  style: TextStyle(
-                                    color: AppTheme.textSecondaryColor,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Text(
-                                  'Total',
-                                  style: TextStyle(
-                                    color: AppTheme.textColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 32),
-                                Text(
-                                  _formatAmount(_totalAmount),
-                                  style: TextStyle(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
+                            // List of entries
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: _entries.length,
+                                itemBuilder: (context, index) {
+                                  final entry = _entries[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            entry.number,
+                                            style: TextStyle(
+                                              color: AppTheme.textColor,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Container(
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.cardExtraColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border:
+                                                  AppTheme.backgroundColor
+                                                              .computeLuminance() >
+                                                          0.5
+                                                      ? Border.all(
+                                                        color:
+                                                            Colors
+                                                                .grey
+                                                                .shade300,
+                                                      )
+                                                      : null,
+                                            ),
+                                            child: Center(
+                                              child: TextField(
+                                                controller:
+                                                    index <
+                                                            _entryAmountControllers
+                                                                .length
+                                                        ? _entryAmountControllers[index]
+                                                        : TextEditingController(
+                                                          text:
+                                                              entry.amount
+                                                                  .toString(),
+                                                        ),
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter
+                                                      .digitsOnly,
+                                                ],
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  color: AppTheme.textColor,
+                                                  fontSize: 16,
+                                                ),
+                                                decoration: InputDecoration(
+                                                  border: InputBorder.none,
+                                                  contentPadding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                      ),
+                                                  hintText: 'ငွေပမာဏ',
+                                                  hintStyle: TextStyle(
+                                                    color:
+                                                        AppTheme
+                                                            .textSecondaryColor,
+                                                  ),
+                                                ),
+                                                onChanged:
+                                                    (value) =>
+                                                        _updateEntryAmount(
+                                                          index,
+                                                          value,
+                                                        ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.close,
+                                            color: Colors.red,
+                                            size: 18,
+                                          ),
+                                          onPressed: () => _deleteEntry(index),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-          ),
 
-          // Button rows
-          _buildActionButtons(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child:
-                _isBulkEntryMode ? _buildBulkEntryUI() : _buildNormalEntryUI(),
-          ),
-          _buildButtonRows(),
-          SizedBox(height: 12),
-        ],
+                            // Divider
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Divider(
+                                color: AppTheme.textSecondaryColor.withOpacity(
+                                  0.3,
+                                ),
+                              ),
+                            ),
+
+                            // Total
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '(${_entries.length} ကွက်)',
+                                    style: TextStyle(
+                                      color: AppTheme.textSecondaryColor,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    'Total',
+                                    style: TextStyle(
+                                      color: AppTheme.textColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 32),
+                                  Text(
+                                    _formatAmount(_totalAmount),
+                                    style: TextStyle(
+                                      color: AppTheme.primaryColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+            ),
+
+            // Button rows
+            _buildActionButtons(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child:
+                  _isBulkEntryMode
+                      ? _buildBulkEntryUI()
+                      : _buildNormalEntryUI(),
+            ),
+            _buildButtonRows(),
+            SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }
@@ -1427,6 +1476,59 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
               ),
             ),
             const SizedBox(width: 8),
+            // Add R toggle button for bulk entry
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isRToggled = !_isRToggled;
+                });
+              },
+              child: Tooltip(
+                message:
+                    'ဂဏန်းအားလုံး ပါမြူတေးရှင်း (အပြန်အလှန်ဖွဲ့စည်းမှုများ)',
+                child: Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    color:
+                        _isRToggled
+                            ? (isLightTheme
+                                ? Colors.amber.withOpacity(0.15)
+                                : Colors.grey.shade800)
+                            : (isLightTheme
+                                ? Colors.grey.shade200
+                                : Colors.grey.shade900),
+                    borderRadius: BorderRadius.circular(8),
+                    border:
+                        _isRToggled
+                            ? (isLightTheme
+                                ? Border.all(color: Colors.amber, width: 1.5)
+                                : null)
+                            : (isLightTheme
+                                ? Border.all(color: Colors.grey.shade400)
+                                : null),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'R',
+                      style: TextStyle(
+                        color:
+                            _isRToggled
+                                ? (isLightTheme
+                                    ? Colors.amber.shade800
+                                    : Colors.amber)
+                                : (isLightTheme
+                                    ? Colors.grey.shade600
+                                    : Colors.grey.shade500),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: Container(
                 height: 48,
@@ -1497,42 +1599,45 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
               _isRToggled = !_isRToggled;
             });
           },
-          child: Container(
-            height: 48,
-            width: 48,
-            decoration: BoxDecoration(
-              color:
-                  _isRToggled
-                      ? (AppTheme.backgroundColor.computeLuminance() > 0.5
-                          ? Colors.amber.withOpacity(0.15)
-                          : Colors.grey.shade800)
-                      : (AppTheme.backgroundColor.computeLuminance() > 0.5
-                          ? Colors.grey.shade200
-                          : Colors.grey.shade900),
-              borderRadius: BorderRadius.circular(8),
-              border:
-                  _isRToggled
-                      ? (AppTheme.backgroundColor.computeLuminance() > 0.5
-                          ? Border.all(color: Colors.amber, width: 1.5)
-                          : null)
-                      : (AppTheme.backgroundColor.computeLuminance() > 0.5
-                          ? Border.all(color: Colors.grey.shade400)
-                          : null),
-            ),
-            child: Center(
-              child: Text(
-                'R',
-                style: TextStyle(
-                  color:
-                      _isRToggled
-                          ? (AppTheme.backgroundColor.computeLuminance() > 0.5
-                              ? Colors.amber.shade800
-                              : Colors.amber)
-                          : (AppTheme.backgroundColor.computeLuminance() > 0.5
-                              ? Colors.grey.shade600
-                              : Colors.grey.shade500),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+          child: Tooltip(
+            message: 'ဂဏန်းအားလုံး ပါမြူတေးရှင်း (အပြန်အလှန်ဖွဲ့စည်းမှုများ)',
+            child: Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color:
+                    _isRToggled
+                        ? (AppTheme.backgroundColor.computeLuminance() > 0.5
+                            ? Colors.amber.withOpacity(0.15)
+                            : Colors.grey.shade800)
+                        : (AppTheme.backgroundColor.computeLuminance() > 0.5
+                            ? Colors.grey.shade200
+                            : Colors.grey.shade900),
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    _isRToggled
+                        ? (AppTheme.backgroundColor.computeLuminance() > 0.5
+                            ? Border.all(color: Colors.amber, width: 1.5)
+                            : null)
+                        : (AppTheme.backgroundColor.computeLuminance() > 0.5
+                            ? Border.all(color: Colors.grey.shade400)
+                            : null),
+              ),
+              child: Center(
+                child: Text(
+                  'R',
+                  style: TextStyle(
+                    color:
+                        _isRToggled
+                            ? (AppTheme.backgroundColor.computeLuminance() > 0.5
+                                ? Colors.amber.shade800
+                                : Colors.amber)
+                            : (AppTheme.backgroundColor.computeLuminance() > 0.5
+                                ? Colors.grey.shade600
+                                : Colors.grey.shade500),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
               ),
             ),

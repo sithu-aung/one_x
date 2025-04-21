@@ -350,7 +350,7 @@ class _TransactionDetailScreenState
                                     style: TextStyle(color: textColor),
                                   ),
                                   content: Text(
-                                    'ဤငွေလွှဲခြင်းကို ဖျက်သိမ်းရန် သေချာပါသလား?',
+                                    'တောင်းဆိုမှုအား ဖျက်သိမ်းရန် သေချာပါသလား?',
                                     style: TextStyle(color: textColor),
                                   ),
                                   actions: [
@@ -368,10 +368,51 @@ class _TransactionDetailScreenState
                                       ),
                                     ),
                                     TextButton(
-                                      onPressed: () {
-                                        Navigator.of(
-                                          context,
-                                        ).pop(); // Close the dialog
+                                      onPressed: () async {
+                                        // Close the confirmation dialog
+                                        Navigator.of(context).pop();
+
+                                        try {
+                                          // Call the API to cancel the transaction
+                                          final repository = ref.read(
+                                            paymentRepositoryProvider,
+                                          );
+                                          await repository.cancelTransaction(
+                                            widget.transactionId,
+                                          );
+
+                                          // Show success message
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'တောင်းဆိုမှုအား အောင်မြင်စွာ ဖျက်သိမ်းပြီးပါပြီ',
+                                                ),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
+
+                                            // Pop twice to go back to previous screens
+                                            Navigator.of(context).pop();
+                                            Navigator.of(context).pop();
+                                          }
+                                        } catch (error) {
+                                          // Show error message
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'ဖျက်သိမ်းမှု မအောင်မြင်ပါ: $error',
+                                                ),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        }
                                       },
                                       child: Text(
                                         'ဖျက်သိမ်းမည်',
