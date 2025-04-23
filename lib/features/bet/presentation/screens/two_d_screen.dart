@@ -851,6 +851,16 @@ class _TwoDScreenState extends State<TwoDScreen>
       ),
       child: ElevatedButton(
         onPressed: () async {
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder:
+          //         (context) => NumberSelectionScreen(
+          //           selectedTimeSection: _selectedTimeSection,
+          //           sessionName: 'morning',
+          //         ),
+          //   ),
+          // );
           await fetchSessionStatus();
         },
         style: ElevatedButton.styleFrom(

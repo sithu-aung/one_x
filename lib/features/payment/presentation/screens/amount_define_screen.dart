@@ -11,6 +11,7 @@ enum PaymentActionType { topUp, withdraw }
 class AmountDefineScreen extends ConsumerStatefulWidget {
   final PaymentActionType type;
   final int providerId;
+  final int billingId;
   final String providerName;
   final String imageLocation;
 
@@ -18,6 +19,7 @@ class AmountDefineScreen extends ConsumerStatefulWidget {
     super.key,
     required this.type,
     required this.providerId,
+    required this.billingId,
     required this.providerName,
     required this.imageLocation,
   });
@@ -486,6 +488,7 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                           if (widget.type == PaymentActionType.topUp) {
                             response = await paymentNotifier.processDeposit(
                               providerId: providerId,
+                              billingId: widget.billingId,
                               amount: amount,
                               accountNumber: _phoneController.text,
                               transactionId: _transactionIdController.text,
@@ -521,6 +524,7 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                             // For withdraw, use an empty string for transactionId
                             response = await paymentNotifier
                                 .processStoreWithdraw(
+                                  billingId: widget.billingId,
                                   providerId: providerId,
                                   amount: amount,
                                   accountNumber: _phoneController.text,

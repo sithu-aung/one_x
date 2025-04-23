@@ -882,6 +882,79 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
       if (line.trim().isEmpty) continue;
       print('Processing line: $line');
 
+      // Special handling for R formula with multiple numbers
+      if (line.contains('R') || line.contains('r') || line.contains('@')) {
+        print('Potential R formula with multiple numbers: $line');
+
+        // Try to match the standard pattern first
+        final rMatch = RegExp(r'^(.+?)([Rr@])(.+?)$').firstMatch(line);
+        if (rMatch != null) {
+          final numbersPart = rMatch.group(1) ?? "";
+          final amountPart = rMatch.group(3) ?? "";
+
+          print('R formula match - Numbers: $numbersPart, Amount: $amountPart');
+
+          if (numbersPart.contains('.') ||
+              numbersPart.contains(',') ||
+              numbersPart.contains('*') ||
+              numbersPart.contains('/') ||
+              numbersPart.contains(' ')) {
+            // This is likely a multi-number R formula
+            double processAmount = 0;
+
+            // Try to parse the amount
+            try {
+              String normalizedAmount = _normalizeNumber(amountPart);
+              normalizedAmount = normalizedAmount.replaceAll(',', '');
+              processAmount = double.parse(normalizedAmount);
+              print('Parsed amount from R formula: $processAmount');
+            } catch (e) {
+              print('Failed to parse amount from R formula: $e');
+              continue; // Skip if we can't parse the amount
+            }
+
+            // Split the numbers by separators
+            final RegExp numberSeparator = RegExp(r'[.,*/\s]+');
+            final numberStrings = numbersPart.split(numberSeparator);
+            print('Split numbers into: $numberStrings');
+
+            // Process each number
+            for (final numStr in numberStrings) {
+              if (numStr.trim().isEmpty) continue;
+
+              String normalizedNumber = _normalizeNumber(numStr.trim());
+
+              // Handle single digits by padding with 0
+              if (normalizedNumber.length == 1 &&
+                  int.tryParse(normalizedNumber) != null) {
+                normalizedNumber = '0$normalizedNumber';
+              }
+
+              // Apply R formula logic
+              if (normalizedNumber.length == 2 &&
+                  int.tryParse(normalizedNumber) != null) {
+                result.add({
+                  'number': normalizedNumber,
+                  'amount': processAmount,
+                });
+
+                // Add the reverse
+                final reversed = normalizedNumber.split('').reversed.join('');
+                if (reversed != normalizedNumber) {
+                  result.add({'number': reversed, 'amount': processAmount});
+                }
+
+                print(
+                  'Added R numbers: $normalizedNumber and $reversed with amount $processAmount',
+                );
+              }
+            }
+
+            continue; // Skip the regular processing for this line
+          }
+        }
+      }
+
       // Check for direct formula + amount format (e.g., "AP500", "ညီကို၅၀၀")
       print('Checking for direct formula pattern in: "$line"');
 
@@ -1135,6 +1208,86 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
   ) {
     print('Processing input for numbers: $input');
 
+    // First check if we have an R formula with multiple numbers
+    // Need to check for the pattern where we have numbers separated by delimiters followed by R and then amount
+    final hasRFormula = RegExp(r'[Rr@]').hasMatch(input);
+    final hasDelimiters = RegExp(r'[.,*/\s]').hasMatch(input);
+    print('Has R formula: $hasRFormula, Has delimiters: $hasDelimiters');
+
+    // Use a more specific pattern to match the entire format directly
+    final multiNumberRPattern = RegExp(
+      r'^([0-9๐-๙.,*/\s]+)([Rr@])([0-9๐-๙]+)$',
+    );
+    final isMultiNumberR = multiNumberRPattern.hasMatch(input);
+    print('Is multi-number R pattern: $isMultiNumberR for input: $input');
+
+    if (isMultiNumberR) {
+      print('Multiple numbers with R formula detected: $input');
+
+      final rFormulaMatch = multiNumberRPattern.firstMatch(input);
+      if (rFormulaMatch != null) {
+        print(
+          'R formula match groups: ${rFormulaMatch.group(1)}, ${rFormulaMatch.group(2)}, ${rFormulaMatch.group(3)}',
+        );
+
+        final formulaPart = rFormulaMatch.group(2) ?? "R";
+        final amountPart = rFormulaMatch.group(3) ?? "";
+        final numbersPart = rFormulaMatch.group(1) ?? "";
+
+        print(
+          'Formula part: $formulaPart, Amount part: $amountPart, Numbers part: $numbersPart',
+        );
+
+        // Parse the amount if available
+        double processAmount = amount;
+        if (amountPart.isNotEmpty && RegExp(r'[0-9๐-๙]').hasMatch(amountPart)) {
+          try {
+            String normalizedAmount = _normalizeNumber(amountPart);
+            normalizedAmount = normalizedAmount.replaceAll(',', '');
+            processAmount = double.parse(normalizedAmount);
+            print('Parsed new amount from R formula: $processAmount');
+          } catch (e) {
+            print('Failed to parse amount from R formula: $e');
+          }
+        }
+
+        // Split by separators
+        final RegExp numberSeparator = RegExp(r'[.,*/\s]+');
+        final numberStrings = numbersPart.split(numberSeparator);
+        print(
+          'Split R formula input into ${numberStrings.length} parts: $numberStrings',
+        );
+
+        // Process each number individually with R formula
+        for (final numStr in numberStrings) {
+          if (numStr.trim().isEmpty) continue;
+
+          // Normalize the number
+          String normalizedNumber = _normalizeNumber(numStr.trim());
+          normalizedNumber = normalizedNumber.replaceAll(RegExp(r'[^0-9]'), '');
+          print('Processing number with R formula: $normalizedNumber');
+
+          if (normalizedNumber.length == 2 &&
+              int.tryParse(normalizedNumber) != null) {
+            // Apply R formula to this single number
+            final List<String> numbers = _applyFormula(
+              "",
+              "R",
+              normalizedNumber,
+            );
+            print('R formula generated numbers: $numbers');
+
+            // Add results to the list
+            for (final num in numbers) {
+              result.add({'number': num, 'amount': processAmount});
+              print('Added R formula number: $num with amount: $processAmount');
+            }
+          }
+        }
+        return; // Skip further processing for this input
+      }
+    }
+
     // Check if we have formula indicators in the input
     if (_hasFormula(input)) {
       print('Formula detected in: $input');
@@ -1315,13 +1468,26 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
 
     // R Formula (Reverse)
     if (formulaType == "R") {
-      if (normalizedDigits.length == 2 &&
+      // Handle single digit case for R formula
+      if (normalizedDigits.length == 1 &&
+          int.tryParse(normalizedDigits) != null) {
+        // For a single digit like "2", create "02" and "20"
+        final digit = normalizedDigits[0];
+        numbers.add('0$digit');
+        numbers.add('${digit}0');
+        print('R Formula: Added 0$digit and ${digit}0 for single digit $digit');
+      }
+      // Handle normal 2-digit case
+      else if (normalizedDigits.length == 2 &&
           int.tryParse(normalizedDigits) != null) {
         numbers.add(normalizedDigits);
         final reversed = normalizedDigits.split('').reversed.join('');
         if (reversed != normalizedDigits) {
           numbers.add(reversed);
         }
+        print(
+          'R Formula: Added $normalizedDigits and $reversed for two digits',
+        );
       }
     }
     // BR Formula (Break - numbers with same sum)

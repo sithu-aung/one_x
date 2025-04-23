@@ -33,9 +33,7 @@ class ThemeState {
 
 // Theme notifier
 class ThemeNotifier extends StateNotifier<ThemeState> {
-  ThemeNotifier() : super(ThemeState(currentTheme: ThemeType.whiteIndigo)) {
-    loadSavedTheme();
-  }
+  ThemeNotifier() : super(ThemeState(currentTheme: ThemeType.whiteIndigo));
 
   // Load saved theme from secure storage
   Future<void> loadSavedTheme() async {

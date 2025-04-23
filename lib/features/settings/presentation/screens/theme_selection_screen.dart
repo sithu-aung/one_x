@@ -52,7 +52,7 @@ class ThemeSelectionScreen extends ConsumerWidget {
   }
 
   Widget _buildLogoutButton(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () => _showLogoutConfirmation(context),
@@ -100,14 +100,19 @@ class ThemeSelectionScreen extends ConsumerWidget {
   }
 
   void _performLogout(BuildContext context) async {
+    // Clear focus before navigating
+    FocusManager.instance.primaryFocus?.unfocus();
+
     // Clear all storage
     await SecureStorage.clearAllCredentials();
 
-    // Navigate to login screen and clear all routes
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-      (route) => false,
-    );
+    // Use rootNavigator to ensure we're using the top-most navigator
+    if (context.mounted) {
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).pushNamedAndRemoveUntil('/', (route) => false);
+    }
   }
 
   Widget _buildThemeCard({

@@ -675,7 +675,81 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
       // Store parsed results directly in a list to preserve all entries including duplicates
       List<Map<String, dynamic>> result = [];
 
-      // Split by newlines
+      // Special handling for multi-number R formula inputs like "011.022R500"
+      final multiNumberRPattern = RegExp(
+        r'^([0-9๐-๙၀-၉.,*/|\s]+)([Rr@])([0-9๐-๙๐-๙]+)$',
+      );
+      if (multiNumberRPattern.hasMatch(input)) {
+        print('Multi-number R formula detected: $input');
+
+        final rFormulaMatch = multiNumberRPattern.firstMatch(input);
+        if (rFormulaMatch != null) {
+          final numbersPart = rFormulaMatch.group(1) ?? "";
+          final amountPart = rFormulaMatch.group(3) ?? "";
+
+          print(
+            'R formula match - Numbers part: $numbersPart, Amount part: $amountPart',
+          );
+
+          // Check if numbers part contains delimiters
+          if (numbersPart.contains('.') ||
+              numbersPart.contains(',') ||
+              numbersPart.contains('*') ||
+              numbersPart.contains('/') ||
+              numbersPart.contains('|') ||
+              numbersPart.contains(' ')) {
+            // Parse amount
+            int processAmount = 0;
+            try {
+              String normalizedAmount = _normalizeNumber(amountPart);
+              normalizedAmount = normalizedAmount.replaceAll(',', '');
+              processAmount = int.parse(normalizedAmount);
+              print('Parsed amount for R formula: $processAmount');
+            } catch (e) {
+              print('Failed to parse amount from R formula: $e');
+              throw Exception('ထိုးငွေပမာဏ မှားယွင်းနေပါသည်');
+            }
+
+            // Split numbers by delimiters
+            final RegExp numberSeparator = RegExp(r'[.,*/|\s]+');
+            final numberStrings = numbersPart.split(numberSeparator);
+            print('Split numbers into: $numberStrings');
+
+            // Process each number with the reverse formula
+            for (final numStr in numberStrings) {
+              if (numStr.trim().isEmpty) continue;
+
+              String normalizedNumber = _normalizeNumber(numStr.trim());
+              normalizedNumber = normalizedNumber.replaceAll(
+                RegExp(r'[^0-9]'),
+                '',
+              );
+
+              // Make sure it's a valid number and pad to 3 digits if needed
+              if (_isValid3DNumber(normalizedNumber)) {
+                final paddedNumber = _padTo3Digits(normalizedNumber);
+                // Process this number with the reverse formula
+                _processReverseFormula(paddedNumber, processAmount, result);
+                print('Processed 3D number with R formula: $paddedNumber');
+              }
+            }
+
+            // Update the parsed numbers and total amount
+            _parsedNumbers.addAll(result);
+            for (var entry in result) {
+              _totalAmount += (entry['amount'] as int).toDouble();
+            }
+
+            if (_parsedNumbers.isEmpty) {
+              throw Exception('နံပါတ်များကို မှန်ကန်စွာ ထည့်သွင်းပေးပါ');
+            }
+
+            return; // Skip regular parsing
+          }
+        }
+      }
+
+      // Split by newlines for regular processing
       final lines = input.split('\n');
       print('Parsing ${lines.length} lines of input');
 
@@ -684,6 +758,66 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
         if (line.isEmpty) continue;
 
         print('Processing line: $line');
+
+        // Check for multi-number R formula pattern on this line
+        final lineMultiRPattern = RegExp(
+          r'^([0-9๐-๙၀-၉.,*/|\s]+)([Rr@])([0-9๐-๙၀-၉]+)$',
+        );
+        if (lineMultiRPattern.hasMatch(line)) {
+          print('Line contains multi-number R formula: $line');
+
+          final rFormulaMatch = lineMultiRPattern.firstMatch(line);
+          if (rFormulaMatch != null) {
+            final numbersPart = rFormulaMatch.group(1) ?? "";
+            final amountPart = rFormulaMatch.group(3) ?? "";
+
+            // Check if numbers part contains delimiters
+            if (numbersPart.contains('.') ||
+                numbersPart.contains(',') ||
+                numbersPart.contains('*') ||
+                numbersPart.contains('/') ||
+                numbersPart.contains('|') ||
+                numbersPart.contains(' ')) {
+              // Parse amount
+              int processAmount = 0;
+              try {
+                String normalizedAmount = _normalizeNumber(amountPart);
+                normalizedAmount = normalizedAmount.replaceAll(',', '');
+                processAmount = int.parse(normalizedAmount);
+                print('Parsed amount for R formula: $processAmount');
+              } catch (e) {
+                print('Failed to parse amount from R formula: $e');
+                continue; // Skip this line if we can't parse the amount
+              }
+
+              // Split numbers by delimiters
+              final RegExp numberSeparator = RegExp(r'[.,*/|\s]+');
+              final numberStrings = numbersPart.split(numberSeparator);
+              print('Split numbers into: $numberStrings');
+
+              // Process each number with the reverse formula
+              for (final numStr in numberStrings) {
+                if (numStr.trim().isEmpty) continue;
+
+                String normalizedNumber = _normalizeNumber(numStr.trim());
+                normalizedNumber = normalizedNumber.replaceAll(
+                  RegExp(r'[^0-9]'),
+                  '',
+                );
+
+                // Make sure it's a valid number and pad to 3 digits if needed
+                if (_isValid3DNumber(normalizedNumber)) {
+                  final paddedNumber = _padTo3Digits(normalizedNumber);
+                  // Process this number with the reverse formula
+                  _processReverseFormula(paddedNumber, processAmount, result);
+                  print('Processed 3D number with R formula: $paddedNumber');
+                }
+              }
+
+              continue; // Skip regular processing for this line
+            }
+          }
+        }
 
         // Check for direct formula pattern first (e.g., "အပူး500", "AP700", "1ထိပ်1000")
         // Handle specific formula formats before generic line processing
@@ -909,7 +1043,9 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
       // Parse the amount from the formula
       final parsedAmount = int.tryParse(amountStr.replaceAll(',', ''));
       if (parsedAmount != null) {
-        _processReverseFormula(numberStr, parsedAmount, result);
+        // Pad the number to 3 digits if needed
+        final paddedNumber = _padTo3Digits(numberStr);
+        _processReverseFormula(paddedNumber, parsedAmount, result);
         return;
       }
     }
@@ -943,8 +1079,11 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
         if (numPart != null) {
           final normalizedNum = _normalizeNumber(numPart);
 
+          // Pad to 3 digits if needed
+          final paddedNumber = _padTo3Digits(normalizedNum);
+
           // Process this as a reverse formula to generate all permutations
-          _processReverseFormula(normalizedNum, amount, result);
+          _processReverseFormula(paddedNumber, amount, result);
         }
         continue;
       }
@@ -962,14 +1101,23 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
       final isValid = RegExp(r'^[0-9๐-๙၀-၉]+$').hasMatch(numStr.trim());
       if (!isValid) continue;
 
-      // Validate it's a 3-digit number
+      // Validate it's a 3-digit number or can be padded to 3 digits
       if (_isValid3DNumber(cleanNormalizedNumber)) {
-        result.add({'number': cleanNormalizedNumber, 'amount': amount});
-        print(
-          'Added 3-digit number: $cleanNormalizedNumber with amount: $amount',
-        );
+        final paddedNumber = _padTo3Digits(cleanNormalizedNumber);
+        result.add({'number': paddedNumber, 'amount': amount});
+        print('Added 3-digit number: $paddedNumber with amount: $amount');
       }
     }
+  }
+
+  // Helper method to pad numbers to 3 digits
+  String _padTo3Digits(String number) {
+    if (number.length == 1) {
+      return '00$number'; // Pad single digit to 3 digits (e.g., "5" -> "005")
+    } else if (number.length == 2) {
+      return '0$number'; // Pad double digit to 3 digits (e.g., "45" -> "045")
+    }
+    return number; // Already 3 or more digits
   }
 
   // Check if text contains a formula pattern
@@ -1260,7 +1408,21 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
   }
 
   bool _isValid3DNumber(String number) {
-    // Check if it's a valid 3D number (3 digits)
-    return number.length == 3 && int.tryParse(number) != null;
+    // First check if it's already a valid 3-digit number
+    if (number.length == 3 && int.tryParse(number) != null) {
+      return true;
+    }
+
+    // For handling partial inputs with 1 or 2 digits
+    if ((number.length == 1 || number.length == 2) &&
+        int.tryParse(number) != null) {
+      // We'll allow partial inputs with 1 or 2 digits but log a warning
+      print(
+        'Warning: Partial 3D number detected ($number), ideally should be 3 digits',
+      );
+      return true;
+    }
+
+    return false;
   }
 }

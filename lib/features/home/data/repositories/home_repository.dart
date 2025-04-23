@@ -64,6 +64,16 @@ class HomeRepository {
             .toList(),
       );
 
+      // Cache banner text if available
+      if (homeResponse.bannerText != null) {
+        final bannerTextJson = jsonEncode({
+          'id': homeResponse.bannerText!.id,
+          'description': homeResponse.bannerText!.description,
+          'banner_type': homeResponse.bannerText!.bannerType,
+        });
+        await _storageService.write('home_banner_text', bannerTextJson);
+      }
+
       // Cache games data
       final gamesJson = jsonEncode(
         homeResponse.games
@@ -85,18 +95,27 @@ class HomeRepository {
       final userJson = await _storageService.read(homeUserKey);
       final bannersJson = await _storageService.read(homeBannersKey);
       final gamesJson = await _storageService.read(homeGamesKey);
+      final bannerTextJson = await _storageService.read('home_banner_text');
 
       if (userJson != null && bannersJson != null && gamesJson != null) {
         final user = json.decode(userJson);
         final banners = json.decode(bannersJson) as List;
         final games = json.decode(gamesJson) as List;
 
-        // Construct minimal home response from cached data
-        return HomeResponse.fromJson({
+        // Create the JSON object for HomeResponse
+        final Map<String, dynamic> responseJson = {
           'user': user,
           'banners': banners,
           'games': games,
-        });
+        };
+
+        // Add bannerText if available
+        if (bannerTextJson != null) {
+          responseJson['bannerText'] = json.decode(bannerTextJson);
+        }
+
+        // Construct home response from cached data
+        return HomeResponse.fromJson(responseJson);
       }
 
       return null;

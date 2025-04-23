@@ -7,6 +7,10 @@ import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
 import 'package:one_x/features/auth/presentation/screens/login_screen.dart';
 import 'package:one_x/features/home/presentation/screens/home_screen.dart';
+import 'package:one_x/core/utils/secure_storage.dart';
+
+// Global key for navigation
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,37 +18,124 @@ void main() {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(const AppLoader());
 }
 
-class MyApp extends ConsumerStatefulWidget {
-  const MyApp({super.key});
+// Initial app loader - pure Flutter, no Riverpod yet
+class AppLoader extends StatefulWidget {
+  const AppLoader({super.key});
 
   @override
-  ConsumerState<MyApp> createState() => _MyAppState();
+  State<AppLoader> createState() => _AppLoaderState();
 }
 
-class _MyAppState extends ConsumerState<MyApp> {
+class _AppLoaderState extends State<AppLoader> {
+  bool _isLoading = true;
+  String? _savedTheme;
+  bool _isAuthenticated = false;
+
   @override
   void initState() {
     super.initState();
-    // Initialize services
-    Future.delayed(Duration.zero, () {
-      // Load saved theme
-      ref.read(themeProvider.notifier).loadSavedTheme();
+    _initializeApp();
+  }
 
-      // Check authentication status
-      ref.read(authProvider.notifier).checkAuth();
+  Future<void> _initializeApp() async {
+    try {
+      // First check authentication status directly
+      final authToken = await SecureStorage.getAuthToken();
+
+      // Then load theme preference
+      final savedTheme = await SecureStorage.getTheme();
+
+      // Update state with the initialization results
+      if (mounted) {
+        setState(() {
+          _isAuthenticated = authToken != null;
+          _savedTheme = savedTheme;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error during initialization: $e');
+      // Even on error, transition to app
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Show loading screen while initializing
+    if (_isLoading) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Colors.black,
+          body: Center(child: CircularProgressIndicator(color: Colors.white)),
+        ),
+      );
+    }
+
+    // After initialization, wrap the app with ProviderScope
+    return ProviderScope(
+      child: MainApp(
+        initialTheme: _savedTheme,
+        isAuthenticated: _isAuthenticated,
+      ),
+    );
+  }
+}
+
+// Main app with Riverpod only after initialization is complete
+class MainApp extends ConsumerStatefulWidget {
+  final String? initialTheme;
+  final bool isAuthenticated;
+
+  const MainApp({super.key, this.initialTheme, required this.isAuthenticated});
+
+  @override
+  ConsumerState<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends ConsumerState<MainApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Set initial theme and auth state on next frame
+    Future.microtask(() {
+      // Set initial theme if available
+      if (widget.initialTheme != null) {
+        final themeType = _stringToThemeType(widget.initialTheme!);
+        ref.read(themeProvider.notifier).setTheme(themeType);
+      }
+
+      // Set initial auth state
+      if (widget.isAuthenticated) {
+        ref.read(authProvider.notifier).setAuthenticated();
+      } else {
+        ref.read(authProvider.notifier).setUnauthenticated();
+      }
     });
+  }
+
+  // Helper method to convert string to ThemeType
+  ThemeType _stringToThemeType(String themeTypeString) {
+    return ThemeType.values.firstWhere(
+      (type) => type.toString() == 'ThemeType.$themeTypeString',
+      orElse: () => ThemeType.whiteIndigo,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    // Watch the theme state to rebuild when theme changes (including restartKey)
     final themeState = ref.watch(themeProvider);
 
-    // Rebuild the entire app when theme changes by using the restart key
     return KeyedSubtree(
       key: ValueKey(themeState.restartKey),
       child: ScreenUtilInit(
@@ -53,11 +144,15 @@ class _MyAppState extends ConsumerState<MyApp> {
         splitScreenMode: true,
         builder: (context, child) {
           return MaterialApp(
-            key: appKey, // Use global navigator key from theme provider
-            title: 'BetMM App',
+            navigatorKey: rootNavigatorKey,
+            title: '1xKing App',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme(),
             home: _buildHomeScreen(authState),
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/home': (context) => const HomeScreen(),
+            },
           );
         },
       ),

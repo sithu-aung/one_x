@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 
-class NotAvailableScreen  extends StatelessWidget {
+class NotAvailableScreen extends StatelessWidget {
   final String? information;
   final String? title;
 
-  const NotAvailableScreen ({super.key, this.information,required this.title});
+  const NotAvailableScreen({super.key, this.information, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class NotAvailableScreen  extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               Text(
-                '3D Not Available',
+                '$title Not Available',
                 style: TextStyle(
                   color: AppTheme.textColor,
                   fontSize: 24,
@@ -42,11 +42,14 @@ class NotAvailableScreen  extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              Text(
-                information ??
-                    'The 3D game is currently not available. Please try again later.',
-                style: TextStyle(color: AppTheme.textColor, fontSize: 16),
-                textAlign: TextAlign.center,
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  information ??
+                      'The 3D game is currently not available. Please try again later.',
+                  style: TextStyle(color: AppTheme.textColor, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
               ),
               const SizedBox(height: 32),
               ElevatedButton(

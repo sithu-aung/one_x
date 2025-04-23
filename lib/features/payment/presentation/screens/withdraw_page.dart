@@ -90,6 +90,7 @@ class _WithdrawPageState extends ConsumerState<WithdrawPage> {
                         context,
                         provider.providerName,
                         provider.id,
+                        provider.billing!.id,
                         provider.imageLocation,
                       ),
                 );
@@ -113,6 +114,7 @@ class _WithdrawPageState extends ConsumerState<WithdrawPage> {
     BuildContext context,
     String providerName,
     int providerId,
+    int billingId,
     String imageLocation,
   ) {
     // Add print statement to debug the provider key
@@ -125,6 +127,7 @@ class _WithdrawPageState extends ConsumerState<WithdrawPage> {
             (context) => AmountDefineScreen(
               type: PaymentActionType.withdraw,
               providerId: providerId,
+              billingId: billingId,
               providerName: providerName,
               imageLocation: imageLocation,
             ),

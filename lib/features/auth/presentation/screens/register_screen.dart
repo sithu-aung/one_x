@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/core/utils/api_service.dart';
@@ -185,6 +186,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         setState(() {
           _errorMessage = authState.errorMessage;
         });
+        showGlobalErrorDialog(
+          _errorMessage == "ApiException: Validation errors (Status code: 422)"
+              ? "Existing Account. Please try with different name or phone number"
+              : _errorMessage!,
+        );
         authNotifier.clearError();
       } else {
         // Registration successful but not logged in yet
@@ -194,6 +200,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SnackBar(
               content: Text('Registration successful. Please login.'),
               backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
             ),
           );
 
@@ -204,31 +211,97 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         }
       }
     } catch (e) {
-      setState(() {
-        if (e is ApiException && e.errors != null) {
-          // Handle phone validation errors specifically
-          if (e.errors!.containsKey('phone') &&
-              e.errors!['phone'] is List &&
-              e.errors!['phone'].isNotEmpty) {
-            final phoneError = e.errors!['phone'][0].toString();
-            if (phoneError.contains('already been taken')) {
-              _errorMessage =
-                  'This phone number is already registered. Please use a different phone number or login to your existing account.';
-            } else {
-              _errorMessage = phoneError;
-            }
-          } else {
-            _errorMessage = e.message;
+      print('Registration error: ${e.toString()}');
+
+      // Handle API errors, particularly validation errors
+      if (e is ApiException) {
+        // Store the error message for debugging
+        print('API Exception - Status Code: ${e.statusCode}');
+        print('API Exception - Message: ${e.message}');
+        print('API Exception - Errors: ${e.errors}');
+
+        String errorMessage = e.message;
+
+        // Parse validation errors from a 422 response
+        if (e.statusCode == 422 && e.errors != null) {
+          try {
+            // Extract all error messages and join them
+            List<String> errorMessages = [];
+
+            e.errors!.forEach((field, messages) {
+              if (messages is List) {
+                for (var message in messages) {
+                  errorMessages.add('$field: ${message.toString()}');
+                }
+              } else if (messages is String) {
+                errorMessages.add('$field: $messages');
+              }
+            });
+
+            errorMessage = errorMessages.join('\n');
+            print('Parsed validation errors: $errorMessage');
+          } catch (parseError) {
+            print('Error parsing validation errors: $parseError');
+            // Keep the original error message if parsing fails
           }
-        } else {
-          _errorMessage = e.toString();
         }
-      });
+
+        // Ensure we're mounted before showing the SnackBar
+        if (mounted) {
+          // Get the ScaffoldMessengerState
+          final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+          // Hide any existing SnackBars
+          scaffoldMessenger.hideCurrentSnackBar();
+
+          // Show the error in a SnackBar with longer duration
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                errorMessage,
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+        }
+      } else {
+        // For non-API exceptions
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     } finally {
       setState(() {
         _isLoading = false;
+        _errorMessage = null; // Clear the error message beneath the button
       });
     }
+  }
+
+  static void showGlobalErrorDialog(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   void _navigateToLogin() {
@@ -542,7 +615,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     text: TextSpan(
                                       children: [
                                         TextSpan(
-                                          text: 'BetMM ၏ ',
+                                          text: '1xKing ၏ ',
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: AppTheme.textColor,
@@ -667,7 +740,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         customText(
-                          'BetMM အကောင့်ရှိပြီးသားလား? ',
+                          '1xKing အကောင့်ရှိပြီးသားလား? ',
                           fontSize: 14,
                           color:
                               AppTheme.backgroundColor == Colors.white

@@ -409,6 +409,7 @@ class _WithdrawAmountDefineScreenState
                               .processStoreWithdraw(
                                 providerId: _selectedProvider!.id,
                                 amount: amount,
+                                billingId: _selectedProvider!.billing!.id,
                                 accountNumber:
                                     _selectedProvider!.billing!.providerPhone,
                                 transactionId: "",

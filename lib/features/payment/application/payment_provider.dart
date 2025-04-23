@@ -137,6 +137,7 @@ class PaymentRepository {
   // Process a store-deposit request
   Future<Map<String, dynamic>> storeDeposit({
     required int providerId,
+    required int billingId,
     required String amount,
     required String accountNumber,
     required String userName,
@@ -148,7 +149,7 @@ class PaymentRepository {
       // Ensure data is properly formatted for API
       final Map<String, dynamic> requestBody = {
         'provider_id': providerId,
-        'billing_id': 2, // Fixed value as per requirements
+        'billing_id': billingId,
         'sender_amount': amount,
         'sender_account': accountNumber,
         'sender_name': userName,
@@ -175,6 +176,7 @@ class PaymentRepository {
   // Process a store-withdraw request
   Future<Map<String, dynamic>> storeWithdraw({
     required int providerId,
+    required int billingId,
     required String amount,
     required String accountNumber,
     required String userName,
@@ -186,7 +188,7 @@ class PaymentRepository {
       // Ensure data is properly formatted for API
       final Map<String, dynamic> requestBody = {
         'provider_id': providerId,
-        'billing_id': 5, // Fixed value as per requirements
+        'billing_id': billingId,
         'sender_amount': amount,
         'sender_account': accountNumber,
         'sender_name': userName,
@@ -537,6 +539,7 @@ class PaymentNotifier extends riverpod.StateNotifier<PaymentState> {
 
   Future<Map<String, dynamic>> processDeposit({
     required int providerId,
+    required int billingId,
     required String amount,
     required String accountNumber,
     required String transactionId,
@@ -558,6 +561,7 @@ class PaymentNotifier extends riverpod.StateNotifier<PaymentState> {
       final repository = ref.read(paymentRepositoryProvider);
       final response = await repository.storeDeposit(
         providerId: providerId,
+        billingId: billingId,
         amount: amount,
         accountNumber: accountNumber,
         userName: user.username,
@@ -577,6 +581,7 @@ class PaymentNotifier extends riverpod.StateNotifier<PaymentState> {
 
   Future<Map<String, dynamic>> processStoreWithdraw({
     required int providerId,
+    required int billingId,
     required String amount,
     required String accountNumber,
     String? transactionId,
@@ -598,6 +603,7 @@ class PaymentNotifier extends riverpod.StateNotifier<PaymentState> {
       final repository = ref.read(paymentRepositoryProvider);
       final response = await repository.storeWithdraw(
         providerId: providerId,
+        billingId: billingId,
         amount: amount,
         accountNumber: accountNumber,
         userName: user.username,

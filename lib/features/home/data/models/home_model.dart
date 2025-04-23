@@ -2,7 +2,7 @@ import 'dart:convert';
 
 class HomeResponse {
   final List<Banner> banners;
-  final String? bannerText;
+  final BannerText? bannerText;
   final User user;
   final List<Game> games;
 
@@ -15,10 +15,35 @@ class HomeResponse {
 
   factory HomeResponse.fromJson(Map<String, dynamic> json) {
     return HomeResponse(
-      banners: List<Banner>.from(json['banners'].map((x) => Banner.fromJson(x))),
-      bannerText: json['bannerText'],
+      banners: List<Banner>.from(
+        json['banners'].map((x) => Banner.fromJson(x)),
+      ),
+      bannerText:
+          json['bannerText'] != null
+              ? BannerText.fromJson(json['bannerText'])
+              : null,
       user: User.fromJson(json['user']),
       games: List<Game>.from(json['games'].map((x) => Game.fromJson(x))),
+    );
+  }
+}
+
+class BannerText {
+  final int id;
+  final String description;
+  final String bannerType;
+
+  BannerText({
+    required this.id,
+    required this.description,
+    required this.bannerType,
+  });
+
+  factory BannerText.fromJson(Map<String, dynamic> json) {
+    return BannerText(
+      id: json['id'],
+      description: json['description'],
+      bannerType: json['banner_type'],
     );
   }
 }
@@ -69,10 +94,10 @@ class User {
   final String phone;
   final dynamic referral;
   final String dateOfBirth;
-  final String myReferral;
+  final String? myReferral;
   final String hiddenPhone;
   final dynamic email;
-  final dynamic profilePhoto;
+  final String? profilePhoto;
   final dynamic address;
   final dynamic country;
   final dynamic emailVerifiedAt;
@@ -94,7 +119,7 @@ class User {
     required this.phone,
     this.referral,
     required this.dateOfBirth,
-    required this.myReferral,
+    this.myReferral,
     required this.hiddenPhone,
     this.email,
     this.profilePhoto,
@@ -124,7 +149,7 @@ class User {
       myReferral: json['my_referral'],
       hiddenPhone: json['hidden_phone'],
       email: json['email'],
-      profilePhoto: json['profile_photo'],
+      profilePhoto: json['profile_photo']?.toString(),
       address: json['address'],
       country: json['country'],
       emailVerifiedAt: json['email_verified_at'],
@@ -163,16 +188,10 @@ class Game {
   final String game;
   final String status;
 
-  Game({
-    required this.game,
-    required this.status,
-  });
+  Game({required this.game, required this.status});
 
   factory Game.fromJson(Map<String, dynamic> json) {
-    return Game(
-      game: json['game'],
-      status: json['status'],
-    );
+    return Game(game: json['game'], status: json['status']);
   }
 
   bool isActive() {

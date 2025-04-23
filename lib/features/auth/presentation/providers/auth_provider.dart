@@ -75,6 +75,24 @@ class AuthNotifier extends StateNotifier<AuthStateData> {
     }
   }
 
+  // Force set to authenticated state
+  void setAuthenticated() {
+    state = state.copyWith(
+      state: AuthState.authenticated,
+      user: null,
+      errorMessage: null,
+    );
+  }
+
+  // Force set to unauthenticated state (used for error recovery)
+  void setUnauthenticated() {
+    state = state.copyWith(
+      state: AuthState.unauthenticated,
+      user: null,
+      errorMessage: null,
+    );
+  }
+
   // Check onboarding status
   Future<bool> hasSeenOnboarding() async {
     return await _authRepository.hasSeenOnboarding();
@@ -149,16 +167,19 @@ class AuthNotifier extends StateNotifier<AuthStateData> {
   // Logout
   Future<void> logout() async {
     try {
+      // Unfocus any active text fields first
+      FocusManager.instance.primaryFocus?.unfocus();
+
       state = state.copyWith(state: AuthState.loading);
 
       await _authRepository.logout();
 
       state = state.copyWith(state: AuthState.unauthenticated, user: null);
     } catch (e) {
-      state = state.copyWith(
-        state: AuthState.error,
-        errorMessage: e.toString(),
-      );
+      // Even if logout API fails, we should still log the user out locally
+      // The logout() method in the repository already handles clearing storage
+      // in the finally block, so we just need to update our state
+      state = state.copyWith(state: AuthState.unauthenticated, user: null);
     }
   }
 

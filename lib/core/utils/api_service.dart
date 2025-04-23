@@ -215,6 +215,7 @@ class ApiService {
     String endpoint, {
     Map<String, dynamic>? body,
     bool returnStatusCode = false,
+    bool showValidationToast = true,
   }) async {
     try {
       final response = await _httpClient
@@ -260,59 +261,63 @@ class ApiService {
         if (response.body.isEmpty) return null;
         return jsonDecode(response.body);
       } else if (response.statusCode == 422) {
-        // Validation errors - display in SnackBar if message is present
+        // Validation errors - parse but don't automatically display in SnackBar
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['message'] ?? 'Validation failed';
         final errors = errorData['errors'] as Map<String, dynamic>?;
 
-        // Display the most specific error message available
-        String messageToDisplay = '';
+        // Only show validation toast if specifically requested
+        if (showValidationToast) {
+          // Display the most specific error message available
+          String messageToDisplay = '';
 
-        // Check for specific error cases first
-        if (errors != null) {
-          if (errors.containsKey('phone') &&
-              errors['phone'] is List &&
-              errors['phone'].isNotEmpty) {
-            final phoneError = errors['phone'][0].toString();
-            if (phoneError.contains('already been taken')) {
-              messageToDisplay =
-                  'This phone number is already registered. Please use a different phone number or login to your existing account.';
-            }
-          }
-        }
-
-        // If no specific case matched, use generic handling
-        if (messageToDisplay.isEmpty) {
-          // First priority: use the top-level message if it's specific enough
-          if (errorMessage.isNotEmpty && errorMessage != 'Validation failed') {
-            messageToDisplay = errorMessage;
-          }
-          // Second priority: use the first specific error message from the errors map
-          else if (errors != null && errors.isNotEmpty) {
-            // Get the first error message
-            String firstErrorMessage = '';
-            errors.forEach((field, messages) {
-              if (firstErrorMessage.isEmpty) {
-                if (messages is List && messages.isNotEmpty) {
-                  firstErrorMessage = messages.first.toString();
-                } else if (messages is String) {
-                  firstErrorMessage = messages;
-                }
+          // Check for specific error cases first
+          if (errors != null) {
+            if (errors.containsKey('phone') &&
+                errors['phone'] is List &&
+                errors['phone'].isNotEmpty) {
+              final phoneError = errors['phone'][0].toString();
+              if (phoneError.contains('already been taken')) {
+                messageToDisplay =
+                    'This phone number is already registered. Please use a different phone number or login to your existing account.';
               }
-            });
-
-            if (firstErrorMessage.isNotEmpty) {
-              messageToDisplay = firstErrorMessage;
             }
           }
-        }
 
-        // If we have a message to display, show it
-        if (messageToDisplay.isNotEmpty) {
-          NavigationService.showSnackBar(message: messageToDisplay);
-        } else {
-          // Fallback to generic validation message
-          NavigationService.showSnackBar(message: 'Validation failed');
+          // If no specific case matched, use generic handling
+          if (messageToDisplay.isEmpty) {
+            // First priority: use the top-level message if it's specific enough
+            if (errorMessage.isNotEmpty &&
+                errorMessage != 'Validation failed') {
+              messageToDisplay = errorMessage;
+            }
+            // Second priority: use the first specific error message from the errors map
+            else if (errors != null && errors.isNotEmpty) {
+              // Get the first error message
+              String firstErrorMessage = '';
+              errors.forEach((field, messages) {
+                if (firstErrorMessage.isEmpty) {
+                  if (messages is List && messages.isNotEmpty) {
+                    firstErrorMessage = messages.first.toString();
+                  } else if (messages is String) {
+                    firstErrorMessage = messages;
+                  }
+                }
+              });
+
+              if (firstErrorMessage.isNotEmpty) {
+                messageToDisplay = firstErrorMessage;
+              }
+            }
+          }
+
+          // If we have a message to display, show it
+          if (messageToDisplay.isNotEmpty) {
+            NavigationService.showSnackBar(message: messageToDisplay);
+          } else {
+            // Fallback to generic validation message
+            NavigationService.showSnackBar(message: 'Validation failed');
+          }
         }
 
         throw ApiException(

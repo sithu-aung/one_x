@@ -66,7 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
     Fluttertoast.showToast(
       msg: message,
-      toastLength: Toast.LENGTH_SHORT,
+      toastLength: Toast.LENGTH_LONG,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
       backgroundColor: Colors.red,
@@ -566,7 +566,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               customText(
-                                'BetMM အကောင့် မရှိသေးဘူးလား?',
+                                '1xKing အကောင့် မရှိသေးဘူးလား?',
                                 fontSize: 14,
                                 color:
                                     AppTheme.backgroundColor == Colors.white

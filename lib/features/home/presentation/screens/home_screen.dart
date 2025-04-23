@@ -29,6 +29,7 @@ import 'package:one_x/features/lottery/presentation/screens/coming_soon_screen.d
 import 'package:one_x/core/utils/secure_storage.dart';
 import 'package:one_x/core/constants/app_constants.dart';
 import 'package:one_x/shared/widgets/profile_avatar.dart';
+import 'package:marquee/marquee.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   final int? initialTabIndex;
@@ -374,7 +375,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       ),
-      body: _buildBody(),
+      body: SafeArea(child: _buildBody()),
 
       bottomNavigationBar: BottomNavigation(
         currentIndex: _currentNavIndex,
@@ -735,146 +736,197 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildBanner() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: SizedBox(
-        height: 180,
-        width: double.infinity,
-        child: Consumer(
+    return Column(
+      children: [
+        // Banner Text Marquee - No horizontal padding
+        Consumer(
           builder: (context, ref, child) {
-            // Watch banners from provider
-            final bannersAsyncValue = ref.watch(homeDataProvider);
+            final homeDataAsyncValue = ref.watch(homeDataProvider);
 
-            return bannersAsyncValue.when(
+            return homeDataAsyncValue.when(
               data: (homeData) {
-                final banners = homeData.banners;
-                if (banners.isEmpty) {
-                  return _buildEmptyBannerState();
-                }
-
-                return Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    // Banner PageView with rounded corners
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16.0),
-                      child: PageView.builder(
-                        controller: _pageController,
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentPageIndex = index;
-                          });
-                        },
-                        itemCount: banners.length,
-                        itemBuilder: (context, index) {
-                          final banner = banners[index];
-                          final imageUrl = banner.getFullImageUrl();
-
-                          return Stack(
-                            children: [
-                              // Banner image
-                              Positioned.fill(
-                                child: Image.network(
-                                  imageUrl,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (
-                                    context,
-                                    child,
-                                    loadingProgress,
-                                  ) {
-                                    if (loadingProgress == null) return child;
-                                    return Container(
-                                      color: AppTheme.cardColor,
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          value:
-                                              loadingProgress
-                                                          .expectedTotalBytes !=
-                                                      null
-                                                  ? loadingProgress
-                                                          .cumulativeBytesLoaded /
-                                                      loadingProgress
-                                                          .expectedTotalBytes!
-                                                  : null,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                AppTheme.primaryColor,
-                                              ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Image.asset(
-                                      'assets/images/banner2.png',
-                                      fit: BoxFit.cover,
-                                    );
-                                  },
-                                ),
-                              ),
-                              // Gradient overlay for better text visibility
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.transparent,
-                                        Colors.black.withOpacity(0.4),
-                                      ],
-                                      stops: const [0.7, 1.0],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
+                // Only show marquee if bannerText has description
+                if (homeData.bannerText != null &&
+                    homeData.bannerText!.description.isNotEmpty) {
+                  return Container(
+                    width: double.infinity,
+                    height: 40, // Fixed height for the Marquee
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.2),
+                      borderRadius:
+                          BorderRadius.zero, // Flat corners instead of rounded
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        width: 1,
                       ),
                     ),
+                    child: Marquee(
+                      text: homeData.bannerText!.description,
+                      style: TextStyle(
+                        color: AppTheme.textColor,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                      scrollAxis: Axis.horizontal,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      blankSpace: 40.0,
+                      velocity: 50.0,
+                      pauseAfterRound: const Duration(seconds: 1),
+                      showFadingOnlyWhenScrolling: true,
+                      fadingEdgeStartFraction: 0.1,
+                      fadingEdgeEndFraction: 0.1,
+                      startPadding: 10.0,
+                      accelerationDuration: const Duration(seconds: 1),
+                      accelerationCurve: Curves.linear,
+                      decelerationDuration: const Duration(milliseconds: 500),
+                      decelerationCurve: Curves.easeOut,
+                    ),
+                  );
+                }
+                return const SizedBox.shrink(); // No banner text available
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            );
+          },
+        ),
 
-                    // Dot indicators
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          banners.length,
-                          (index) => GestureDetector(
-                            onTap: () {
-                              _pageController.animateToPage(
-                                index,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
+        // Banner Slider - With horizontal padding
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: SizedBox(
+            height: 180,
+            width: double.infinity,
+            child: Consumer(
+              builder: (context, ref, child) {
+                // Watch banners from provider
+                final bannersAsyncValue = ref.watch(homeDataProvider);
+
+                return bannersAsyncValue.when(
+                  data: (homeData) {
+                    final banners = homeData.banners;
+                    if (banners.isEmpty) {
+                      return _buildEmptyBannerState();
+                    }
+
+                    return Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        // Banner PageView with rounded corners
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16.0),
+                          child: PageView.builder(
+                            controller: _pageController,
+                            onPageChanged: (index) {
+                              setState(() {
+                                _currentPageIndex = index;
+                              });
+                            },
+                            itemCount: banners.length,
+                            itemBuilder: (context, index) {
+                              final banner = banners[index];
+                              final imageUrl = banner.getFullImageUrl();
+
+                              return Stack(
+                                children: [
+                                  // Banner image
+                                  Positioned.fill(
+                                    child: Image.network(
+                                      imageUrl,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (
+                                        context,
+                                        child,
+                                        loadingProgress,
+                                      ) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return Container(
+                                          color: AppTheme.cardColor,
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              value:
+                                                  loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
+                                                      : null,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    AppTheme.primaryColor,
+                                                  ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (
+                                        context,
+                                        error,
+                                        stackTrace,
+                                      ) {
+                                        return Image.asset(
+                                          'assets/images/banner2.png',
+                                          fit: BoxFit.cover,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  // Gradient overlay for better text visibility
+                                ],
                               );
                             },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              width: index == _currentPageIndex ? 24 : 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color:
-                                    index == _currentPageIndex
-                                        ? AppTheme.primaryColor
-                                        : Colors.white.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        // Indicator dots
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              banners.length,
+                              (index) => GestureDetector(
+                                onTap: () {
+                                  _pageController.animateToPage(
+                                    index,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  width: index == _currentPageIndex ? 24 : 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        index == _currentPageIndex
+                                            ? AppTheme.primaryColor
+                                            : Colors.white.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
+                  loading: () => _buildLoadingBannerState(),
+                  error: (error, stackTrace) => _buildErrorBannerState(),
                 );
               },
-              loading: () => _buildLoadingBannerState(),
-              error: (error, stackTrace) => _buildErrorBannerState(),
-            );
-          },
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -1254,15 +1306,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Perform logout
   void _performLogout(BuildContext context) async {
+    Navigator.pop(context);
+    // Clear focus before navigating
+    FocusManager.instance.primaryFocus?.unfocus();
+
     // Call the auth provider's logout method to properly clear all data
     await ref.read(authProvider.notifier).logout();
 
-    // Navigation to login screen is handled by the state change listener in main.dart
-    // But we'll force navigation here as well for redundancy
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (route) => false,
-    );
+    // Use rootNavigator to ensure we're using the top-most navigator
+    if (mounted) {
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).pushNamedAndRemoveUntil('/', (route) => false);
+    }
   }
 
   void _logout() async {

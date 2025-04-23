@@ -16,6 +16,7 @@ class TopUpPage extends ConsumerStatefulWidget {
 
 class _TopUpPageState extends ConsumerState<TopUpPage> {
   int? selectedProviderId;
+  int? selectedBillingId;
   String? selectedProviderName;
   String? selectedImageLocation;
 
@@ -106,6 +107,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                         onTap: () {
                           setState(() {
                             selectedProviderId = provider.id;
+                            selectedBillingId = provider.billing?.id;
                             selectedProviderName = provider.providerName;
                             selectedImageLocation = provider.imageLocation;
                           });
@@ -167,6 +169,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
                               context,
                               selectedProviderName!,
                               selectedProviderId!,
+                              selectedBillingId!,
                               selectedImageLocation!,
                             ),
                     style: ElevatedButton.styleFrom(
@@ -193,6 +196,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
     BuildContext context,
     String providerName,
     int providerId,
+    int billingId,
     String imageLocation,
   ) {
     // Add print statement to debug the provider key
@@ -206,6 +210,7 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
             (context) => AmountDefineScreen(
               type: PaymentActionType.topUp,
               providerId: providerId,
+              billingId: billingId,
               providerName: providerName,
               imageLocation: imageLocation,
             ),
