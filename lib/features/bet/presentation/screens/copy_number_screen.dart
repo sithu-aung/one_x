@@ -683,17 +683,9 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
   }
 
   Widget _buildBottomButton() {
-    final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    final bottomPadding = isIOS ? MediaQuery.of(context).padding.bottom : 0;
-
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: 16 + bottomPadding.toDouble(),
-        top: 16,
-      ),
+      padding: EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 16),
       child: ElevatedButton(
         onPressed:
             _isLoading || _textController.text.trim().isEmpty
@@ -884,6 +876,77 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
     for (final line in lines) {
       if (line.trim().isEmpty) continue;
       print('Processing line: $line');
+
+      // Check for format: numbers amount R amount (e.g. "01.02.03.04 2000 R 500")
+      final dualAmountRPattern = RegExp(
+        r'(.+?)\s+([0-9๐-๙,]+)\s+([Rr@])\s+([0-9๐-๙,]+)$',
+      );
+
+      if (dualAmountRPattern.hasMatch(line)) {
+        final match = dualAmountRPattern.firstMatch(line);
+        if (match != null) {
+          final numbersPart = match.group(1) ?? "";
+          final firstAmountStr = match.group(2) ?? "";
+          final rFormula = match.group(3) ?? "";
+          final secondAmountStr = match.group(4) ?? "";
+
+          print(
+            'Dual amount R pattern detected: numbers=$numbersPart, firstAmount=$firstAmountStr, rFormula=$rFormula, secondAmount=$secondAmountStr',
+          );
+
+          try {
+            // Parse both amounts
+            String normalizedFirstAmount = _normalizeNumber(firstAmountStr);
+            normalizedFirstAmount = normalizedFirstAmount.replaceAll(',', '');
+            double firstAmount = double.parse(normalizedFirstAmount);
+
+            String normalizedSecondAmount = _normalizeNumber(secondAmountStr);
+            normalizedSecondAmount = normalizedSecondAmount.replaceAll(',', '');
+            double secondAmount = double.parse(normalizedSecondAmount);
+
+            print(
+              'Parsed amounts: original=$firstAmount, reverse=$secondAmount',
+            );
+
+            // Split the numbers and process
+            final RegExp numberSeparator = RegExp(r'[.,*/\s]+');
+            final numberStrings = numbersPart.split(numberSeparator);
+
+            for (final numStr in numberStrings) {
+              if (numStr.trim().isEmpty) continue;
+
+              String normalizedNumber = _normalizeNumber(numStr.trim());
+
+              // Handle single digits by padding with 0
+              if (normalizedNumber.length == 1 &&
+                  int.tryParse(normalizedNumber) != null) {
+                normalizedNumber = '0$normalizedNumber';
+              }
+
+              // For 2-digit numbers, add original with firstAmount
+              if (normalizedNumber.length == 2 &&
+                  int.tryParse(normalizedNumber) != null) {
+                result.add({'number': normalizedNumber, 'amount': firstAmount});
+
+                // Add the reverse with secondAmount
+                final reversed = normalizedNumber.split('').reversed.join('');
+                if (reversed != normalizedNumber) {
+                  result.add({'number': reversed, 'amount': secondAmount});
+                }
+
+                print(
+                  'Added number $normalizedNumber with amount $firstAmount',
+                );
+                print('Added reverse $reversed with amount $secondAmount');
+              }
+            }
+
+            continue; // Skip regular processing for this line
+          } catch (e) {
+            print('Error processing dual amount R pattern: $e');
+          }
+        }
+      }
 
       // Special handling for R formula with multiple numbers
       if (line.contains('R') || line.contains('r') || line.contains('@')) {

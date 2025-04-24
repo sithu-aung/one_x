@@ -380,17 +380,10 @@ class _QuickSelectScreenState extends State<QuickSelectScreen> {
   }
 
   Widget _buildBottomBar() {
-    final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    final bottomPadding = isIOS ? MediaQuery.of(context).padding.bottom : 0;
     final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
 
     return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 8,
-        bottom: 8 + bottomPadding.toDouble(),
-      ),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

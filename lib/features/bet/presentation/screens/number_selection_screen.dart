@@ -1289,8 +1289,6 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
   }
 
   Widget _buildBottomButtons() {
-    final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    final bottomPadding = isIOS ? MediaQuery.of(context).padding.bottom : 0;
     final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
 
     // Calculate total amount
@@ -1311,12 +1309,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
           ),
         ],
       ),
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: 16 + bottomPadding.toDouble(),
-      ),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

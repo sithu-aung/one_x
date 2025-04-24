@@ -819,15 +819,9 @@ class _ThreeDScreenState extends State<ThreeDScreen>
 
   Widget _buildBottomBar() {
     final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    final bottomPadding = isIOS ? MediaQuery.of(context).padding.bottom : 0;
 
     return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 8,
-        bottom: 8 + bottomPadding.toDouble(),
-      ),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
       child: ElevatedButton(
         onPressed: () {
           // Check 3D availability before navigating

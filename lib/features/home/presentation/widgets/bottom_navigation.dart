@@ -17,14 +17,12 @@ class BottomNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Calculate bottom padding for iOS devices
-    final double bottomPadding =
-        _isIOS() ? MediaQuery.of(context).padding.bottom : 0;
 
     // Determine if using dark theme
     final bool isDarkTheme = AppTheme.backgroundColor.computeLuminance() < 0.5;
 
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 0, 20, 10 + bottomPadding),
+      margin: EdgeInsets.fromLTRB(20, 0, 20, 10),
       height: 70,
       decoration: BoxDecoration(
         color: AppTheme.cardColor,

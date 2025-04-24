@@ -170,17 +170,9 @@ class _BulkEntryScreenState extends ConsumerState<BulkEntryScreen> {
   }
 
   Widget _buildBottomButton() {
-    final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    final bottomPadding = isIOS ? MediaQuery.of(context).padding.bottom : 0;
-
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: 16 + bottomPadding.toDouble(),
-      ),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
       child: GestureDetector(
         onTap:
             _hasContent

@@ -402,16 +402,9 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
   }
 
   Widget _buildBottomButtons() {
-    final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    final bottomPadding = isIOS ? MediaQuery.of(context).padding.bottom : 0;
 
     return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: 16 + bottomPadding.toDouble(),
-      ),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
       child: Row(
         children: [
           Expanded(
