@@ -15,37 +15,42 @@ class ThemeSelectionScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Theme Settings')),
-      body: Padding(
-        padding: EdgeInsets.all(16.r),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Select Theme', style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 20.h),
-            Expanded(
-              child: ListView.builder(
-                itemCount: ThemeConfig.availableThemes.length,
-                itemBuilder: (context, index) {
-                  final theme = ThemeConfig.availableThemes[index];
-                  final isSelected = theme.type == themeState.currentTheme;
-
-                  return _buildThemeCard(
-                    context: context,
-                    theme: theme,
-                    isSelected: isSelected,
-                    onTap: () {
-                      ref.read(themeProvider.notifier).setTheme(theme.type);
-                    },
-                  );
-                },
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(16.r),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select Theme',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-            ),
-            SizedBox(height: 16.h),
-            Divider(height: 1, thickness: 1),
-            SizedBox(height: 16.h),
-            // Logout button section
-            _buildLogoutButton(context),
-          ],
+              SizedBox(height: 20.h),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: ThemeConfig.availableThemes.length,
+                  itemBuilder: (context, index) {
+                    final theme = ThemeConfig.availableThemes[index];
+                    final isSelected = theme.type == themeState.currentTheme;
+
+                    return _buildThemeCard(
+                      context: context,
+                      theme: theme,
+                      isSelected: isSelected,
+                      onTap: () {
+                        ref.read(themeProvider.notifier).setTheme(theme.type);
+                      },
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Divider(height: 1, thickness: 1),
+              SizedBox(height: 16.h),
+              // Logout button section
+              _buildLogoutButton(context),
+            ],
+          ),
         ),
       ),
     );

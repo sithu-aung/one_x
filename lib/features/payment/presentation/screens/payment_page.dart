@@ -57,278 +57,283 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      body:
-          paymentState.isLoading
-              ? Center(
-                child: CircularProgressIndicator(color: AppTheme.primaryColor),
-              )
-              : SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      // Default Currency Section
-                      GestureDetector(
-                        onTap: () async {
-                          // await Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => const ChangeCurrencyPage(),
-                          //   ),
-                          // );
-                          // // Refresh data after returning from currency page
-                          // ref.read(paymentProvider.notifier).loadInitialData();
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        'Default Currency - ',
+      body: SafeArea(
+        child:
+            paymentState.isLoading
+                ? Center(
+                  child: CircularProgressIndicator(
+                    color: AppTheme.primaryColor,
+                  ),
+                )
+                : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        // Default Currency Section
+                        GestureDetector(
+                          onTap: () async {
+                            // await Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => const ChangeCurrencyPage(),
+                            //   ),
+                            // );
+                            // // Refresh data after returning from currency page
+                            // ref.read(paymentProvider.notifier).loadInitialData();
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: cardColor,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          'Default Currency - ',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: textColor,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Image.asset(
+                                        'assets/images/${currentCurrency.toLowerCase()}.png',
+                                        width: 24,
+                                        height: 24,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        currentCurrency,
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                           color: textColor,
                                         ),
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Image.asset(
-                                      'assets/images/${currentCurrency.toLowerCase()}.png',
-                                      width: 24,
-                                      height: 24,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      currentCurrency,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        color: textColor,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withOpacity(0.8),
+                            image: const DecorationImage(
+                              image: AssetImage(
+                                'assets/images/payment_card_background.png',
+                              ),
+                              fit: BoxFit.cover,
+                              opacity: 0.2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Available balance',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _formatCurrency(
+                                  balance.toDouble(),
+                                  currentCurrency,
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.8),
-                          image: const DecorationImage(
-                            image: AssetImage(
-                              'assets/images/payment_card_background.png',
-                            ),
-                            fit: BoxFit.cover,
-                            opacity: 0.2,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
+
+                        // const SizedBox(height: 24),
+                        // // Exchange Rate Section
+                        // Container(
+                        //   width: double.infinity,
+                        //   padding: const EdgeInsets.all(16),
+                        //   decoration: BoxDecoration(
+                        //     color: cardColor,
+                        //     borderRadius: BorderRadius.circular(12),
+                        //     border:
+                        //         isDarkMode
+                        //             ? Border.all(color: Colors.grey.shade800)
+                        //             : null,
+                        //   ),
+                        //   child: Column(
+                        //     crossAxisAlignment: CrossAxisAlignment.start,
+                        //     children: [
+                        //       Text(
+                        //         'Update Exchange Rate',
+                        //         style: TextStyle(
+                        //           fontSize: 16,
+                        //           fontWeight: FontWeight.w500,
+                        //           color: textColor,
+                        //         ),
+                        //       ),
+                        //       const SizedBox(height: 12),
+                        //       Row(
+                        //         mainAxisAlignment: MainAxisAlignment.center,
+                        //         children: [
+                        //           Image.asset(
+                        //             'assets/images/usd.png',
+                        //             width: 28,
+                        //             height: 28,
+                        //           ),
+                        //           const SizedBox(width: 4),
+                        //           Text(
+                        //             '1 USD',
+                        //             style: TextStyle(
+                        //               fontSize: 14,
+                        //               fontWeight: FontWeight.w500,
+                        //               color: textColor,
+                        //             ),
+                        //           ),
+                        //           const SizedBox(width: 8),
+                        //           Text(
+                        //             '=',
+                        //             style: TextStyle(
+                        //               fontSize: 14,
+                        //               fontWeight: FontWeight.w500,
+                        //               color: textColor,
+                        //             ),
+                        //           ),
+                        //           const SizedBox(width: 8),
+                        //           Image.asset(
+                        //             'assets/images/mmk.png',
+                        //             width: 28,
+                        //             height: 28,
+                        //           ),
+                        //           const SizedBox(width: 4),
+                        //           Flexible(
+                        //             child: Text(
+                        //               '${exchangeRate?.rate.toStringAsFixed(0) ?? '4,500'} MMK',
+                        //               style: TextStyle(
+                        //                 fontSize: 14,
+                        //                 fontWeight: FontWeight.w500,
+                        //                 color: textColor,
+                        //               ),
+                        //               overflow: TextOverflow.ellipsis,
+                        //             ),
+                        //           ),
+                        //         ],
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
+                        const SizedBox(height: 24),
+                        Row(
                           children: [
-                            Text(
-                              'Available balance',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
+                            Expanded(
+                              child: _buildActionButton(
+                                icon: Icons.add,
+                                label: 'Top Up',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const TopUpPage(),
+                                    ),
+                                  ).then((_) {
+                                    // Refresh data after returning from top up page
+                                    ref
+                                        .read(paymentProvider.notifier)
+                                        .loadInitialData();
+                                  });
+                                },
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _formatCurrency(
-                                balance.toDouble(),
-                                currentCurrency,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildActionButton(
+                                icon: Icons.arrow_downward,
+                                label: 'Withdraw',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => const WithdrawPage(),
+                                    ),
+                                  ).then((_) {
+                                    // Refresh data after returning from withdraw page
+                                    ref
+                                        .read(paymentProvider.notifier)
+                                        .loadInitialData();
+                                  });
+                                },
                               ),
-                              style: const TextStyle(
-                                fontSize: 28,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildActionButton(
+                                icon: Icons.receipt_long,
+                                label: 'Record',
+                                onTap: () {
+                                  // Load transactions before navigating to record page
+                                  ref
+                                      .read(paymentProvider.notifier)
+                                      .loadTransactions();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) =>
+                                              const TransactionHistoryScreen(),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ],
                         ),
-                      ),
-
-                      // const SizedBox(height: 24),
-                      // // Exchange Rate Section
-                      // Container(
-                      //   width: double.infinity,
-                      //   padding: const EdgeInsets.all(16),
-                      //   decoration: BoxDecoration(
-                      //     color: cardColor,
-                      //     borderRadius: BorderRadius.circular(12),
-                      //     border:
-                      //         isDarkMode
-                      //             ? Border.all(color: Colors.grey.shade800)
-                      //             : null,
-                      //   ),
-                      //   child: Column(
-                      //     crossAxisAlignment: CrossAxisAlignment.start,
-                      //     children: [
-                      //       Text(
-                      //         'Update Exchange Rate',
-                      //         style: TextStyle(
-                      //           fontSize: 16,
-                      //           fontWeight: FontWeight.w500,
-                      //           color: textColor,
-                      //         ),
-                      //       ),
-                      //       const SizedBox(height: 12),
-                      //       Row(
-                      //         mainAxisAlignment: MainAxisAlignment.center,
-                      //         children: [
-                      //           Image.asset(
-                      //             'assets/images/usd.png',
-                      //             width: 28,
-                      //             height: 28,
-                      //           ),
-                      //           const SizedBox(width: 4),
-                      //           Text(
-                      //             '1 USD',
-                      //             style: TextStyle(
-                      //               fontSize: 14,
-                      //               fontWeight: FontWeight.w500,
-                      //               color: textColor,
-                      //             ),
-                      //           ),
-                      //           const SizedBox(width: 8),
-                      //           Text(
-                      //             '=',
-                      //             style: TextStyle(
-                      //               fontSize: 14,
-                      //               fontWeight: FontWeight.w500,
-                      //               color: textColor,
-                      //             ),
-                      //           ),
-                      //           const SizedBox(width: 8),
-                      //           Image.asset(
-                      //             'assets/images/mmk.png',
-                      //             width: 28,
-                      //             height: 28,
-                      //           ),
-                      //           const SizedBox(width: 4),
-                      //           Flexible(
-                      //             child: Text(
-                      //               '${exchangeRate?.rate.toStringAsFixed(0) ?? '4,500'} MMK',
-                      //               style: TextStyle(
-                      //                 fontSize: 14,
-                      //                 fontWeight: FontWeight.w500,
-                      //                 color: textColor,
-                      //               ),
-                      //               overflow: TextOverflow.ellipsis,
-                      //             ),
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: Icons.add,
-                              label: 'Top Up',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const TopUpPage(),
-                                  ),
-                                ).then((_) {
-                                  // Refresh data after returning from top up page
-                                  ref
-                                      .read(paymentProvider.notifier)
-                                      .loadInitialData();
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: Icons.arrow_downward,
-                              label: 'Withdraw',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const WithdrawPage(),
-                                  ),
-                                ).then((_) {
-                                  // Refresh data after returning from withdraw page
-                                  ref
-                                      .read(paymentProvider.notifier)
-                                      .loadInitialData();
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: Icons.receipt_long,
-                              label: 'Record',
-                              onTap: () {
-                                // Load transactions before navigating to record page
-                                ref
-                                    .read(paymentProvider.notifier)
-                                    .loadTransactions();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) =>
-                                            const TransactionHistoryScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      _buildInstructionCard(
-                        title: 'ငွေဖြည့်သွင်းနည်း',
-                        instructions: [
-                          '"ငွေဖြည့်ရန်" ကို နှိပ်ပါ။',
-                          'KBZ Pay, Wave Pay, CB Pay နှင့် AYA Pay တို့မှ မိမိငွေဖြည့်လိုသည့် ဘဏ်ကို ရွေးပါ။',
-                          'သက်ဆိုင်ရာ Pay ဖြင့် ငွေဖြည့်နိုင်သော အကောင့်များ ပေါ်လာပါလိမ့်မည်။',
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildInstructionCard(
-                        title: 'ငွေထုတ်နည်း',
-                        instructions: [
-                          '"ငွေထုတ်ရန်" ကို နှိပ်ပါ။',
-                          'KBZ Pay, Wave Pay, CB Pay နှင့် AYA Pay တို့မှ မိမိငွေထုတ်လိုသည့် ဘဏ်ကို ရွေးပါ။',
-                          'သက်ဆိုင်ရာ Pay ဖြင့် ငွေထုတ်နိုင်သော အကောင့်များ ပေါ်လာပါလိမ့်မည်။',
-                        ],
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+                        _buildInstructionCard(
+                          title: 'ငွေဖြည့်သွင်းနည်း',
+                          instructions: [
+                            '"ငွေဖြည့်ရန်" ကို နှိပ်ပါ။',
+                            'KBZ Pay, Wave Pay, CB Pay နှင့် AYA Pay တို့မှ မိမိငွေဖြည့်လိုသည့် ဘဏ်ကို ရွေးပါ။',
+                            'သက်ဆိုင်ရာ Pay ဖြင့် ငွေဖြည့်နိုင်သော အကောင့်များ ပေါ်လာပါလိမ့်မည်။',
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildInstructionCard(
+                          title: 'ငွေထုတ်နည်း',
+                          instructions: [
+                            '"ငွေထုတ်ရန်" ကို နှိပ်ပါ။',
+                            'KBZ Pay, Wave Pay, CB Pay နှင့် AYA Pay တို့မှ မိမိငွေထုတ်လိုသည့် ဘဏ်ကို ရွေးပါ။',
+                            'သက်ဆိုင်ရာ Pay ဖြင့် ငွေထုတ်နိုင်သော အကောင့်များ ပေါ်လာပါလိမ့်မည်။',
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+      ),
     );
   }
 

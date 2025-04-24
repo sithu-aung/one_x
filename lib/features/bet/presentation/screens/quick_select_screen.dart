@@ -83,296 +83,298 @@ class _QuickSelectScreenState extends State<QuickSelectScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Radio buttons for selection type
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'ခွေပူး',
-                          style: TextStyle(
-                            color: AppTheme.textColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Pyidaungsu',
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _hasTwin,
-                              onChanged: (value) {
-                                setState(() {
-                                  _hasTwin = value ?? false;
-                                });
-                              },
-                              activeColor: AppTheme.primaryColor,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Radio buttons for selection type
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'ခွေပူး',
+                            style: TextStyle(
+                              color: AppTheme.textColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Pyidaungsu',
                             ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _hasTwin = !_hasTwin;
-                                });
-                              },
+                          ),
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _hasTwin,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _hasTwin = value ?? false;
+                                  });
+                                },
+                                activeColor: AppTheme.primaryColor,
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _hasTwin = !_hasTwin;
+                                  });
+                                },
+                                child: Text(
+                                  'အပူးပါ',
+                                  style: TextStyle(
+                                    color: AppTheme.textColor,
+                                    fontSize: 14,
+                                    fontFamily: 'Pyidaungsu',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Number input field
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                'အပူးပါ',
+                                'ဂဏန်းရိုက်ထည့်ပါ(eg. 1-12345)',
                                 style: TextStyle(
-                                  color: AppTheme.textColor,
-                                  fontSize: 14,
+                                  color: AppTheme.textSecondaryColor,
+                                  fontSize: 12,
                                   fontFamily: 'Pyidaungsu',
                                 ),
                               ),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(8, 0, 4, 4),
+                              child: TextField(
+                                controller: _numberController,
+                                keyboardType: TextInputType.number,
+                                style: TextStyle(
+                                  color: AppTheme.textColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: '43569',
+                                  hintStyle: TextStyle(
+                                    color: AppTheme.textSecondaryColor
+                                        .withOpacity(0.5),
+                                  ),
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _enteredNumber = value;
+                                  });
+                                },
+                              ),
+                            ),
                           ],
                         ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Number input field
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.grey.shade300,
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                      const SizedBox(height: 16),
+
+                      // Single and Double Size section
+                      Text(
+                        'Single and Double Size',
+                        style: TextStyle(
+                          color: AppTheme.textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // First row of size buttons
+                      Row(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'ဂဏန်းရိုက်ထည့်ပါ(eg. 1-12345)',
-                              style: TextStyle(
-                                color: AppTheme.textSecondaryColor,
-                                fontSize: 12,
-                                fontFamily: 'Pyidaungsu',
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(8, 0, 4, 4),
-                            child: TextField(
-                              controller: _numberController,
-                              keyboardType: TextInputType.number,
-                              style: TextStyle(
-                                color: AppTheme.textColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                hintText: '43569',
-                                hintStyle: TextStyle(
-                                  color: AppTheme.textSecondaryColor
-                                      .withOpacity(0.5),
-                                ),
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  _enteredNumber = value;
-                                });
-                              },
-                            ),
-                          ),
+                          _buildSizeButton('ညီနောင် 20'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('အပူး 10'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('စုံပူး 5'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('မ,ပူး 5'),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 8),
 
-                    const SizedBox(height: 16),
-
-                    // Single and Double Size section
-                    Text(
-                      'Single and Double Size',
-                      style: TextStyle(
-                        color: AppTheme.textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      // Second row of size buttons
+                      Row(
+                        children: [
+                          _buildSizeButton('မ,စုံ 25'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('စုံမ 25'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('မ,မ 25'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('စုံစုံ 25'),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 8),
 
-                    // First row of size buttons
-                    Row(
-                      children: [
-                        _buildSizeButton('ညီနောင် 20'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('အပူး 10'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('စုံပူး 5'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('မ,ပူး 5'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Second row of size buttons
-                    Row(
-                      children: [
-                        _buildSizeButton('မ,စုံ 25'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('စုံမ 25'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('မ,မ 25'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('စုံစုံ 25'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Third row of size buttons
-                    Row(
-                      children: [
-                        _buildSizeButton('မထိပ် 50'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('မပိတ် 50'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('စုံထိပ် 50'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('စုံပိတ် 50'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Fourth row of size buttons
-                    Row(
-                      children: [
-                        _buildSizeButton('နက္ခတ်'),
-                        const SizedBox(width: 6),
-                        _buildSizeButton('ပါဝါ'),
-                        const Spacer(flex: 2),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // ပတ်သီး (Numbers) section
-                    Text(
-                      'ပတ်သီး',
-                      style: TextStyle(
-                        color: AppTheme.textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Pyidaungsu',
+                      // Third row of size buttons
+                      Row(
+                        children: [
+                          _buildSizeButton('မထိပ် 50'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('မပိတ် 50'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('စုံထိပ် 50'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('စုံပိတ် 50'),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 8),
 
-                    // Row of selectable digit buttons (first row: 0-7)
-                    Row(
-                      children: [
-                        _buildLoopNumberButton('0'),
-                        _buildLoopNumberButton('1'),
-                        _buildLoopNumberButton('2'),
-                        _buildLoopNumberButton('3'),
-                        _buildLoopNumberButton('4'),
-                        _buildLoopNumberButton('5'),
-                        _buildLoopNumberButton('6'),
-                        _buildLoopNumberButton('7'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // Row of selectable digit buttons (second row: 8-9)
-                    Row(
-                      children: [
-                        _buildLoopNumberButton('8'),
-                        _buildLoopNumberButton('9'),
-                        Spacer(flex: 6), // Fill the remaining space
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // နောက်ပိတ် (Numbers) section
-                    Text(
-                      'နောက်ပိတ်',
-                      style: TextStyle(
-                        color: AppTheme.textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Pyidaungsu',
+                      // Fourth row of size buttons
+                      Row(
+                        children: [
+                          _buildSizeButton('နက္ခတ်'),
+                          const SizedBox(width: 6),
+                          _buildSizeButton('ပါဝါ'),
+                          const Spacer(flex: 2),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 24),
 
-                    // Row of selectable digit buttons (first row: 0-7)
-                    Row(
-                      children: [
-                        _buildTailNumberButton('0'),
-                        _buildTailNumberButton('1'),
-                        _buildTailNumberButton('2'),
-                        _buildTailNumberButton('3'),
-                        _buildTailNumberButton('4'),
-                        _buildTailNumberButton('5'),
-                        _buildTailNumberButton('6'),
-                        _buildTailNumberButton('7'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // Row of selectable digit buttons (second row: 8-9)
-                    Row(
-                      children: [
-                        _buildTailNumberButton('8'),
-                        _buildTailNumberButton('9'),
-                        Spacer(flex: 6), // Fill the remaining space
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ဘရိတ် (Numbers) section
-                    Text(
-                      'ဘရိတ်',
-                      style: TextStyle(
-                        color: AppTheme.textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Pyidaungsu',
+                      // ပတ်သီး (Numbers) section
+                      Text(
+                        'ပတ်သီး',
+                        style: TextStyle(
+                          color: AppTheme.textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Pyidaungsu',
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 8),
 
-                    // Row of selectable digit buttons (first row: 0-7)
-                    Row(
-                      children: [
-                        _buildBreakNumberButton('0'),
-                        _buildBreakNumberButton('1'),
-                        _buildBreakNumberButton('2'),
-                        _buildBreakNumberButton('3'),
-                        _buildBreakNumberButton('4'),
-                        _buildBreakNumberButton('5'),
-                        _buildBreakNumberButton('6'),
-                        _buildBreakNumberButton('7'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // Row of selectable digit buttons (second row: 8-9)
-                    Row(
-                      children: [
-                        _buildBreakNumberButton('8'),
-                        _buildBreakNumberButton('9'),
-                        Spacer(flex: 6), // Fill the remaining space
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                      // Row of selectable digit buttons (first row: 0-7)
+                      Row(
+                        children: [
+                          _buildLoopNumberButton('0'),
+                          _buildLoopNumberButton('1'),
+                          _buildLoopNumberButton('2'),
+                          _buildLoopNumberButton('3'),
+                          _buildLoopNumberButton('4'),
+                          _buildLoopNumberButton('5'),
+                          _buildLoopNumberButton('6'),
+                          _buildLoopNumberButton('7'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Row of selectable digit buttons (second row: 8-9)
+                      Row(
+                        children: [
+                          _buildLoopNumberButton('8'),
+                          _buildLoopNumberButton('9'),
+                          Spacer(flex: 6), // Fill the remaining space
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // နောက်ပိတ် (Numbers) section
+                      Text(
+                        'နောက်ပိတ်',
+                        style: TextStyle(
+                          color: AppTheme.textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Pyidaungsu',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Row of selectable digit buttons (first row: 0-7)
+                      Row(
+                        children: [
+                          _buildTailNumberButton('0'),
+                          _buildTailNumberButton('1'),
+                          _buildTailNumberButton('2'),
+                          _buildTailNumberButton('3'),
+                          _buildTailNumberButton('4'),
+                          _buildTailNumberButton('5'),
+                          _buildTailNumberButton('6'),
+                          _buildTailNumberButton('7'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Row of selectable digit buttons (second row: 8-9)
+                      Row(
+                        children: [
+                          _buildTailNumberButton('8'),
+                          _buildTailNumberButton('9'),
+                          Spacer(flex: 6), // Fill the remaining space
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ဘရိတ် (Numbers) section
+                      Text(
+                        'ဘရိတ်',
+                        style: TextStyle(
+                          color: AppTheme.textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Pyidaungsu',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Row of selectable digit buttons (first row: 0-7)
+                      Row(
+                        children: [
+                          _buildBreakNumberButton('0'),
+                          _buildBreakNumberButton('1'),
+                          _buildBreakNumberButton('2'),
+                          _buildBreakNumberButton('3'),
+                          _buildBreakNumberButton('4'),
+                          _buildBreakNumberButton('5'),
+                          _buildBreakNumberButton('6'),
+                          _buildBreakNumberButton('7'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Row of selectable digit buttons (second row: 8-9)
+                      Row(
+                        children: [
+                          _buildBreakNumberButton('8'),
+                          _buildBreakNumberButton('9'),
+                          Spacer(flex: 6), // Fill the remaining space
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Bottom status bar and buttons - match the two_d_screen bottom bar style
-          _buildBottomBar(),
-        ],
+            // Bottom status bar and buttons - match the two_d_screen bottom bar style
+            _buildBottomBar(),
+          ],
+        ),
       ),
     );
   }

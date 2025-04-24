@@ -408,29 +408,31 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
           ),
         ],
       ),
-      body:
-          _isLoading
-              ? Center(child: CircularProgressIndicator())
-              : Column(
-                children: [
-                  _buildBalanceBar(),
-                  _buildSectionHeader(),
-                  _buildColorLegend(),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+      body: SafeArea(
+        child:
+            _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : Column(
+                  children: [
+                    _buildBalanceBar(),
+                    _buildSectionHeader(),
+                    _buildColorLegend(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: _buildNumberGrid(),
                         ),
-                        child: _buildNumberGrid(),
                       ),
                     ),
-                  ),
-                  _buildActionButtons(),
-                  _buildBottomButtons(),
-                ],
-              ),
+                    _buildActionButtons(),
+                    _buildBottomButtons(),
+                  ],
+                ),
+      ),
     );
   }
 

@@ -189,23 +189,25 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
           style: TextStyle(color: AppTheme.textColor),
         ),
       ),
-      body: homeDataValue.when(
-        data:
-            (homeData) => Column(
-              children: [
-                _buildBalanceInfo(homeData.user.balance),
-                Expanded(child: _buildBetItemsList()),
-                _buildBottomButtons(),
-              ],
-            ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (error, stack) => Center(
-              child: Text(
-                'Error loading user data: $error',
-                style: TextStyle(color: AppTheme.textColor),
+      body: SafeArea(
+        child: homeDataValue.when(
+          data:
+              (homeData) => Column(
+                children: [
+                  _buildBalanceInfo(homeData.user.balance),
+                  Expanded(child: _buildBetItemsList()),
+                  _buildBottomButtons(),
+                ],
               ),
-            ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error:
+              (error, stack) => Center(
+                child: Text(
+                  'Error loading user data: $error',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+              ),
+        ),
       ),
     );
   }

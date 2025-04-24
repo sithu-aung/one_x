@@ -78,69 +78,71 @@ class _PaymentListPageState extends ConsumerState<PaymentListPage>
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Column(
-        children: [
-          // Tab Bar
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildTabItem(0, 'All', Icons.list),
-                  const SizedBox(width: 12),
-                  _buildTabItem(1, 'TopUp', Icons.arrow_downward),
-                  const SizedBox(width: 12),
-                  _buildTabItem(2, 'Withdraw', Icons.arrow_upward),
-                ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Tab Bar
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildTabItem(0, 'All', Icons.list),
+                    const SizedBox(width: 12),
+                    _buildTabItem(1, 'TopUp', Icons.arrow_downward),
+                    const SizedBox(width: 12),
+                    _buildTabItem(2, 'Withdraw', Icons.arrow_upward),
+                  ],
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child:
-                paymentState.isLoading
-                    ? Center(
-                      child: CircularProgressIndicator(
-                        color: AppTheme.primaryColor,
-                      ),
-                    )
-                    : transactions.isEmpty
-                    ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.history,
-                            size: 64,
-                            color:
-                                isDarkMode
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade400,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No transaction history found',
-                            style: TextStyle(
+            Expanded(
+              child:
+                  paymentState.isLoading
+                      ? Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryColor,
+                        ),
+                      )
+                      : transactions.isEmpty
+                      ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.history,
+                              size: 64,
                               color:
                                   isDarkMode
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade700,
-                              fontSize: 16,
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade400,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            Text(
+                              'No transaction history found',
+                              style: TextStyle(
+                                color:
+                                    isDarkMode
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      : _buildTransactionList(
+                        context,
+                        transactions,
+                        _currentFilter,
+                        cardColor,
+                        textColor,
+                        borderColor,
                       ),
-                    )
-                    : _buildTransactionList(
-                      context,
-                      transactions,
-                      _currentFilter,
-                      cardColor,
-                      textColor,
-                      borderColor,
-                    ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -357,12 +359,12 @@ class _PaymentListPageState extends ConsumerState<PaymentListPage>
       ),
     );
   }
-  
+
   Widget _buildTabItem(int index, String title, IconData iconData) {
     final isSelected = _tabController.index == index;
     final isDarkMode = AppTheme.backgroundColor.computeLuminance() < 0.5;
     final isLightTheme = !isDarkMode;
-    
+
     return Container(
       height: 36,
       margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -386,19 +388,19 @@ class _PaymentListPageState extends ConsumerState<PaymentListPage>
         icon: Icon(
           iconData,
           size: 16,
-          color: isSelected 
-              ? Colors.white 
+          color: isSelected
+              ? Colors.white
               : isLightTheme
-                  ? AppTheme.primaryColor 
+                  ? AppTheme.primaryColor
                   : AppTheme.textColor,
         ),
         label: Text(
           title,
           style: TextStyle(
-            color: isSelected 
-                ? Colors.white 
+            color: isSelected
+                ? Colors.white
                 : isLightTheme
-                    ? Colors.black 
+                    ? Colors.black
                     : AppTheme.textColor,
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,

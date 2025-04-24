@@ -106,91 +106,96 @@ class _ChangeCurrencyPageState extends ConsumerState<ChangeCurrencyPage> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Warning message
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: warningBgColor,
-                borderRadius: BorderRadius.circular(8),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Warning message
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: warningBgColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: warningColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'You can change the default currency only when your balance is zero (0).',
+                        style: TextStyle(color: warningColor, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: warningColor,
-                    size: 24,
+              const SizedBox(height: 24),
+              // Myanmar Currency Option
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedCurrency = 'MMK';
+                  });
+                },
+                child: _buildCurrencyOption(
+                  flag: 'assets/images/mm_flag.png',
+                  name: 'Myanmar Currency',
+                  code: 'MMK',
+                  isSelected: selectedCurrency == 'MMK',
+                ),
+              ),
+              const SizedBox(height: 12),
+              // USA Currency Option
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedCurrency = 'USD';
+                  });
+                },
+                child: _buildCurrencyOption(
+                  flag: 'assets/images/en_flag.png',
+                  name: 'USA Currency',
+                  code: 'USD',
+                  isSelected: selectedCurrency == 'USD',
+                ),
+              ),
+              const Spacer(),
+              // Change Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: PrimaryButton(
+                    onPressed:
+                        hasZeroBalance && !isLoading ? _changeCurrency : () {},
+                    label: isLoading ? 'Changing...' : 'Change',
+                    enabled: hasZeroBalance && !isLoading,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
+                ),
+              ),
+              if (!hasZeroBalance)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
+                  child: Center(
                     child: Text(
-                      'You can change the default currency only when your balance is zero (0).',
-                      style: TextStyle(color: warningColor, fontSize: 14),
+                      'Your balance must be zero to change currency',
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Myanmar Currency Option
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedCurrency = 'MMK';
-                });
-              },
-              child: _buildCurrencyOption(
-                flag: 'assets/images/mm_flag.png',
-                name: 'Myanmar Currency',
-                code: 'MMK',
-                isSelected: selectedCurrency == 'MMK',
-              ),
-            ),
-            const SizedBox(height: 12),
-            // USA Currency Option
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedCurrency = 'USD';
-                });
-              },
-              child: _buildCurrencyOption(
-                flag: 'assets/images/en_flag.png',
-                name: 'USA Currency',
-                code: 'USD',
-                isSelected: selectedCurrency == 'USD',
-              ),
-            ),
-            const Spacer(),
-            // Change Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: PrimaryButton(
-                  onPressed:
-                      hasZeroBalance && !isLoading ? _changeCurrency : () {},
-                  label: isLoading ? 'Changing...' : 'Change',
-                  enabled: hasZeroBalance && !isLoading,
                 ),
-              ),
-            ),
-            if (!hasZeroBalance)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-                child: Center(
-                  child: Text(
-                    'Your balance must be zero to change currency',
-                    style: TextStyle(color: Colors.red.shade700, fontSize: 12),
-                  ),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

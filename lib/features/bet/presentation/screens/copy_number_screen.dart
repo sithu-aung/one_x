@@ -203,37 +203,40 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
           ),
         ],
       ),
-      body:
-          _isLoading
-              ? Center(child: CircularProgressIndicator())
-              : homeDataValue.when(
-                data:
-                    (homeData) => Column(
-                      children: [
-                        _buildBalanceBar(),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              children: [
-                                _buildInputSection(),
-                                Expanded(child: _buildInfoText()),
-                              ],
+      body: SafeArea(
+        child:
+            _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : homeDataValue.when(
+                  data:
+                      (homeData) => Column(
+                        children: [
+                          _buildBalanceBar(),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                children: [
+                                  _buildInputSection(),
+                                  Expanded(child: _buildInfoText()),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        _buildBottomButton(),
-                      ],
-                    ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error:
-                    (error, stack) => Center(
-                      child: Text(
-                        'Error loading user data: $error',
-                        style: TextStyle(color: AppTheme.textColor),
+                          _buildBottomButton(),
+                        ],
                       ),
-                    ),
-              ),
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error:
+                      (error, stack) => Center(
+                        child: Text(
+                          'Error loading user data: $error',
+                          style: TextStyle(color: AppTheme.textColor),
+                        ),
+                      ),
+                ),
+      ),
     );
   }
 

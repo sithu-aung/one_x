@@ -103,31 +103,33 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: Column(
-        children: [
-          Container(
-            color: AppTheme.backgroundColor,
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: AppTheme.primaryColor,
-              indicatorWeight: 3,
-              labelColor: AppTheme.primaryColor,
-              unselectedLabelColor: Colors.grey,
-              tabs: const [Tab(text: 'ရရန်ရှိ'), Tab(text: 'ရရှိပြီး')],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              color: AppTheme.backgroundColor,
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: AppTheme.primaryColor,
+                indicatorWeight: 3,
+                labelColor: AppTheme.primaryColor,
+                unselectedLabelColor: Colors.grey,
+                tabs: const [Tab(text: 'ရရန်ရှိ'), Tab(text: 'ရရှိပြီး')],
+              ),
             ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Pending Tab (ရရန်ရှိ) - always empty
-                _buildPendingTab(),
-                // Completed Tab (ရရှိပြီး) - fetch from API
-                _buildCompletedTab(),
-              ],
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Pending Tab (ရရန်ရှိ) - always empty
+                  _buildPendingTab(),
+                  // Completed Tab (ရရှိပြီး) - fetch from API
+                  _buildCompletedTab(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -181,33 +181,35 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
           ),
         ],
       ),
-      body: homeDataValue.when(
-        data:
-            (homeData) => Column(
-              children: [
-                _buildBalanceBar(),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      children: [
-                        _buildInputSection(),
-                        Expanded(child: _buildInfoText()),
-                      ],
+      body: SafeArea(
+        child:homeDataValue.when(
+          data:
+              (homeData) => Column(
+                children: [
+                  _buildBalanceBar(),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        children: [
+                          _buildInputSection(),
+                          Expanded(child: _buildInfoText()),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                _buildBottomButton(),
-              ],
-            ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (error, stack) => Center(
-              child: Text(
-                'Error loading user data: $error',
-                style: TextStyle(color: AppTheme.textColor),
+                  _buildBottomButton(),
+                ],
               ),
-            ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error:
+              (error, stack) => Center(
+                child: Text(
+                  'Error loading user data: $error',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+              ),
+        ),
       ),
     );
   }

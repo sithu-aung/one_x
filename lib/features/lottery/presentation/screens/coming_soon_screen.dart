@@ -33,71 +33,73 @@ class ComingSoonScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Description text
-              Text(
-                '$title ကို ကံစမ်းနိုင်ရန်အတွက် အောက်ပါ ဖုန်းနံပါတ်များအား ဆက်သွယ် နိုင်ပါသည်။',
-                style: TextStyle(color: textColor, fontSize: 16),
-              ),
-              const SizedBox(height: 24),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Description text
+                Text(
+                  '$title ကို ကံစမ်းနိုင်ရန်အတွက် အောက်ပါ ဖုန်းနံပါတ်များအား ဆက်သွယ် နိုင်ပါသည်။',
+                  style: TextStyle(color: textColor, fontSize: 16),
+                ),
+                const SizedBox(height: 24),
 
-              // Contact information section
-              _buildContactItem(
-                platform: 'Viber',
-                iconColor: const Color(0xFF8E24AA),
-                contactNumber: '09789651459',
-                svgPath: 'assets/images/viber.svg',
-                textColor: textColor,
-              ),
-              const SizedBox(height: 16),
-              _buildContactItem(
-                platform: 'Telegram',
-                iconColor: Colors.blue,
-                contactNumber: '09777577779',
-                svgPath: 'assets/images/telegram.svg',
-                textColor: textColor,
-              ),
+                // Contact information section
+                _buildContactItem(
+                  platform: 'Viber',
+                  iconColor: const Color(0xFF8E24AA),
+                  contactNumber: '09789651459',
+                  svgPath: 'assets/images/viber.svg',
+                  textColor: textColor,
+                ),
+                const SizedBox(height: 16),
+                _buildContactItem(
+                  platform: 'Telegram',
+                  iconColor: Colors.blue,
+                  contactNumber: '09777577779',
+                  svgPath: 'assets/images/telegram.svg',
+                  textColor: textColor,
+                ),
 
-              // Divider
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                child: Divider(color: dividerColor),
-              ),
+                // Divider
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Divider(color: dividerColor),
+                ),
 
-              // Software description
-              Text(
-                'မကြာမီအချိန်တွင်းမှာ 1xKing Software မှ တိုက်ရိုက်ကစားနိုင်မည် ဖြစ်ပါသည်။',
-                style: TextStyle(color: textColor, fontSize: 16),
-              ),
+                // Software description
+                Text(
+                  'မကြာမီအချိန်တွင်းမှာ 1xKing Software မှ တိုက်ရိုက်ကစားနိုင်မည် ဖြစ်ပါသည်။',
+                  style: TextStyle(color: textColor, fontSize: 16),
+                ),
 
-              // Illustration - use custom painter instead of image asset
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40.0),
-                  child: Image.asset(
-                    'assets/images/coming_soon_template.png',
-                    width: 220,
+                // Illustration - use custom painter instead of image asset
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40.0),
+                    child: Image.asset(
+                      'assets/images/coming_soon_template.png',
+                      width: 220,
+                    ),
                   ),
                 ),
-              ),
 
-              // Coming Soon text
-              Center(
-                child: Text(
-                  'Coming Soon!',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                // Coming Soon text
+                Center(
+                  child: Text(
+                    'Coming Soon!',
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

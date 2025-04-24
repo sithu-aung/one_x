@@ -41,84 +41,86 @@ class PaymentDetailPage extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            CircleAvatar(
-              radius: 50,
-              backgroundColor:
-                  isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
-              backgroundImage: const AssetImage('assets/images/avatar.png'),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Ma Thidar Nyein',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: textColor,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+              CircleAvatar(
+                radius: 50,
+                backgroundColor:
+                    isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+                backgroundImage: const AssetImage('assets/images/avatar.png'),
               ),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                amount,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
+              const SizedBox(height: 16),
+              Text(
+                'Ma Thidar Nyein',
+                style: TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.w500,
+                  color: textColor,
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  _buildDetailRow('Type', type, secondaryTextColor, textColor),
-                  const SizedBox(height: 24),
-                  _buildDetailRow(
-                    'Payment Provider',
-                    provider,
-                    secondaryTextColor,
-                    textColor,
+              const SizedBox(height: 24),
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  amount,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(height: 24),
-                  _buildDetailRow(
-                    'Account No',
-                    '09123456789',
-                    secondaryTextColor,
-                    textColor,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDetailRow(
-                    'Transaction No',
-                    '987652345678',
-                    secondaryTextColor,
-                    textColor,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDetailRow(
-                    'Date/Time',
-                    date,
-                    secondaryTextColor,
-                    textColor,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDetailRow('Type', type, secondaryTextColor, textColor),
-                ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    _buildDetailRow('Type', type, secondaryTextColor, textColor),
+                    const SizedBox(height: 24),
+                    _buildDetailRow(
+                      'Payment Provider',
+                      provider,
+                      secondaryTextColor,
+                      textColor,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildDetailRow(
+                      'Account No',
+                      '09123456789',
+                      secondaryTextColor,
+                      textColor,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildDetailRow(
+                      'Transaction No',
+                      '987652345678',
+                      secondaryTextColor,
+                      textColor,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildDetailRow(
+                      'Date/Time',
+                      date,
+                      secondaryTextColor,
+                      textColor,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildDetailRow('Type', type, secondaryTextColor, textColor),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

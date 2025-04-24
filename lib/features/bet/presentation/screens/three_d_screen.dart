@@ -405,23 +405,25 @@ class _ThreeDScreenState extends State<ThreeDScreen>
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: Column(
-          children: [
-            buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _selectedTabIndex == 0
-                      ? buildFirstTabContent()
-                      : const SizedBox(),
-                  const ThreeDHistoryWidget(),
-                  const ThreeDWinnersWidget(),
-                  _buildLiveResultsTab(),
-                ],
+        body: SafeArea(
+          child: Column(
+            children: [
+              buildTabBar(),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _selectedTabIndex == 0
+                        ? buildFirstTabContent()
+                        : const SizedBox(),
+                    const ThreeDHistoryWidget(),
+                    const ThreeDWinnersWidget(),
+                    _buildLiveResultsTab(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         // Only show bottom button when first tab is selected
         bottomNavigationBar: _selectedTabIndex == 0 ? _buildBottomBar() : null,
@@ -904,11 +906,10 @@ class _ThreeDScreenState extends State<ThreeDScreen>
             context,
             MaterialPageRoute(
               builder:
-                  (context) =>
-                      NotAvailableScreen(
-                        information: response.information,
-                        title: '3D',
-                      ),
+                  (context) => NotAvailableScreen(
+                    information: response.information,
+                    title: '3D',
+                  ),
             ),
           );
         }

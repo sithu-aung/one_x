@@ -56,14 +56,16 @@ class _BulkEntryScreenState extends ConsumerState<BulkEntryScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: Column(
-        children: [
-          _buildInstructions(),
-          Expanded(
-            child: _hasContent ? _buildPastedContent() : _buildPasteArea(),
-          ),
-          _buildBottomButton(),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildInstructions(),
+            Expanded(
+              child: _hasContent ? _buildPastedContent() : _buildPasteArea(),
+            ),
+            _buildBottomButton(),
+          ],
+        ),
       ),
     );
   }

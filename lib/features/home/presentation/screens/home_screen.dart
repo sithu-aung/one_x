@@ -128,31 +128,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    const ProfileScreen(fromHomeDrawer: true),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => const ProfileScreen(
+                                      fromHomeDrawer: true,
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Consumer(
+                            builder: (context, ref, _) {
+                              final user = ref.watch(homeUserProvider);
+                              return Text(
+                                user?.username ?? 'User Name',
+                                style: TextStyle(
+                                  color: AppTheme.textColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                      child: Consumer(
-                        builder: (context, ref, _) {
-                          final user = ref.watch(homeUserProvider);
-                          return Text(
-                            user?.username ?? 'User Name',
-                            style: TextStyle(
-                              color: AppTheme.textColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          );
-                        },
-                      ),
+                        ),
+                        Text(
+                          'Version 1.0.5',
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ],
                     ),
                     const Spacer(),
                     IconButton(

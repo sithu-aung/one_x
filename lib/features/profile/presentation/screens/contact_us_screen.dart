@@ -134,94 +134,96 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
         ),
         elevation: 0,
       ),
-      body: contactsAsync.when(
-        data: (contactResponse) {
-          if (contactResponse.contacts == null) {
-            return const Center(
-              child: Text('No contact information available'),
-            );
-          }
+      body: SafeArea(
+        child:contactsAsync.when(
+          data: (contactResponse) {
+            if (contactResponse.contacts == null) {
+              return const Center(
+                child: Text('No contact information available'),
+              );
+            }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Phone section
-                if (contactResponse.contacts?.phone != null &&
-                    contactResponse.contacts!.phone!.isNotEmpty)
-                  _buildContactSection(
-                    title: 'Phone',
-                    icon: Icons.phone,
-                    iconColor: Colors.green,
-                    contacts: contactResponse.contacts!.phone!,
-                    onTap: (contact) => _makePhoneCall(contact.contact ?? ''),
-                    onLongPress:
-                        (contact) => _copyToClipboard(contact.contact ?? ''),
-                  ),
-
-                // Viber section
-                if (contactResponse.contacts?.viber != null &&
-                    contactResponse.contacts!.viber!.isNotEmpty)
-                  _buildContactSection(
-                    title: 'Viber',
-                    icon: Icons.message,
-                    iconColor: Colors.purple,
-                    contacts: contactResponse.contacts!.viber!,
-                    onTap: (contact) => _openViber(contact.contact ?? ''),
-                    onLongPress:
-                        (contact) => _copyToClipboard(contact.contact ?? ''),
-                  ),
-
-                // Facebook section
-                if (contactResponse.contacts?.facebook != null &&
-                    contactResponse.contacts!.facebook!.isNotEmpty)
-                  _buildContactSection(
-                    title: 'Facebook',
-                    icon: Icons.facebook,
-                    iconColor: Colors.blue,
-                    contacts: contactResponse.contacts!.facebook!,
-                    onTap: (contact) => _openFacebook(contact.contact ?? ''),
-                    onLongPress:
-                        (contact) => _copyToClipboard(contact.contact ?? ''),
-                  ),
-
-                // WhatsApp section
-                if (contactResponse.contacts?.whatsApp != null &&
-                    contactResponse.contacts!.whatsApp!.isNotEmpty)
-                  _buildContactSection(
-                    title: 'WhatsApp',
-                    icon: Icons.message,
-                    iconColor: const Color(0xFF25D366), // WhatsApp green color
-                    contacts: contactResponse.contacts!.whatsApp!,
-                    onTap: (contact) => _openWhatsApp(contact.contact ?? ''),
-                    onLongPress:
-                        (contact) => _copyToClipboard(contact.contact ?? ''),
-                  ),
-              ],
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (error, stack) => Center(
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Error: $error',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
+                  // Phone section
+                  if (contactResponse.contacts?.phone != null &&
+                      contactResponse.contacts!.phone!.isNotEmpty)
+                    _buildContactSection(
+                      title: 'Phone',
+                      icon: Icons.phone,
+                      iconColor: Colors.green,
+                      contacts: contactResponse.contacts!.phone!,
+                      onTap: (contact) => _makePhoneCall(contact.contact ?? ''),
+                      onLongPress:
+                          (contact) => _copyToClipboard(contact.contact ?? ''),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => ref.refresh(contactsProvider),
-                    child: const Text('Retry'),
-                  ),
+
+                  // Viber section
+                  if (contactResponse.contacts?.viber != null &&
+                      contactResponse.contacts!.viber!.isNotEmpty)
+                    _buildContactSection(
+                      title: 'Viber',
+                      icon: Icons.message,
+                      iconColor: Colors.purple,
+                      contacts: contactResponse.contacts!.viber!,
+                      onTap: (contact) => _openViber(contact.contact ?? ''),
+                      onLongPress:
+                          (contact) => _copyToClipboard(contact.contact ?? ''),
+                    ),
+
+                  // Facebook section
+                  if (contactResponse.contacts?.facebook != null &&
+                      contactResponse.contacts!.facebook!.isNotEmpty)
+                    _buildContactSection(
+                      title: 'Facebook',
+                      icon: Icons.facebook,
+                      iconColor: Colors.blue,
+                      contacts: contactResponse.contacts!.facebook!,
+                      onTap: (contact) => _openFacebook(contact.contact ?? ''),
+                      onLongPress:
+                          (contact) => _copyToClipboard(contact.contact ?? ''),
+                    ),
+
+                  // WhatsApp section
+                  if (contactResponse.contacts?.whatsApp != null &&
+                      contactResponse.contacts!.whatsApp!.isNotEmpty)
+                    _buildContactSection(
+                      title: 'WhatsApp',
+                      icon: Icons.message,
+                      iconColor: const Color(0xFF25D366), // WhatsApp green color
+                      contacts: contactResponse.contacts!.whatsApp!,
+                      onTap: (contact) => _openWhatsApp(contact.contact ?? ''),
+                      onLongPress:
+                          (contact) => _copyToClipboard(contact.contact ?? ''),
+                    ),
                 ],
               ),
-            ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error:
+              (error, stack) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Error: $error',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => ref.refresh(contactsProvider),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+        ),
       ),
     );
   }

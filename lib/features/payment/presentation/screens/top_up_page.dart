@@ -74,120 +74,122 @@ class _TopUpPageState extends ConsumerState<TopUpPage> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: providersAsyncValue.when(
-                data: (providers) {
-                  if (providers.providers.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No payment providers available',
-                        style: TextStyle(color: textColor),
-                      ),
-                    );
-                  }
-
-                  return ListView.separated(
-                    itemCount: providers.providers.length,
-                    separatorBuilder:
-                        (context, index) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final provider = providers.providers[index];
-                      final phoneNumber = provider.billing?.providerPhone ?? '';
-                      return _buildPaymentOption(
-                        context: context,
-                        imagePath: provider.imageLocation,
-                        title: provider.providerName,
-                        subtitle: phoneNumber,
-                        providerId: provider.id,
-                        isSelected: selectedProviderId == provider.id,
-                        onTap: () {
-                          setState(() {
-                            selectedProviderId = provider.id;
-                            selectedBillingId = provider.billing?.id;
-                            selectedProviderName = provider.providerName;
-                            selectedImageLocation = provider.imageLocation;
-                          });
-                        },
-                        onCopyPressed:
-                            phoneNumber.isNotEmpty
-                                ? () => _copyToClipboard(phoneNumber)
-                                : null,
+      body:SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: providersAsyncValue.when(
+                  data: (providers) {
+                    if (providers.providers.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No payment providers available',
+                          style: TextStyle(color: textColor),
+                        ),
                       );
-                    },
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error:
-                    (error, stackTrace) => Center(
-                      child: Text(
-                        'Error loading payment providers: $error',
-                        style: TextStyle(color: textColor),
+                    }
+
+                    return ListView.separated(
+                      itemCount: providers.providers.length,
+                      separatorBuilder:
+                          (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final provider = providers.providers[index];
+                        final phoneNumber = provider.billing?.providerPhone ?? '';
+                        return _buildPaymentOption(
+                          context: context,
+                          imagePath: provider.imageLocation,
+                          title: provider.providerName,
+                          subtitle: phoneNumber,
+                          providerId: provider.id,
+                          isSelected: selectedProviderId == provider.id,
+                          onTap: () {
+                            setState(() {
+                              selectedProviderId = provider.id;
+                              selectedBillingId = provider.billing?.id;
+                              selectedProviderName = provider.providerName;
+                              selectedImageLocation = provider.imageLocation;
+                            });
+                          },
+                          onCopyPressed:
+                              phoneNumber.isNotEmpty
+                                  ? () => _copyToClipboard(phoneNumber)
+                                  : null,
+                        );
+                      },
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error:
+                      (error, stackTrace) => Center(
+                        child: Text(
+                          'Error loading payment providers: $error',
+                          style: TextStyle(color: textColor),
+                        ),
                       ),
-                    ),
+                ),
               ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  offset: const Offset(0, -1),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade300,
-                      foregroundColor: Colors.black87,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('မလုပ်တော့ပါ'),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    offset: const Offset(0, -1),
+                    blurRadius: 4,
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed:
-                        selectedProviderId == null
-                            ? null
-                            : () => _navigateToAmountDefineScreen(
-                              context,
-                              selectedProviderName!,
-                              selectedProviderId!,
-                              selectedBillingId!,
-                              selectedImageLocation!,
-                            ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade400,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade300,
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
+                      child: const Text('မလုပ်တော့ပါ'),
                     ),
-                    child: const Text('ရွေးချယ်မည်'),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed:
+                          selectedProviderId == null
+                              ? null
+                              : () => _navigateToAmountDefineScreen(
+                                context,
+                                selectedProviderName!,
+                                selectedProviderId!,
+                                selectedBillingId!,
+                                selectedImageLocation!,
+                              ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade400,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('ရွေးချယ်မည်'),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

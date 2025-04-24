@@ -15,36 +15,38 @@ class PrivacyPolicyScreen extends ConsumerWidget {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
       ),
-      body: policyAsync.when(
-        data: (policyResponse) {
-          if (policyResponse.policy?.description == null) {
-            return const Center(child: Text('No privacy policy available.'));
-          }
+      body: SafeArea(
+        child: policyAsync.when(
+          data: (policyResponse) {
+            if (policyResponse.policy?.description == null) {
+              return const Center(child: Text('No privacy policy available.'));
+            }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  policyResponse.policy!.description!,
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    policyResponse.policy!.description!,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (error, stackTrace) => Center(
-              child: Text(
-                'Error loading privacy policy: ${error.toString()}',
-                style: const TextStyle(color: Colors.red),
+                ],
               ),
-            ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error:
+              (error, stackTrace) => Center(
+                child: Text(
+                  'Error loading privacy policy: ${error.toString()}',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+        ),
       ),
     );
   }

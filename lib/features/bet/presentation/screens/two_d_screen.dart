@@ -215,22 +215,24 @@ class _TwoDScreenState extends State<TwoDScreen>
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: Column(
-          children: [
-            buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  buildFirstTabContent(),
-                  const BetHistoryWidget(),
-                  const BetWinnersWidget(),
-                  const TwoDHistoryNumbersWidget(),
-                  const TwoDHolidaysWidget(),
-                ],
+        body: SafeArea(
+          child: Column(
+            children: [
+              buildTabBar(),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    buildFirstTabContent(),
+                    const BetHistoryWidget(),
+                    const BetWinnersWidget(),
+                    const TwoDHistoryNumbersWidget(),
+                    const TwoDHolidaysWidget(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

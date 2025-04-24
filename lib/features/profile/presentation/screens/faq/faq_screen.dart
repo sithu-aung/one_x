@@ -131,7 +131,7 @@ class _FAQScreenState extends ConsumerState<FAQScreen> {
         ),
         elevation: 0,
       ),
-      body: _buildBody(),
+      body: SafeArea(child: _buildBody()),
     );
   }
 

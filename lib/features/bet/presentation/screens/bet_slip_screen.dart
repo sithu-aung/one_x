@@ -172,66 +172,68 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
       ),
       // Bottom navigation bar with bottom padding for iOS
       bottomNavigationBar: _buildBottomButtons(context),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Builder(
-                builder: (context) {
-                  final bool isIOS =
-                      Theme.of(context).platform == TargetPlatform.iOS;
-                  return Column(
-                    children: [
-                      // Success message - only show if coming from successful API response
-                      if (widget.fromSuccessfulApiResponse)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF4CAF50),
-                                  shape: BoxShape.circle,
+      body: SafeArea(
+        child:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Builder(
+                  builder: (context) {
+                    final bool isIOS =
+                        Theme.of(context).platform == TargetPlatform.iOS;
+                    return Column(
+                      children: [
+                        // Success message - only show if coming from successful API response
+                        if (widget.fromSuccessfulApiResponse)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF4CAF50),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 18,
+                                const SizedBox(width: 10),
+                                const Text(
+                                  'Ticket Create Successfully!',
+                                  style: TextStyle(
+                                    color: Color(0xFF4CAF50),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              const Text(
-                                'Ticket Create Successfully!',
-                                style: TextStyle(
-                                  color: Color(0xFF4CAF50),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      // Ticket with a little top padding
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 10.0,
-                              left: 16.0,
-                              right: 16.0,
-                            ),
-                            child: Screenshot(
-                              controller: _screenshotController,
-                              child: _buildTicket(context),
+                              ],
                             ),
                           ),
+                        // Ticket with a little top padding
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 10.0,
+                                left: 16.0,
+                                right: 16.0,
+                              ),
+                              child: Screenshot(
+                                controller: _screenshotController,
+                                child: _buildTicket(context),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+                      ],
+                    );
+                  },
+                ),
+      ),
     );
   }
 

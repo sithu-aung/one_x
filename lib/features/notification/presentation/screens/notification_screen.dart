@@ -53,15 +53,17 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
             ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await ref.read(notificationProvider.notifier).fetchNotifications();
-        },
-        child: _buildNotificationList(
-          notifications: notifications,
-          isLoading: isLoading,
-          hasError: hasError,
-          errorMessage: notificationState.error,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await ref.read(notificationProvider.notifier).fetchNotifications();
+          },
+          child: _buildNotificationList(
+            notifications: notifications,
+            isLoading: isLoading,
+            hasError: hasError,
+            errorMessage: notificationState.error,
+          ),
         ),
       ),
     );

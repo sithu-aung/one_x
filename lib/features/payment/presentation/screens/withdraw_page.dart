@@ -61,50 +61,53 @@ class _WithdrawPageState extends ConsumerState<WithdrawPage> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: providersAsyncValue.when(
-          data: (providers) {
-            if (providers.isEmpty) {
-              return Center(
-                child: Text(
-                  'No withdrawal providers available',
-                  style: TextStyle(color: textColor),
-                ),
-              );
-            }
-
-            return ListView.separated(
-              itemCount: providers.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final provider = providers[index];
-                return _buildPaymentOption(
-                  context: context,
-                  // Use imageLocation if available, otherwise fallback to assets
-                  imagePath: provider.imageLocation,
-                  title: provider.providerName,
-                  subtitle: 'Withdrawal Provider',
-                  onTap:
-                      () => _navigateToAmountDefineScreen(
-                        context,
-                        provider.providerName,
-                        provider.id,
-                        provider.billing!.id,
-                        provider.imageLocation,
-                      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: providersAsyncValue.when(
+            data: (providers) {
+              if (providers.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No withdrawal providers available',
+                    style: TextStyle(color: textColor),
+                  ),
                 );
-              },
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error:
-              (error, stackTrace) => Center(
-                child: Text(
-                  'Error loading withdrawal providers: $error',
-                  style: TextStyle(color: textColor),
+              }
+
+              return ListView.separated(
+                itemCount: providers.length,
+                separatorBuilder:
+                    (context, index) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final provider = providers[index];
+                  return _buildPaymentOption(
+                    context: context,
+                    // Use imageLocation if available, otherwise fallback to assets
+                    imagePath: provider.imageLocation,
+                    title: provider.providerName,
+                    subtitle: 'Withdrawal Provider',
+                    onTap:
+                        () => _navigateToAmountDefineScreen(
+                          context,
+                          provider.providerName,
+                          provider.id,
+                          provider.billing!.id,
+                          provider.imageLocation,
+                        ),
+                  );
+                },
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error:
+                (error, stackTrace) => Center(
+                  child: Text(
+                    'Error loading withdrawal providers: $error',
+                    style: TextStyle(color: textColor),
+                  ),
                 ),
-              ),
+          ),
         ),
       ),
     );

@@ -76,38 +76,40 @@ class _DreamNumberScreenState extends ConsumerState<DreamNumberScreen> {
           style: TextStyle(color: AppTheme.textColor),
         ),
       ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _dreams.isEmpty
-              ? Center(
-                child: Text(
-                  'No dream numbers available',
-                  style: TextStyle(color: AppTheme.textColor),
-                ),
-              )
-              : Column(
-                children: [
-                  _buildBalanceInfo(),
-                  Expanded(
-                    child: GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 0.74,
-                          ),
-                      itemCount: _dreams.length,
-                      itemBuilder: (context, index) {
-                        final dream = _dreams[index];
-                        return _buildDreamCard(dream, isLightTheme);
-                      },
-                    ),
+      body: SafeArea(
+        child:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _dreams.isEmpty
+                ? Center(
+                  child: Text(
+                    'No dream numbers available',
+                    style: TextStyle(color: AppTheme.textColor),
                   ),
-                ],
-              ),
+                )
+                : Column(
+                  children: [
+                    _buildBalanceInfo(),
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.74,
+                            ),
+                        itemCount: _dreams.length,
+                        itemBuilder: (context, index) {
+                          final dream = _dreams[index];
+                          return _buildDreamCard(dream, isLightTheme);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+      ),
     );
   }
 

@@ -536,245 +536,255 @@ class _PasswordChangeScreenState extends ConsumerState<PasswordChangeScreen> {
         elevation: 0,
         iconTheme: IconThemeData(color: AppTheme.textColor),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                // Old Password Field
-                Text(
-                  'Old Password',
-                  style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _oldPasswordController,
-                  obscureText: _obscureOldPassword,
-                  style: TextStyle(color: AppTheme.textColor),
-                  decoration: InputDecoration(
-                    fillColor: AppTheme.cardColor,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  // Old Password Field
+                  Text(
+                    'Old Password',
+                    style: TextStyle(
+                      color: AppTheme.textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    hintText: 'Enter your current password',
-                    hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureOldPassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: AppTheme.textSecondaryColor,
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _oldPasswordController,
+                    obscureText: _obscureOldPassword,
+                    style: TextStyle(color: AppTheme.textColor),
+                    decoration: InputDecoration(
+                      fillColor: AppTheme.cardColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureOldPassword = !_obscureOldPassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your current password';
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 20),
-                // New Password Field
-                Text(
-                  'New Password',
-                  style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _newPasswordController,
-                  obscureText: _obscureNewPassword,
-                  style: TextStyle(color: AppTheme.textColor),
-                  decoration: InputDecoration(
-                    fillColor: AppTheme.cardColor,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    hintText: 'Enter new password',
-                    hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureNewPassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: AppTheme.textSecondaryColor,
+                      hintText: 'Enter your current password',
+                      hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureOldPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppTheme.textSecondaryColor,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureOldPassword = !_obscureOldPassword;
+                          });
+                        },
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureNewPassword = !_obscureNewPassword;
-                        });
-                      },
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your current password';
+                      }
+                      return null;
+                    },
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter new password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
 
-                const SizedBox(height: 20),
-                // Confirm New Password Field
-                Text(
-                  'Confirm New Password',
-                  style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  style: TextStyle(color: AppTheme.textColor),
-                  decoration: InputDecoration(
-                    fillColor: AppTheme.cardColor,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+                  const SizedBox(height: 20),
+                  // New Password Field
+                  Text(
+                    'New Password',
+                    style: TextStyle(
+                      color: AppTheme.textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    hintText: 'Confirm new password',
-                    hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: AppTheme.textSecondaryColor,
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _newPasswordController,
+                    obscureText: _obscureNewPassword,
+                    style: TextStyle(color: AppTheme.textColor),
+                    decoration: InputDecoration(
+                      fillColor: AppTheme.cardColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
+                      hintText: 'Enter new password',
+                      hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureNewPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppTheme.textSecondaryColor,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureNewPassword = !_obscureNewPassword;
+                          });
+                        },
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter new password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+                  // Confirm New Password Field
+                  Text(
+                    'Confirm New Password',
+                    style: TextStyle(
+                      color: AppTheme.textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your new password';
-                    }
-                    if (value != _newPasswordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
-                ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: _obscureConfirmPassword,
+                    style: TextStyle(color: AppTheme.textColor),
+                    decoration: InputDecoration(
+                      fillColor: AppTheme.cardColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      hintText: 'Confirm new password',
+                      hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppTheme.textSecondaryColor,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your new password';
+                      }
+                      if (value != _newPasswordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
 
-                const SizedBox(height: 40),
-                // Save Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed:
-                        _isLoading
-                            ? null
-                            : () async {
-                              if (_formKey.currentState!.validate()) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
+                  const SizedBox(height: 40),
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed:
+                          _isLoading
+                              ? null
+                              : () async {
+                                if (_formKey.currentState!.validate()) {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
 
-                                try {
-                                  final passwordData = {
-                                    'old_password': _oldPasswordController.text,
-                                    'new_password': _newPasswordController.text,
-                                    'confirm_password':
-                                        _confirmPasswordController.text,
-                                  };
+                                  try {
+                                    final passwordData = {
+                                      'old_password':
+                                          _oldPasswordController.text,
+                                      'new_password':
+                                          _newPasswordController.text,
+                                      'confirm_password':
+                                          _confirmPasswordController.text,
+                                    };
 
-                                  final response = await ref.read(
-                                    changePasswordProvider(passwordData).future,
-                                  );
-
-                                  if (response.containsKey('success') &&
-                                      response['success'] == true) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Password changed successfully',
-                                        ),
-                                      ),
+                                    final response = await ref.read(
+                                      changePasswordProvider(
+                                        passwordData,
+                                      ).future,
                                     );
-                                    Navigator.pop(context);
-                                  } else {
+
+                                    if (response.containsKey('success') &&
+                                        response['success'] == true) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Password changed successfully',
+                                          ),
+                                        ),
+                                      );
+                                      Navigator.pop(context);
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            response['message'] ??
+                                                'Failed to change password',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          response['message'] ??
-                                              'Failed to change password',
-                                        ),
+                                        content: Text('Error: ${e.toString()}'),
                                       ),
                                     );
+                                  } finally {
+                                    setState(() {
+                                      _isLoading = false;
+                                    });
                                   }
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Error: ${e.toString()}'),
-                                    ),
-                                  );
-                                } finally {
-                                  setState(() {
-                                    _isLoading = false;
-                                  });
                                 }
-                              }
-                            },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                              },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
+                      child:
+                          _isLoading
+                              ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : const Text(
+                                'Change Password',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                     ),
-                    child:
-                        _isLoading
-                            ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : const Text(
-                              'Change Password',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -836,229 +846,235 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         elevation: 0,
         iconTheme: IconThemeData(color: AppTheme.textColor),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Profile Picture
-                Center(
-                  child: ProfileAvatar(
-                    radius: 50,
-                    showEditButton: true,
-                    useHomeUserData: false,
-                    // Use the user's profile photo directly if available
-                    profilePhotoUrl: widget.user?.profilePhoto,
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-                // Name Field
-                Text(
-                  'Name',
-                  style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _nameController,
-                  style: TextStyle(color: AppTheme.textColor),
-                  decoration: InputDecoration(
-                    fillColor: AppTheme.cardColor,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Profile Picture
+                  Center(
+                    child: ProfileAvatar(
+                      radius: 50,
+                      showEditButton: true,
+                      useHomeUserData: false,
+                      // Use the user's profile photo directly if available
+                      profilePhotoUrl: widget.user?.profilePhoto,
                     ),
-                    hintText: 'Enter your name',
-                    hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
-                ),
 
-                const SizedBox(height: 20),
-                // Phone Field
-                Text(
-                  'Phone',
-                  style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _phoneController,
-                  style: TextStyle(color: AppTheme.textColor),
-                  decoration: InputDecoration(
-                    fillColor: AppTheme.cardColor,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+                  const SizedBox(height: 30),
+                  // Name Field
+                  Text(
+                    'Name',
+                    style: TextStyle(
+                      color: AppTheme.textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    hintText: 'Enter your phone number',
-                    hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 20),
-                // Viber Phone Field
-                Text(
-                  'Viber Phone',
-                  style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _viberPhoneController,
-                  style: TextStyle(color: AppTheme.textColor),
-                  decoration: InputDecoration(
-                    fillColor: AppTheme.cardColor,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _nameController,
+                    style: TextStyle(color: AppTheme.textColor),
+                    decoration: InputDecoration(
+                      fillColor: AppTheme.cardColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      hintText: 'Enter your name',
+                      hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
                     ),
-                    hintText: 'Enter your Viber phone number',
-                    hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your name';
+                      }
+                      return null;
+                    },
                   ),
-                ),
 
-                const SizedBox(height: 20),
-                // Telegram Account Field
-                Text(
-                  'Telegram Account',
-                  style: TextStyle(
-                    color: AppTheme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _telegramController,
-                  style: TextStyle(color: AppTheme.textColor),
-                  decoration: InputDecoration(
-                    fillColor: AppTheme.cardColor,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+                  const SizedBox(height: 20),
+                  // Phone Field
+                  Text(
+                    'Phone',
+                    style: TextStyle(
+                      color: AppTheme.textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    hintText: 'Enter your Telegram account',
-                    hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _phoneController,
+                    style: TextStyle(color: AppTheme.textColor),
+                    decoration: InputDecoration(
+                      fillColor: AppTheme.cardColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      hintText: 'Enter your phone number',
+                      hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your phone number';
+                      }
+                      return null;
+                    },
+                  ),
 
-                const SizedBox(height: 40),
-                // Save Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed:
-                        _isLoading
-                            ? null
-                            : () async {
-                              if (_formKey.currentState!.validate()) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
+                  const SizedBox(height: 20),
+                  // Viber Phone Field
+                  Text(
+                    'Viber Phone',
+                    style: TextStyle(
+                      color: AppTheme.textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _viberPhoneController,
+                    style: TextStyle(color: AppTheme.textColor),
+                    decoration: InputDecoration(
+                      fillColor: AppTheme.cardColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      hintText: 'Enter your Viber phone number',
+                      hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                    ),
+                  ),
 
-                                try {
-                                  final profileData = {
-                                    'username': _nameController.text,
-                                    'phone': _phoneController.text,
-                                    'viber_phone': _viberPhoneController.text,
-                                    'telegram_account':
-                                        _telegramController.text,
-                                  };
+                  const SizedBox(height: 20),
+                  // Telegram Account Field
+                  Text(
+                    'Telegram Account',
+                    style: TextStyle(
+                      color: AppTheme.textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _telegramController,
+                    style: TextStyle(color: AppTheme.textColor),
+                    decoration: InputDecoration(
+                      fillColor: AppTheme.cardColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      hintText: 'Enter your Telegram account',
+                      hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                    ),
+                  ),
 
-                                  final response = await ref.read(
-                                    updateProfileProvider(profileData).future,
-                                  );
+                  const SizedBox(height: 40),
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed:
+                          _isLoading
+                              ? null
+                              : () async {
+                                if (_formKey.currentState!.validate()) {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
 
-                                  if (response.containsKey('success') &&
-                                      response['success'] == true) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Profile updated successfully',
-                                        ),
-                                      ),
+                                  try {
+                                    final profileData = {
+                                      'username': _nameController.text,
+                                      'phone': _phoneController.text,
+                                      'viber_phone': _viberPhoneController.text,
+                                      'telegram_account':
+                                          _telegramController.text,
+                                    };
+
+                                    final response = await ref.read(
+                                      updateProfileProvider(profileData).future,
                                     );
-                                    Navigator.pop(context);
-                                  } else {
+
+                                    if (response.containsKey('success') &&
+                                        response['success'] == true) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Profile updated successfully',
+                                          ),
+                                        ),
+                                      );
+                                      Navigator.pop(context);
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            response['message'] ??
+                                                'Failed to update profile',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          response['message'] ??
-                                              'Failed to update profile',
-                                        ),
+                                        content: Text('Error: ${e.toString()}'),
                                       ),
                                     );
+                                  } finally {
+                                    setState(() {
+                                      _isLoading = false;
+                                    });
                                   }
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Error: ${e.toString()}'),
-                                    ),
-                                  );
-                                } finally {
-                                  setState(() {
-                                    _isLoading = false;
-                                  });
                                 }
-                              }
-                            },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                              },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
+                      child:
+                          _isLoading
+                              ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : const Text(
+                                'Save Changes',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                     ),
-                    child:
-                        _isLoading
-                            ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : const Text(
-                              'Save Changes',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
