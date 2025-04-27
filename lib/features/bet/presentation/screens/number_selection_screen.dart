@@ -1460,7 +1460,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
                         // Get user data from the response
                         final User user = homeData.value!.user;
 
-                        await Navigator.push(
+                        await Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder:

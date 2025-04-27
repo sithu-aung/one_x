@@ -190,7 +190,7 @@ class _BulkEntryScreenState extends ConsumerState<BulkEntryScreen> {
                         final User user = homeData.value!.user;
 
                         if (mounted) {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                               builder:

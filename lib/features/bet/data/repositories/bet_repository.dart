@@ -675,8 +675,6 @@ class BetRepository {
       return CheckAmountResponse(
         information: error.toString(),
         selections: [],
-        betAmount: 0,
-        totalBetAmount: 0,
       );
     }
   }

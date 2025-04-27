@@ -151,33 +151,30 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
         );
       }
 
-      // Update amounts if we got selections back
+      // Replace all bet items with selections from the response
       if (response.selections != null && response.selections!.isNotEmpty) {
-        // Create a temporary map to store updated amounts
-        Map<String, int> updatedAmounts = {};
-
-        // Process each selection
-        for (var selection in response.selections!) {
-          if (selection.permanentNumber != null && selection.amount != null) {
-            updatedAmounts[selection.permanentNumber!] = selection.amount!;
-          }
-        }
-
-        // Update the bet items
         setState(() {
-          for (int i = 0; i < _betItems.length; i++) {
-            String number = _betItems[i].number;
-            if (updatedAmounts.containsKey(number)) {
-              String formattedAmount = _formatAmount(updatedAmounts[number]!);
-              _betItems[i].amount = formattedAmount;
+          // Clear existing items and controllers
+          _betItems.clear();
+          _controllers.clear();
 
-              // Update the controller text
-              _controllers[i]!.value = TextEditingValue(
-                text: formattedAmount,
-                selection: TextSelection.collapsed(
-                  offset: formattedAmount.length,
+          // Add new items from the response
+          for (int i = 0; i < response.selections!.length; i++) {
+            var selection = response.selections![i];
+            if (selection.permanentNumber != null && selection.amount != null) {
+              String formattedAmount = _formatAmount(selection.amount!);
+
+              // Add new bet item
+              _betItems.add(
+                BetItem(
+                  number: selection.permanentNumber!,
+                  betType: widget.betType,
+                  amount: formattedAmount,
                 ),
               );
+
+              // Create new controller
+              _controllers[i] = TextEditingController(text: formattedAmount);
             }
           }
 
@@ -521,7 +518,7 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
             flex: 2,
             child: GestureDetector(
               onTap: () {
-                _showConfirmationDialog();
+                _validateAndConfirm();
               },
               child: Container(
                 height: 45,
@@ -803,7 +800,7 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
 
                               // Navigate to bet slip screen
                               if (mounted) {
-                                Navigator.push(
+                                Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
                                     builder:
@@ -888,6 +885,139 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
         );
       },
     );
+  }
+
+  void _validateAndConfirm() async {
+    // Only proceed if there are bet items to check
+    if (_betItems.isEmpty) {
+      Fluttertoast.showToast(
+        msg: '      ကျေးဇူးပြု၍ အနည်းဆုံး နံပါတ်တစ်ခု ထည့်ပါ      ',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      return;
+    }
+
+    try {
+      // Create selections array for API request
+      List<Map<String, dynamic>> selections =
+          _betItems.map((item) {
+            return {
+              "permanent_number": item.number,
+              "amount":
+                  item.amount.isEmpty
+                      ? 0
+                      : int.parse(item.amount.replaceAll(',', '')),
+              "is_tape": "inactive",
+              "is_hot": "inactive",
+            };
+          }).toList();
+
+      // Create API request payload
+      Map<String, dynamic> requestBody = {"selections": selections};
+
+      // Call the API
+      final response = await ref
+          .read(betRepositoryProvider)
+          .checkBetAmounts(requestBody);
+
+      // If there's information in the response, show it in a toast and don't proceed
+      if (response.information != null && response.information!.isNotEmpty) {
+        Fluttertoast.showToast(
+          msg: '      ${response.information}      ',
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+
+        // Replace all bet items with selections from the response
+        if (response.selections != null && response.selections!.isNotEmpty) {
+          setState(() {
+            // Clear existing items and controllers
+            _betItems.clear();
+            _controllers.clear();
+
+            // Add new items from the response
+            for (int i = 0; i < response.selections!.length; i++) {
+              var selection = response.selections![i];
+              if (selection.permanentNumber != null &&
+                  selection.amount != null) {
+                String formattedAmount = _formatAmount(selection.amount!);
+
+                // Add new bet item
+                _betItems.add(
+                  BetItem(
+                    number: selection.permanentNumber!,
+                    betType: widget.betType,
+                    amount: formattedAmount,
+                  ),
+                );
+
+                // Create new controller
+                _controllers[i] = TextEditingController(text: formattedAmount);
+              }
+            }
+
+            // Recalculate the total amount
+            _calculateTotal();
+          });
+        }
+        return;
+      }
+
+      // Replace all bet items with selections from the response
+      if (response.selections != null && response.selections!.isNotEmpty) {
+        setState(() {
+          // Clear existing items and controllers
+          _betItems.clear();
+          _controllers.clear();
+
+          // Add new items from the response
+          for (int i = 0; i < response.selections!.length; i++) {
+            var selection = response.selections![i];
+            if (selection.permanentNumber != null && selection.amount != null) {
+              String formattedAmount = _formatAmount(selection.amount!);
+
+              // Add new bet item
+              _betItems.add(
+                BetItem(
+                  number: selection.permanentNumber!,
+                  betType: widget.betType,
+                  amount: formattedAmount,
+                ),
+              );
+
+              // Create new controller
+              _controllers[i] = TextEditingController(text: formattedAmount);
+            }
+          }
+
+          // Recalculate the total amount
+          _calculateTotal();
+        });
+      }
+
+      // If no information (no errors), proceed to show confirmation dialog
+      _showConfirmationDialog();
+    } catch (e) {
+      print('Error validating bet: $e');
+      Fluttertoast.showToast(
+        msg: '      တစ်ခုခုမှားယွင်းနေပါသည်။ နောက်မှ ပြန်လည်ကြိုးစားပါ      ',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
   }
 
   // Helper method to ensure bet_time is always "morning" or "evening"

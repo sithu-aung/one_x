@@ -1013,28 +1013,27 @@ class _NumberSelection3DScreenState
               ),
             ),
 
-            // Progress indicator at bottom - always show for all states except selected
-            if (!isSelected)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 6, right: 6, bottom: 6),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(6),
-                      bottomRight: Radius.circular(6),
-                    ),
-                    child: LinearProgressIndicator(
-                      value: isUnavailable ? 1.0 : progressValue,
-                      minHeight: 4,
-                      backgroundColor: Colors.grey.withOpacity(0.15),
-                      color: isUnavailable ? Colors.grey : progressColor,
-                    ),
+            // Progress indicator at bottom - always show for all states
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 6, right: 6, bottom: 6),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(6),
+                    bottomRight: Radius.circular(6),
+                  ),
+                  child: LinearProgressIndicator(
+                    value: isUnavailable ? 1.0 : progressValue,
+                    minHeight: 4,
+                    backgroundColor: Colors.grey.withOpacity(0.15),
+                    color: isUnavailable ? Colors.grey : progressColor,
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),

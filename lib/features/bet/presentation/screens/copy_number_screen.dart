@@ -800,7 +800,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
 
       // Navigate to amount entry screen instead of directly submitting
       if (mounted) {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder:

@@ -1,14 +1,10 @@
 class CheckAmountResponse {
   String? information;
   List<Selections>? selections;
-  int? betAmount;
-  int? totalBetAmount;
 
   CheckAmountResponse({
     this.information,
     this.selections,
-    this.betAmount,
-    this.totalBetAmount,
   });
 
   CheckAmountResponse.fromJson(Map<String, dynamic> json) {
@@ -19,8 +15,6 @@ class CheckAmountResponse {
         selections!.add(Selections.fromJson(v));
       });
     }
-    betAmount = json['betAmount'];
-    totalBetAmount = json['totalBetAmount'];
   }
 
   Map<String, dynamic> toJson() {
@@ -29,8 +23,6 @@ class CheckAmountResponse {
     if (selections != null) {
       data['selections'] = selections!.map((v) => v.toJson()).toList();
     }
-    data['betAmount'] = betAmount;
-    data['totalBetAmount'] = totalBetAmount;
     return data;
   }
 }

@@ -629,7 +629,7 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
 
         // Navigate to amount entry screen
         if (mounted) {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder:
