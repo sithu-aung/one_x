@@ -845,17 +845,17 @@ class _TwoDScreenState extends State<TwoDScreen>
       padding: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
       child: ElevatedButton(
         onPressed: () async {
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder:
-          //         (context) => NumberSelectionScreen(
-          //           selectedTimeSection: _selectedTimeSection,
-          //           sessionName: 'morning',
-          //         ),
-          //   ),
-          // );
-          await fetchSessionStatus();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => NumberSelectionScreen(
+                    selectedTimeSection: _selectedTimeSection,
+                    sessionName: 'morning',
+                  ),
+            ),
+          );
+          //await fetchSessionStatus();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryColor,

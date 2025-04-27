@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/bet/presentation/screens/bet_slip_screen.dart';
 import 'package:one_x/core/utils/api_service.dart'; // Contains ApiException
@@ -9,6 +10,7 @@ import 'package:one_x/features/home/presentation/providers/home_provider.dart';
 import 'package:one_x/features/home/data/models/home_model.dart';
 import 'package:one_x/features/bet/data/repositories/bet_repository.dart';
 import 'package:one_x/features/bet/presentation/providers/bet_provider.dart';
+import 'package:one_x/features/bet/domain/models/check_amount_response.dart';
 
 class BetItem {
   final String number;
@@ -104,6 +106,89 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
 
     // Calculate initial total
     _calculateTotal();
+
+    // Call the API to check bet amounts
+    _checkBetAmounts();
+  }
+
+  void _checkBetAmounts() async {
+    // Only proceed if there are bet items to check
+    if (_betItems.isEmpty) return;
+
+    try {
+      // Create selections array for API request
+      List<Map<String, dynamic>> selections =
+          _betItems.map((item) {
+            return {
+              "permanent_number": item.number,
+              "amount":
+                  item.amount.isEmpty
+                      ? 0
+                      : int.parse(item.amount.replaceAll(',', '')),
+              "is_tape": "inactive",
+              "is_hot": "inactive",
+            };
+          }).toList();
+
+      // Create API request payload
+      Map<String, dynamic> requestBody = {"selections": selections};
+
+      // Call the API
+      final response = await ref
+          .read(betRepositoryProvider)
+          .checkBetAmounts(requestBody);
+
+      // If there's information in the response, show it in a toast
+      if (response.information != null && response.information!.isNotEmpty) {
+        Fluttertoast.showToast(
+          msg: '      ${response.information}      ',
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
+
+      // Update amounts if we got selections back
+      if (response.selections != null && response.selections!.isNotEmpty) {
+        // Create a temporary map to store updated amounts
+        Map<String, int> updatedAmounts = {};
+
+        // Process each selection
+        for (var selection in response.selections!) {
+          if (selection.permanentNumber != null && selection.amount != null) {
+            updatedAmounts[selection.permanentNumber!] = selection.amount!;
+          }
+        }
+
+        // Update the bet items
+        setState(() {
+          for (int i = 0; i < _betItems.length; i++) {
+            String number = _betItems[i].number;
+            if (updatedAmounts.containsKey(number)) {
+              String formattedAmount = _formatAmount(updatedAmounts[number]!);
+              _betItems[i].amount = formattedAmount;
+
+              // Update the controller text
+              _controllers[i]!.value = TextEditingValue(
+                text: formattedAmount,
+                selection: TextSelection.collapsed(
+                  offset: formattedAmount.length,
+                ),
+              );
+            }
+          }
+
+          // Recalculate the total amount
+          _calculateTotal();
+        });
+      }
+    } catch (e) {
+      print('Error checking bet amounts: $e');
+      // Don't show an error to the user, just log it
+    }
   }
 
   @override
@@ -402,7 +487,6 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
   }
 
   Widget _buildBottomButtons() {
-
     return Padding(
       padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
       child: Row(

@@ -518,8 +518,8 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
           Row(
             children: [
               GestureDetector(
-                onTap: () {
-                  Navigator.pushReplacement(
+                onTap: () async {
+                  await Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder:
@@ -529,6 +529,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
                           ),
                     ),
                   );
+                  _fetchDigitData();
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -548,21 +549,23 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
               ),
               const SizedBox(width: 8),
               GestureDetector(
-                onTap:
-                    () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => CopyNumberScreen(
-                              sessionName:
-                                  widget.sessionName == "morning" ||
-                                          widget.sessionName == "evening"
-                                      ? widget.sessionName
-                                      : "morning", // Use "morning" as a fallback
-                              selectedTimeSection: widget.selectedTimeSection,
-                            ),
-                      ),
+                onTap: () async {
+                  await Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => CopyNumberScreen(
+                            sessionName:
+                                widget.sessionName == "morning" ||
+                                        widget.sessionName == "evening"
+                                    ? widget.sessionName
+                                    : "morning", // Use "morning" as a fallback
+                            selectedTimeSection: widget.selectedTimeSection,
+                          ),
                     ),
+                  );
+                  _fetchDigitData();
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -1447,7 +1450,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (selectedNumbers.isNotEmpty) {
                       // Get home data from provider
                       final homeData = ref.read(homeDataProvider);
@@ -1457,7 +1460,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
                         // Get user data from the response
                         final User user = homeData.value!.user;
 
-                        Navigator.push(
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
@@ -1470,6 +1473,7 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
                                 ),
                           ),
                         );
+                        _fetchDigitData();
                       } else {
                         // Show message if data is not available
                         ScaffoldMessenger.of(context).showSnackBar(

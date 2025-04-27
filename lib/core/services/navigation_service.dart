@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
 
 class NavigationService {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -32,6 +34,22 @@ class NavigationService {
   }
 
   static void navigateToLogin() {
+    // Make sure the user is properly logged out via the auth provider
+    try {
+      // Find the ProviderContainer in the current context
+      final context = navigatorKey.currentContext;
+      if (context != null) {
+        final container = ProviderScope.containerOf(context);
+        final authNotifier = container.read(authProvider.notifier);
+
+        // Ensure we properly log out before navigating
+        authNotifier.logout();
+      }
+    } catch (e) {
+      print('Error during automatic logout: $e');
+      // Even if there's an error, still navigate to login
+    }
+
     // Navigate to login page and remove all routes below it
     navigator?.pushNamedAndRemoveUntil('/login', (route) => false);
   }

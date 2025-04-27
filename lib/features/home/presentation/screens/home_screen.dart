@@ -30,6 +30,8 @@ import 'package:one_x/core/utils/secure_storage.dart';
 import 'package:one_x/core/constants/app_constants.dart';
 import 'package:one_x/shared/widgets/profile_avatar.dart';
 import 'package:marquee/marquee.dart';
+import 'dart:async';
+import 'package:one_x/core/utils/global_event_bus.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   final int? initialTabIndex;
@@ -44,6 +46,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentPageIndex = 0;
   final PageController _pageController = PageController();
   int _currentNavIndex = 0;
+  StreamSubscription? _unauthorizedSubscription;
 
   @override
   void initState() {
@@ -60,6 +63,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ref.refresh(homeDataProvider);
       // Initialize notifications
       ref.read(notificationProvider.notifier).fetchNotifications();
+    });
+
+    // Listen for unauthorized events
+    _unauthorizedSubscription = GlobalEventBus.instance.stream.listen((event) {
+      if (event.type == EventType.unauthorized && mounted) {
+        // If we received an unauthorized event, log the user out
+        _logout();
+      }
     });
   }
 
@@ -83,6 +94,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _unauthorizedSubscription?.cancel();
     super.dispose();
   }
 
@@ -1316,24 +1328,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Perform logout
   void _performLogout(BuildContext context) async {
-    Navigator.pop(context);
-    // Clear focus before navigating
-    FocusManager.instance.primaryFocus?.unfocus();
+    try {
+      // If called from dialog, close the dialog first
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
 
-    // Call the auth provider's logout method to properly clear all data
-    await ref.read(authProvider.notifier).logout();
+      // Clear focus before navigating
+      FocusManager.instance.primaryFocus?.unfocus();
 
-    // Use rootNavigator to ensure we're using the top-most navigator
-    if (mounted) {
-      Navigator.of(
-        context,
-        rootNavigator: true,
-      ).pushNamedAndRemoveUntil('/', (route) => false);
+      // Call the auth provider's logout method to properly clear all data
+      await ref.read(authProvider.notifier).logout();
+
+      // Use rootNavigator to ensure we're using the top-most navigator
+      if (mounted) {
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushNamedAndRemoveUntil('/', (route) => false);
+      }
+    } catch (e) {
+      // If we encounter an error during logout, ensure we still redirect to login
+      print('Error during logout: $e');
+      if (mounted) {
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushNamedAndRemoveUntil('/', (route) => false);
+      }
     }
   }
 
   void _logout() async {
-    // Call _performLogout with context
+    // When called from the global event bus (401 error), we don't want to show a confirmation dialog
+    // Just call _performLogout with context
     _performLogout(context);
   }
 

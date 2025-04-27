@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:one_x/core/constants/app_constants.dart';
 import 'package:one_x/core/services/navigation_service.dart';
 import 'package:one_x/core/services/storage_service.dart';
+import 'package:one_x/core/utils/global_event_bus.dart';
 
 class ApiException implements Exception {
   final String message;
@@ -469,10 +470,13 @@ class ApiService {
     } else if (response.statusCode == 401) {
       final errorData = _parseErrorData(response);
       final errorMessage = errorData?['message'] ?? 'Unauthorized';
+      final requestUrl = response.request?.url.toString() ?? '';
+
       print('API 401 Unauthorized error: $errorMessage');
+      print('Request URL that caused 401: $requestUrl');
+      print('Token likely expired or invalid, initiating logout flow');
 
       // For login endpoint, just throw the exception so it can be handled by the login screen
-      final requestUrl = response.request?.url.toString() ?? '';
       if (requestUrl.contains(AppConstants.loginEndpoint)) {
         throw ApiException(errorMessage, statusCode: response.statusCode);
       }
@@ -484,6 +488,9 @@ class ApiService {
       if (errorMessage.isNotEmpty) {
         NavigationService.showSnackBar(message: errorMessage);
       }
+
+      // Notify global event bus about unauthorized error
+      GlobalEventBus.instance.fireUnauthorized();
 
       // Navigate to login page
       NavigationService.navigateToLogin();

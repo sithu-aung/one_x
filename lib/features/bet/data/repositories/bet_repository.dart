@@ -13,6 +13,7 @@ import 'package:one_x/features/bet/domain/models/two_d_history_response.dart';
 import 'package:one_x/features/bet/domain/models/holiday_list_response.dart';
 import 'package:one_x/features/bet/domain/models/tape_hot_list_response.dart';
 import 'package:one_x/features/bet/domain/models/available_response.dart';
+import 'package:one_x/features/bet/domain/models/check_amount_response.dart';
 
 class BetRepository {
   final ApiService _apiService;
@@ -655,6 +656,28 @@ class BetRepository {
       print('Error in check3DAvailability: $error');
       // Return empty model to avoid null errors
       return AvailableResponse(available: false);
+    }
+  }
+
+  /// Check bet amounts for morning session
+  Future<CheckAmountResponse> checkBetAmounts(
+    Map<String, dynamic> betData,
+  ) async {
+    try {
+      final response = await _apiService.post(
+        AppConstants.twoDMorningConfirmEndpoint,
+        body: betData,
+      );
+      return CheckAmountResponse.fromJson(response);
+    } catch (error) {
+      print('Error in checkBetAmounts: $error');
+      // Return empty response object to avoid null errors
+      return CheckAmountResponse(
+        information: error.toString(),
+        selections: [],
+        betAmount: 0,
+        totalBetAmount: 0,
+      );
     }
   }
 }

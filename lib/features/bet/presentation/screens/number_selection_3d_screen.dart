@@ -299,7 +299,7 @@ class _NumberSelection3DScreenState
       final status = digitData['status'];
 
       // Determine if number is unavailable
-      if (status == 'inactive') {
+      if (status == 'inactive' || uiPercentage == 100) {
         unavailableNumbers.add(digitKey);
       }
 
@@ -494,8 +494,8 @@ class _NumberSelection3DScreenState
 
           // Manual input button
           GestureDetector(
-            onTap: () {
-              Navigator.pushReplacement(
+            onTap: () async {
+              await Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder:
@@ -505,6 +505,7 @@ class _NumberSelection3DScreenState
                       ),
                 ),
               );
+              _fetchDigitData();
             },
             child: Container(
               margin: const EdgeInsets.only(right: 8),
@@ -532,22 +533,24 @@ class _NumberSelection3DScreenState
 
           // Copy-paste button
           GestureDetector(
-            onTap:
-                () => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => Copy3DNumberScreen(
-                          sessionName:
-                              widget.sessionData['session_name'] == "morning" ||
-                                      widget.sessionData['session_name'] ==
-                                          "evening"
-                                  ? widget.sessionData['session_name']
-                                  : "morning", // Use "morning" as a fallback
-                          sessionData: widget.sessionData,
-                        ),
-                  ),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => Copy3DNumberScreen(
+                        sessionName:
+                            widget.sessionData['session_name'] == "morning" ||
+                                    widget.sessionData['session_name'] ==
+                                        "evening"
+                                ? widget.sessionData['session_name']
+                                : "morning", // Use "morning" as a fallback
+                        sessionData: widget.sessionData,
+                      ),
                 ),
+              );
+              _fetchDigitData();
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -698,7 +701,7 @@ class _NumberSelection3DScreenState
                   isLightTheme: isLightTheme,
                 ),
                 _buildColorLegendItem(
-                  text: 'ထိုးငွေ 91% - 100% ',
+                  text: 'ထိုးငွေ 91% - 99% ',
                   progressColor: Colors.red,
                   progressValue: 0.99,
                   isLightTheme: isLightTheme,
@@ -1370,8 +1373,8 @@ class _NumberSelection3DScreenState
                   onPressed:
                       selectedNumbers.isEmpty
                           ? null
-                          : () {
-                            Navigator.push(
+                          : () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder:
@@ -1384,6 +1387,7 @@ class _NumberSelection3DScreenState
                                     ),
                               ),
                             );
+                            _fetchDigitData();
                           },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
