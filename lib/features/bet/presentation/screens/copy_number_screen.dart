@@ -879,7 +879,7 @@ class _CopyNumberScreenState extends ConsumerState<CopyNumberScreen> {
 
       // Check for format: numbers amount R amount (e.g. "01.02.03.04 2000 R 500")
       final dualAmountRPattern = RegExp(
-        r'(.+?)\s+([0-9๐-๙,]+)\s+([Rr@])\s+([0-9๐-๙,]+)$',
+        r'(.+?)\s+([0-9๐-๙,]+)\s*([Rr@])\s*([0-9๐-๙,]+)$',
       );
 
       if (dualAmountRPattern.hasMatch(line)) {
