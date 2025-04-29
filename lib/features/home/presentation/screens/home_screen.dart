@@ -178,10 +178,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: Image.asset(
-                        'assets/images/humberger.png',
-                        width: 24,
-                        height: 24,
+                      icon: SvgPicture.asset(
+                        'assets/icons/menu.svg',
+                        width: 28,
+                        height: 28,
                       ),
                       onPressed: () {
                         Navigator.pop(context);
@@ -415,21 +415,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 0:
         return _buildHomeContent();
       case 1:
-        return Container(
-          margin: EdgeInsets.only(bottom: 130),
-          child: _buildTicketsContent(),
-        );
+        return _buildTicketsContent();
       case 2:
-        return Container(
-          margin: EdgeInsets.only(bottom: 120),
-          child: _buildWalletContent(),
-        );
+        return _buildWalletContent();
       case 3:
-        return Container(
-          margin: EdgeInsets.only(bottom: 120),
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: _buildProfileContent(),
-        );
+        return _buildProfileContent();
       default:
         return _buildHomeContent();
     }
@@ -1164,10 +1154,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         leading: Builder(
           builder:
               (context) => IconButton(
-                icon: Image.asset(
-                  'assets/images/humberger.png',
-                  width: 24,
-                  height: 24,
+                icon: SvgPicture.asset(
+                  'assets/icons/menu.svg',
+                  width: 28,
+                  height: 28,
                 ),
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
@@ -1201,10 +1191,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       leading: Builder(
         builder:
             (context) => IconButton(
-              icon: Image.asset(
-                'assets/images/humberger.png',
-                width: 24,
-                height: 24,
+              icon: SvgPicture.asset(
+                'assets/icons/menu.svg',
+                width: 28,
+                height: 28,
               ),
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),

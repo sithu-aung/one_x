@@ -84,7 +84,7 @@ class _WinningRecordScreenState extends ConsumerState<WinningRecordScreen>
         MaterialPageRoute(
           builder:
               (context) => BetSlipScreen(
-                invoiceId: record.lotteryId,
+                invoiceId: record.id,
                 fromWinningRecords: true,
               ),
         ),

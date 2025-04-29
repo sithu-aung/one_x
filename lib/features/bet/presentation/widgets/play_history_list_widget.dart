@@ -194,23 +194,17 @@ class _PlayHistoryListWidgetState extends State<PlayHistoryListWidget> {
                       style: TextStyle(color: AppTheme.textColor),
                     ),
                   )
-                  : RefreshIndicator(
-                    onRefresh: () async {
-                      if (widget.onRefresh != null) {
-                        widget.onRefresh!();
-                      }
-                    },
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 16,
-                      ),
-                      itemCount: widget.histories!.length,
-                      itemBuilder: (context, index) {
-                        final history = widget.histories![index];
-                        return _buildBetHistoryItem(history);
-                      },
+                  : ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 16,
                     ),
+                    itemCount: widget.histories!.length,
+                    itemBuilder: (context, index) {
+                      final history = widget.histories![index];
+                      return _buildBetHistoryItem(history);
+                    },
                   ),
         ),
 
@@ -349,7 +343,7 @@ class _PlayHistoryListWidgetState extends State<PlayHistoryListWidget> {
           MaterialPageRoute(
             builder:
                 (context) => BetSlipScreen(
-                  invoiceId: history.lotteryId,
+                  invoiceId: history.id,
                   fromWinningRecords: true,
                 ),
           ),
