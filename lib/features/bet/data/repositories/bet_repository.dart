@@ -665,7 +665,7 @@ class BetRepository {
   ) async {
     try {
       final response = await _apiService.post(
-        AppConstants.twoDMorningConfirmEndpoint,
+        AppConstants.twoDConfirmEndpoint,
         body: betData,
       );
       return CheckAmountResponse.fromJson(response);

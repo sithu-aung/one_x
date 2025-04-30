@@ -1056,6 +1056,13 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Add text marquee for tape and hot numbers
+          if (!_isTapeHotLoading &&
+              (_tapeNumbers.isNotEmpty || _hotNumbers.isNotEmpty))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildTapeHotMarquee(),
+            ),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -1070,13 +1077,6 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
               ],
             ),
           ),
-          // Add text marquee for tape and hot numbers
-          if (!_isTapeHotLoading &&
-              (_tapeNumbers.isNotEmpty || _hotNumbers.isNotEmpty))
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: _buildTapeHotMarquee(),
-            ),
         ],
       ),
     );
@@ -1317,23 +1317,6 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Selection count
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${selectedNumbers.length} ကွက်',
-                style: TextStyle(
-                  color: AppTheme.textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Pyidaungsu',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
           // Amount entry field
           Container(
             decoration: BoxDecoration(
@@ -1387,29 +1370,45 @@ class _NumberSelectionScreenState extends ConsumerState<NumberSelectionScreen> {
             ),
           ),
           const SizedBox(height: 12),
-
           // Total amount
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                'စုစုပေါင်း - ',
-                style: TextStyle(
-                  color: AppTheme.textColor,
-                  fontSize: 14,
-                  fontFamily: 'Pyidaungsu',
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${selectedNumbers.length} ကွက်',
+                  style: TextStyle(
+                    color: AppTheme.textColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Pyidaungsu',
+                  ),
                 ),
-              ),
-              Text(
-                '$totalAmount ကျပ်',
-                style: TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Pyidaungsu',
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      'စုစုပေါင်း - ',
+                      style: TextStyle(
+                        color: AppTheme.textColor,
+                        fontSize: 14,
+                        fontFamily: 'Pyidaungsu',
+                      ),
+                    ),
+                    Text(
+                      '$totalAmount ကျပ်',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Pyidaungsu',
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 16),
 

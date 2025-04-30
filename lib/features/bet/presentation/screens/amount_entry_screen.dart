@@ -131,7 +131,10 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
           }).toList();
 
       // Create API request payload
-      Map<String, dynamic> requestBody = {"selections": selections};
+      Map<String, dynamic> requestBody = {
+        "selections": selections,
+        "session": widget.sessionName,
+      };
 
       // Call the API
       final response = await ref
@@ -918,7 +921,10 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
           }).toList();
 
       // Create API request payload
-      Map<String, dynamic> requestBody = {"selections": selections};
+      Map<String, dynamic> requestBody = {
+        "selections": selections,
+        "session": widget.sessionName,
+      };
 
       // Call the API
       final response = await ref

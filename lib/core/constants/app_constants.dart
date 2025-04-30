@@ -77,7 +77,7 @@ class AppConstants {
   static const String twoDCopyPasteEndpoint = '/api/user/copy-paste';
   static const String twoDCopyPasteEveningEndpoint =
       '/api/user/copy-paste/evening';
-  static const String twoDMorningConfirmEndpoint = '/api/user/morning/confirm';
+  static const String twoDConfirmEndpoint = '/api/user/play-2d/confirm';
   static const String twoDEveningConfirmEndpoint = '/api/user/evening/confirm';
   static const String twoDHolidayEndpoint = '/api/user/play-2d/holiday';
   static const String twoDWinnersEndpoint = '/api/user/play-2d/winners';

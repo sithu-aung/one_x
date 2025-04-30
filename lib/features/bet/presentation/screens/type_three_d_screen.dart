@@ -304,13 +304,7 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
       return;
     }
 
-    // Show confirmation dialog
-    _showConfirmationDialog();
-  }
-
-  // Show confirmation dialog with better styling
-  void _showConfirmationDialog() {
-    // First check if user data is available
+    // Get home data from provider
     final homeData = ref.read(homeDataProvider);
 
     // If user data is still loading or has an error, show appropriate message
@@ -336,316 +330,33 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
     // Extract user data
     final User user = homeData.value!.user;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: AppTheme.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'အတည်ပြုရန်',
-                      style: TextStyle(
-                        color: AppTheme.getTextColorForBackground(
-                          AppTheme.cardColor,
-                        ),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close,
-                        color: AppTheme.getTextColorForBackground(
-                          AppTheme.cardColor,
-                        ),
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-                Text(
-                  'သေချာပါသလား?',
-                  style: TextStyle(
-                    color: AppTheme.getTextColorForBackground(
-                      AppTheme.cardColor,
-                    ),
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  user.username,
-                  style: TextStyle(
-                    color: AppTheme.getTextColorForBackground(
-                      AppTheme.cardColor,
-                    ),
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Total',
-                      style: TextStyle(
-                        color: AppTheme.getTextColorForBackground(
-                          AppTheme.cardColor,
-                        ),
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Text(
-                      '( ${_entries.length} ကွက် )',
-                      style: TextStyle(
-                        color: AppTheme.getTextColorForBackground(
-                          AppTheme.cardColor,
-                        ),
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Text(
-                      _formatAmount(_totalAmount),
-                      style: TextStyle(
-                        color: AppTheme.getTextColorForBackground(
-                          AppTheme.cardColor,
-                        ),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          height: 45,
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardExtraColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'NO',
-                              style: TextStyle(
-                                color: AppTheme.getTextColorForBackground(
-                                  AppTheme.cardExtraColor,
-                                ),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _processBetPlacement(user);
-                        },
-                        child: Container(
-                          height: 45,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'YES',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+    // Create a map of number:amount for the selected numbers
+    Map<String, int> numberAmounts = {};
+    List<String> selectedNumbers = [];
 
-  // Process bet placement with API call
-  Future<void> _processBetPlacement(User user) async {
-    try {
-      // Show loading dialog
-      _showLoadingDialog();
-
-      // Build selections array in the format expected by the API
-      List<Map<String, dynamic>> selections =
-          _entries.map((entry) {
-            return {
-              "permanent_number": entry.number,
-              "amount": entry.amount,
-              "is_tape": "inactive",
-              "is_hot": "inactive",
-            };
-          }).toList();
-
-      // Build digits string
-      String digits = _entries.map((entry) => entry.number).join(',');
-
-      // Create request payload
-      Map<String, dynamic> requestBody = {
-        "selections": selections,
-        "digits": digits,
-        "bet_time": _getBetTimeValue(widget.sessionName),
-        "totalAmount": _totalAmount,
-        "user_id": user.id,
-        "name": "three",
-      };
-
-      // Get repository from provider
-      final repository = ref.read(betRepositoryProvider);
-
-      // Call API to submit the bet
-      final response = await repository.confirm3DBetPlacement(requestBody);
-
-      // Dismiss loading dialog
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-
-      // Check response
-      if (response.containsKey('error') && response['error'] == true) {
-        // Extract error message
-        String errorMessage = response['message'] ?? 'An error occurred';
-
-        // Check if there are specific validation errors
-        if (response.containsKey('errors') && response['errors'] is Map) {
-          final errors = response['errors'] as Map;
-          // Format validation errors
-          final List<String> errorMessages = [];
-
-          errors.forEach((key, value) {
-            if (value is List && value.isNotEmpty) {
-              errorMessages.add(value.first.toString());
-            } else if (value != null) {
-              errorMessages.add(value.toString());
-            }
-          });
-
-          if (errorMessages.isNotEmpty) {
-            errorMessage = errorMessages.join('\n');
-          }
-        }
-
-        // Show error message
-        _showError(errorMessage);
-        return;
-      }
-
-      // Process invoice data
-      Map<String, dynamic> invoiceData = {};
-      if (response.containsKey('invoice')) {
-        invoiceData = response['invoice'];
-      }
-
-      // Refresh homeDataProvider to update user balance
-      ref.invalidate(homeDataProvider);
-
-      // Navigate to bet slip screen
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => BetSlipScreen(
-                  betItems:
-                      _entries
-                          .map(
-                            (e) => BetItem(
-                              number: e.number,
-                              amount: e.amount.toString(),
-                              betType: '3D နံပါတ်',
-                            ),
-                          )
-                          .toList(),
-                  totalAmount: _totalAmount,
-                  userName: user.username,
-                  invoiceData: invoiceData.isNotEmpty ? invoiceData : null,
-                  invoiceId:
-                      invoiceData.containsKey('id') ? invoiceData['id'] : null,
-                ),
-          ),
-        );
-      }
-    } catch (e) {
-      // Dismiss loading dialog if still showing
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-
-      // Only show error notification if it's not an ApiException
-      if (e is! ApiException) {
-        _showError("Failed to place bet: $e");
-      }
+    for (var entry in _entries) {
+      selectedNumbers.add(entry.number);
+      numberAmounts[entry.number] = entry.amount;
     }
-  }
 
-  // Get bet time value based on session name
-  String _getBetTimeValue(String sessionName) {
-    switch (sessionName.toLowerCase()) {
-      case 'morning':
-        return 'morning';
-      case 'evening':
-        return 'evening';
-      default:
-        return sessionName;
+    // Navigate to amount entry screen
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => AmountEntryScreen(
+                selectedNumbers: selectedNumbers,
+                betType: '3D နံပါတ်',
+                sessionName: widget.sessionName,
+                userName: user.username,
+                userId: user.id,
+                type: '3D',
+                numberAmounts: numberAmounts,
+              ),
+        ),
+      );
     }
-  }
-
-  // Show loading dialog
-  void _showLoadingDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: AppTheme.cardColor,
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(
-                  'ကျေးဇူးပြု၍ ခဏစောင့်ပါ...',
-                  style: TextStyle(color: AppTheme.textColor),
-                ),
-              ],
-            ),
-          ),
-    );
   }
 
   // Add entries in bulk
