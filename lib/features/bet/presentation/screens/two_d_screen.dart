@@ -499,7 +499,7 @@ class _TwoDScreenState extends State<TwoDScreen>
   Widget buildFirstTabContent() {
     return RefreshIndicator(
       onRefresh: () async {
-        await Future.wait([fetchData(), fetchSessionStatus()]);
+        await Future.wait([fetchData()]);
       },
       child: Column(
         children: [

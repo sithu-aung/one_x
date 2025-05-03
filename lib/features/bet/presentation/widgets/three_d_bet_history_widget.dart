@@ -16,8 +16,20 @@ class ThreeDHistoryWidget extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh:
           () => ref.read(threeDHistoryProvider.notifier).getPlayHistory(),
-      child: Column(
-        children: [Expanded(child: buildHistoryContent(context, historyState))],
+      color: AppTheme.primaryColor,
+      backgroundColor: Theme.of(context).cardColor,
+      strokeWidth: 2.5,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody:
+                historyState.hasValue &&
+                historyState.value?.histories != null &&
+                historyState.value!.histories!.isNotEmpty,
+            child: buildHistoryContent(context, historyState),
+          ),
+        ],
       ),
     );
   }
@@ -94,7 +106,6 @@ class ThreeDHistoryWidget extends ConsumerWidget {
                   builder: (context, ref, child) {
                     return ElevatedButton.icon(
                       onPressed: () {
-                        // Manually trigger refresh using Riverpod
                         ref
                             .read(threeDHistoryProvider.notifier)
                             .getPlayHistory();

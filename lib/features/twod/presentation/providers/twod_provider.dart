@@ -79,11 +79,11 @@ final twoDEveningCopyPasteDataProvider = FutureProvider<Map<String, dynamic>>((
 });
 
 // TwoD Morning Confirm Data provider
-final twoDMorningConfirmDataProvider = FutureProvider<Map<String, dynamic>>((
+final twoDConfirmDataProvider = FutureProvider<Map<String, dynamic>>((
   ref,
 ) async {
   final repository = ref.watch(twoDRepositoryProvider);
-  return repository.getMorningConfirmData();
+  return repository.getConfirmData();
 });
 
 // TwoD Evening Confirm Data provider

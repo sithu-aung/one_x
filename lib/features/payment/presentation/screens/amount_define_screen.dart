@@ -182,7 +182,7 @@ class _AmountDefineScreenState extends ConsumerState<AmountDefineScreen> {
                           labelText:
                               widget.type == PaymentActionType.withdraw
                                   ? 'Receiver Account Number***'
-                                  : 'ဖုန်းနံပါတ်***',
+                                  : 'ငွေလွှဲသည့် ဖုန်းနံပါတ်***',
                           labelStyle: TextStyle(
                             fontSize: 14,
                             color: AppTheme.textSecondaryColor,

@@ -112,88 +112,91 @@ class BetHistoryWidget extends ConsumerWidget {
   }
 
   Widget buildHistoryContent(BuildContext context, BetHistoryState state) {
-    if (state.isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: AppTheme.primaryColor),
-            const SizedBox(height: 16),
-            Text(
-              'ကံစမ်းမှတ်တမ်း ရှာနေသည်...',
-              style: TextStyle(color: AppTheme.textColor),
+    // Create a common ListView so RefreshIndicator works in all states
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        if (state.isLoading)
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 100),
+                CircularProgressIndicator(color: AppTheme.primaryColor),
+                const SizedBox(height: 16),
+                Text(
+                  'ကံစမ်းမှတ်တမ်း ရှာနေသည်...',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    }
-
-    if (state.errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              'အချက်အလက်များ ရယူရန် မအောင်မြင်ပါ',
-              style: TextStyle(
-                color: AppTheme.textColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              state.errorMessage!,
-              style: TextStyle(color: AppTheme.textSecondaryColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Consumer(
-              builder: (context, ref, child) {
-                return ElevatedButton.icon(
-                  onPressed: () {
-                    // Manually trigger refresh using Riverpod
-                    ref.read(betHistoryProvider.notifier).fetchHistory();
-                  },
-                  icon: Icon(Icons.refresh),
-                  label: const Text('ပြန်လည်ကြိုးစားကြည့်ပါ'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
+          )
+        else if (state.errorMessage != null)
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 100),
+                Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  'အချက်အလက်များ ရယူရန် မအောင်မြင်ပါ',
+                  style: TextStyle(
+                    color: AppTheme.textColor,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              },
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  state.errorMessage!,
+                  style: TextStyle(color: AppTheme.textSecondaryColor),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Consumer(
+                  builder: (context, ref, child) {
+                    return ElevatedButton.icon(
+                      onPressed: () {
+                        // Manually trigger refresh using Riverpod
+                        ref.read(betHistoryProvider.notifier).fetchHistory();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('ပြန်လည်ကြိုးစားကြည့်ပါ'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    }
-
-    final histories = state.histories;
-    if (histories == null || histories.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.history,
-              color: AppTheme.textSecondaryColor.withOpacity(0.5),
-              size: 64,
+          )
+        else if (state.histories == null || state.histories!.isEmpty)
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 100),
+                Icon(
+                  Icons.history,
+                  color: AppTheme.textSecondaryColor.withOpacity(0.5),
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'ကံစမ်းမှတ်တမ်း မရှိသေးပါ',
+                  style: TextStyle(
+                    color: AppTheme.textSecondaryColor,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'ကံစမ်းမှတ်တမ်း မရှိသေးပါ',
-              style: TextStyle(
-                color: AppTheme.textSecondaryColor,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return PlayHistoryListWidget(histories: histories, isLoading: false);
+          )
+        else
+          PlayHistoryListWidget(histories: state.histories!, isLoading: false),
+      ],
+    );
   }
 }

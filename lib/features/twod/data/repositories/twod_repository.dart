@@ -125,9 +125,9 @@ class TwoDRepository {
   }
 
   /// Get 2D morning confirm data
-  Future<Map<String, dynamic>> getMorningConfirmData() async {
+  Future<Map<String, dynamic>> getConfirmData() async {
     try {
-      return await _apiService.get(AppConstants.twoDMorningConfirmEndpoint);
+      return await _apiService.get(AppConstants.twoDConfirmEndpoint);
     } catch (e) {
       throw Exception('Failed to load 2D morning confirm data: $e');
     }

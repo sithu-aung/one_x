@@ -24,6 +24,14 @@ class _PlayHistoryListWidgetState extends State<PlayHistoryListWidget> {
   String _selectedTimeFilter = 'All';
   DateTime? _selectedDate;
 
+  Future<void> _handleRefresh() async {
+    if (widget.onRefresh != null) {
+      widget.onRefresh!();
+    }
+    // Return a completed future to end the refresh indicator
+    return Future.delayed(const Duration(milliseconds: 500));
+  }
+
   @override
   Widget build(BuildContext context) {
     // Determine if we're in a white/light theme
@@ -187,24 +195,42 @@ class _PlayHistoryListWidgetState extends State<PlayHistoryListWidget> {
           child:
               widget.isLoading
                   ? Center(child: CircularProgressIndicator())
-                  : widget.histories == null || widget.histories!.isEmpty
-                  ? Center(
-                    child: Text(
-                      'No history records found',
-                      style: TextStyle(color: AppTheme.textColor),
-                    ),
-                  )
-                  : ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 16,
-                    ),
-                    itemCount: widget.histories!.length,
-                    itemBuilder: (context, index) {
-                      final history = widget.histories![index];
-                      return _buildBetHistoryItem(history);
-                    },
+                  : RefreshIndicator(
+                    onRefresh: _handleRefresh,
+                    color: AppTheme.primaryColor,
+                    backgroundColor:
+                        isLightTheme ? Colors.white : AppTheme.cardColor,
+                    child:
+                        widget.histories == null || widget.histories!.isEmpty
+                            ? ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.7,
+                                  child: Center(
+                                    child: Text(
+                                      'No history records found',
+                                      style: TextStyle(
+                                        color: AppTheme.textColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                            : ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 16,
+                              ),
+                              itemCount: widget.histories!.length,
+                              itemBuilder: (context, index) {
+                                final history = widget.histories![index];
+                                return _buildBetHistoryItem(history);
+                              },
+                            ),
                   ),
         ),
 
