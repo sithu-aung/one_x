@@ -107,8 +107,10 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
     // Calculate initial total
     _calculateTotal();
 
-    // Call the API to check bet amounts
-    _checkBetAmounts();
+    if (widget.betType == '2D') {
+      // Call the API to check bet amounts
+      _checkBetAmounts();
+    }
   }
 
   void _checkBetAmounts() async {
@@ -503,7 +505,7 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
                 ),
                 child: Center(
                   child: Text(
-                    'ထပ်ထည့်မည်',
+                    'ဖျက်မည်',
                     style: TextStyle(
                       color: AppTheme.getTextColorForBackground(
                         AppTheme.cardExtraColor,
@@ -521,7 +523,11 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
             flex: 2,
             child: GestureDetector(
               onTap: () {
-                _validateAndConfirm();
+                if (widget.betType == '2D') {
+                  _validateAndConfirm();
+                } else {
+                  _showConfirmationDialog();
+                }
               },
               child: Container(
                 height: 45,

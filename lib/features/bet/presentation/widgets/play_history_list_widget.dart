@@ -38,234 +38,54 @@ class _PlayHistoryListWidgetState extends State<PlayHistoryListWidget> {
     final bool isLightTheme = AppTheme.backgroundColor.computeLuminance() > 0.5;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Time filter tabs
-        // Container(
-        //   height: 40,
-        //   margin: const EdgeInsets.symmetric(vertical: 12),
-        //   padding: const EdgeInsets.symmetric(horizontal: 16),
-        //   child: SingleChildScrollView(
-        //     scrollDirection: Axis.horizontal,
-        //     child: Row(
-        //       children: [
-        //         _buildTimeFilterTab(
-        //           label: 'All',
-        //           isActive: _selectedTimeFilter == 'All',
-        //         ),
-        //         _buildTimeFilterTab(
-        //           label: '09:00 AM',
-        //           isActive: _selectedTimeFilter == '09:00 AM',
-        //         ),
-        //         _buildTimeFilterTab(
-        //           label: '12:00 PM',
-        //           isActive: _selectedTimeFilter == '12:00 PM',
-        //         ),
-        //         _buildTimeFilterTab(
-        //           label: '2:00 PM',
-        //           isActive: _selectedTimeFilter == '2:00 PM',
-        //         ),
-        //         _buildTimeFilterTab(
-        //           label: '4:30 PM',
-        //           isActive: _selectedTimeFilter == '4:30 PM',
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-        // ),
-
-        // Filter dropdowns
-        // Padding(
-        //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        //   child: Row(
-        //     children: [
-        //       Expanded(
-        //         child: Container(
-        //           padding: const EdgeInsets.symmetric(
-        //             horizontal: 16,
-        //             vertical: 12,
-        //           ),
-        //           decoration: BoxDecoration(
-        //             color: isLightTheme ? Colors.white : AppTheme.cardColor,
-        //             borderRadius: BorderRadius.circular(12),
-        //             border: Border.all(
-        //               color:
-        //                   isLightTheme
-        //                       ? Colors.grey.shade300
-        //                       : Colors.grey.shade800.withOpacity(0.5),
-        //             ),
-        //             boxShadow:
-        //                 isLightTheme
-        //                     ? [
-        //                       BoxShadow(
-        //                         color: Colors.black.withOpacity(0.05),
-        //                         blurRadius: 2,
-        //                         offset: const Offset(0, 1),
-        //                       ),
-        //                     ]
-        //                     : null,
-        //           ),
-        //           child: Row(
-        //             children: [
-        //               Text(
-        //                 'Ticket အလိုက် ကြည့်ရန်',
-        //                 style: TextStyle(
-        //                   color: AppTheme.textColor,
-        //                   fontSize: 14,
-        //                   fontFamily: 'Pyidaungsu',
-        //                 ),
-        //               ),
-        //               const Spacer(),
-        //               Icon(
-        //                 Icons.arrow_drop_down,
-        //                 color: AppTheme.primaryColor,
-        //                 size: 24,
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //       ),
-        //       const SizedBox(width: 12),
-        //       InkWell(
-        //         onTap: () async {
-        //           final DateTime? picked = await showDatePicker(
-        //             context: context,
-        //             initialDate: _selectedDate ?? DateTime.now(),
-        //             firstDate: DateTime(2020),
-        //             lastDate: DateTime.now(),
-        //           );
-        //           if (picked != null && picked != _selectedDate) {
-        //             setState(() {
-        //               _selectedDate = picked;
-        //             });
-        //           }
-        //         },
-        //         child: Container(
-        //           padding: const EdgeInsets.symmetric(
-        //             horizontal: 16,
-        //             vertical: 12,
-        //           ),
-        //           decoration: BoxDecoration(
-        //             color: isLightTheme ? Colors.white : AppTheme.cardColor,
-        //             borderRadius: BorderRadius.circular(12),
-        //             border: Border.all(
-        //               color:
-        //                   isLightTheme
-        //                       ? Colors.grey.shade300
-        //                       : Colors.grey.shade800.withOpacity(0.5),
-        //             ),
-        //             boxShadow:
-        //                 isLightTheme
-        //                     ? [
-        //                       BoxShadow(
-        //                         color: Colors.black.withOpacity(0.05),
-        //                         blurRadius: 2,
-        //                         offset: const Offset(0, 1),
-        //                       ),
-        //                     ]
-        //                     : null,
-        //           ),
-        //           child: Row(
-        //             children: [
-        //               Text(
-        //                 _selectedDate != null
-        //                     ? DateFormat('dd,MM,yyyy').format(_selectedDate!)
-        //                     : DateFormat('dd,MM,yyyy').format(DateTime.now()),
-        //                 style: TextStyle(
-        //                   color: AppTheme.textColor,
-        //                   fontSize: 14,
-        //                 ),
-        //               ),
-        //               const SizedBox(width: 8),
-        //               Icon(
-        //                 Icons.calendar_today,
-        //                 color: AppTheme.primaryColor,
-        //                 size: 18,
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
         Container(height: 20),
 
-        // Betting history items
-        Expanded(
-          child:
-              widget.isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : RefreshIndicator(
-                    onRefresh: _handleRefresh,
-                    color: AppTheme.primaryColor,
-                    backgroundColor:
-                        isLightTheme ? Colors.white : AppTheme.cardColor,
-                    child:
-                        widget.histories == null || widget.histories!.isEmpty
-                            ? ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: [
-                                SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.7,
-                                  child: Center(
-                                    child: Text(
-                                      'No history records found',
-                                      style: TextStyle(
-                                        color: AppTheme.textColor,
-                                      ),
-                                    ),
-                                  ),
+        // Betting history items - this is the main content
+        widget.isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Flexible(
+              child: RefreshIndicator(
+                onRefresh: _handleRefresh,
+                color: AppTheme.primaryColor,
+                backgroundColor:
+                    isLightTheme ? Colors.white : AppTheme.cardColor,
+                child:
+                    widget.histories == null || widget.histories!.isEmpty
+                        ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(bottom: 80),
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.5,
+                              child: Center(
+                                child: Text(
+                                  'No history records found',
+                                  style: TextStyle(color: AppTheme.textColor),
                                 ),
-                              ],
-                            )
-                            : ListView.builder(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 16,
                               ),
-                              itemCount: widget.histories!.length,
-                              itemBuilder: (context, index) {
-                                final history = widget.histories![index];
-                                return _buildBetHistoryItem(history);
-                              },
                             ),
-                  ),
-        ),
-
-        // Total section at bottom
-        // Container(
-        //   width: double.infinity,
-        //   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        //   padding: const EdgeInsets.symmetric(vertical: 16),
-        //   decoration: BoxDecoration(
-        //     color: isLightTheme ? Colors.white : AppTheme.cardExtraColor,
-        //     borderRadius: BorderRadius.circular(12),
-        //     border:
-        //         isLightTheme ? Border.all(color: Colors.grey.shade300) : null,
-        //     boxShadow:
-        //         isLightTheme
-        //             ? [
-        //               BoxShadow(
-        //                 color: Colors.black.withOpacity(0.05),
-        //                 blurRadius: 2,
-        //                 offset: const Offset(0, 1),
-        //               ),
-        //             ]
-        //             : null,
-        //   ),
-        //   child: Text(
-        //     'စုစုပေါင်း  ${_calculateTotalAmount()} ks',
-        //     textAlign: TextAlign.center,
-        //     style: TextStyle(
-        //       color: AppTheme.textColor,
-        //       fontSize: 16,
-        //       fontWeight: FontWeight.bold,
-        //       fontFamily: 'Pyidaungsu',
-        //     ),
-        //   ),
-        // ),
+                          ],
+                        )
+                        : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 16,
+                          ).copyWith(bottom: 80),
+                          itemCount: widget.histories!.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == widget.histories!.length) {
+                              return const SizedBox(height: 60);
+                            }
+                            final history = widget.histories![index];
+                            return _buildBetHistoryItem(history);
+                          },
+                        ),
+              ),
+            ),
       ],
     );
   }
