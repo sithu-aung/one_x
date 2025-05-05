@@ -107,7 +107,9 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
     // Calculate initial total
     _calculateTotal();
 
-    if (widget.betType == '2D') {
+    print('betType: ${widget.betType}');
+
+    if (widget.betType == '2D နံပါတ်') {
       // Call the API to check bet amounts
       _checkBetAmounts();
     }
@@ -523,7 +525,7 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
             flex: 2,
             child: GestureDetector(
               onTap: () {
-                if (widget.betType == '2D') {
+                if (widget.betType == '2D နံပါတ်') {
                   _validateAndConfirm();
                 } else {
                   _showConfirmationDialog();
