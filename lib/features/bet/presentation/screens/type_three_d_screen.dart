@@ -213,25 +213,61 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
       return;
     }
 
-    // Add the entry to the list
     setState(() {
-      // Add the original number
-      _entries.add(ThreeDEntry(number: number, amount: amount));
-      _entryAmountControllers.add(
-        TextEditingController(text: amount.toString()),
-      );
+      // Check if the original number already exists in the entries
+      bool originalExists = false;
+      for (int i = 0; i < _entries.length; i++) {
+        if (_entries[i].number == number) {
+          // Update the amount instead of adding new entry
+          _entries[i] = ThreeDEntry(
+            number: number,
+            amount: _entries[i].amount + amount,
+          );
+          // Update the controller as well
+          _entryAmountControllers[i].text = _entries[i].amount.toString();
+          originalExists = true;
+          break;
+        }
+      }
+
+      // Add the entry if it doesn't exist
+      if (!originalExists) {
+        _entries.add(ThreeDEntry(number: number, amount: amount));
+        _entryAmountControllers.add(
+          TextEditingController(text: amount.toString()),
+        );
+      }
 
       // If R is toggled on, add all permutations of the number
       if (_isRToggled) {
         final permutations = _generatePermutations(number);
 
-        // Add all permutations except the original number which is already added
+        // Add all permutations except the original number which is already handled
         for (final perm in permutations) {
           if (perm != number) {
-            _entries.add(ThreeDEntry(number: perm, amount: amount));
-            _entryAmountControllers.add(
-              TextEditingController(text: amount.toString()),
-            );
+            // Check if this permutation already exists
+            bool permExists = false;
+            for (int i = 0; i < _entries.length; i++) {
+              if (_entries[i].number == perm) {
+                // Update the amount instead of adding new entry
+                _entries[i] = ThreeDEntry(
+                  number: perm,
+                  amount: _entries[i].amount + amount,
+                );
+                // Update the controller as well
+                _entryAmountControllers[i].text = _entries[i].amount.toString();
+                permExists = true;
+                break;
+              }
+            }
+
+            // Add the permutation if it doesn't exist
+            if (!permExists) {
+              _entries.add(ThreeDEntry(number: perm, amount: amount));
+              _entryAmountControllers.add(
+                TextEditingController(text: amount.toString()),
+              );
+            }
           }
         }
       }
@@ -377,23 +413,61 @@ class _TypeThreeDScreenState extends ConsumerState<TypeThreeDScreen> {
     // Add entries for all selected numbers
     setState(() {
       for (String number in selectedNumbers) {
-        // Add the original number
-        _entries.add(ThreeDEntry(number: number, amount: amount));
-        _entryAmountControllers.add(
-          TextEditingController(text: amount.toString()),
-        );
+        // Check if the number already exists in the entries
+        bool numberExists = false;
+        for (int i = 0; i < _entries.length; i++) {
+          if (_entries[i].number == number) {
+            // Update the amount instead of adding new entry
+            _entries[i] = ThreeDEntry(
+              number: number,
+              amount: _entries[i].amount + amount,
+            );
+            // Update the controller as well
+            _entryAmountControllers[i].text = _entries[i].amount.toString();
+            numberExists = true;
+            break;
+          }
+        }
+
+        // Add the original number if it doesn't exist
+        if (!numberExists) {
+          _entries.add(ThreeDEntry(number: number, amount: amount));
+          _entryAmountControllers.add(
+            TextEditingController(text: amount.toString()),
+          );
+        }
 
         // If R is toggled on, also add all permutations of the number
         if (_isRToggled) {
           final permutations = _generatePermutations(number);
 
-          // Add all permutations except the original number which is already added
+          // Add all permutations except the original number which is already handled
           for (final perm in permutations) {
             if (perm != number) {
-              _entries.add(ThreeDEntry(number: perm, amount: amount));
-              _entryAmountControllers.add(
-                TextEditingController(text: amount.toString()),
-              );
+              // Check if this permutation already exists
+              bool permExists = false;
+              for (int i = 0; i < _entries.length; i++) {
+                if (_entries[i].number == perm) {
+                  // Update the amount instead of adding new entry
+                  _entries[i] = ThreeDEntry(
+                    number: perm,
+                    amount: _entries[i].amount + amount,
+                  );
+                  // Update the controller as well
+                  _entryAmountControllers[i].text =
+                      _entries[i].amount.toString();
+                  permExists = true;
+                  break;
+                }
+              }
+
+              // Add the permutation if it doesn't exist
+              if (!permExists) {
+                _entries.add(ThreeDEntry(number: perm, amount: amount));
+                _entryAmountControllers.add(
+                  TextEditingController(text: amount.toString()),
+                );
+              }
             }
           }
         }

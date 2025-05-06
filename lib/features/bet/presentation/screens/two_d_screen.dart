@@ -552,18 +552,21 @@ class _TwoDScreenState extends State<TwoDScreen>
               ),
             ),
         const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 16),
-            const SizedBox(width: 4),
-            Text(
-              _isLoading
-                  ? 'Loading...'
-                  : 'Updated: ${_apiData['date'] ?? ''} ${_apiData['current_time'] ?? ''}',
-              style: TextStyle(color: AppTheme.textColor, fontSize: 14),
-            ),
-          ],
+        Visibility(
+          visible: _apiData['date'] != null,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 16),
+              const SizedBox(width: 4),
+              Text(
+                _isLoading
+                    ? 'Loading...'
+                    : 'Updated: ${_apiData['date'] ?? ''} ${_apiData['current_time'] ?? ''}',
+                style: TextStyle(color: AppTheme.textColor, fontSize: 14),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
       ],
@@ -855,7 +858,7 @@ class _TwoDScreenState extends State<TwoDScreen>
           //         ),
           //   ),
           // );
-          await fetchSessionStatus();
+           await fetchSessionStatus();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryColor,

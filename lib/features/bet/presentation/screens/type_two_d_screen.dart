@@ -265,21 +265,58 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
       return;
     }
 
-    // Add the entry to the list
     setState(() {
-      // Add the original number
-      _entries.add(TwoDEntry(number: number, amount: amount));
-      _entryAmountControllers.add(
-        TextEditingController(text: amount.toString()),
-      );
+      // Check if the original number already exists in the entries
+      bool originalExists = false;
+      for (int i = 0; i < _entries.length; i++) {
+        if (_entries[i].number == number) {
+          // Update the amount instead of adding new entry
+          _entries[i] = TwoDEntry(
+            number: number,
+            amount: _entries[i].amount + amount,
+          );
+          // Update the controller as well
+          _entryAmountControllers[i].text = _entries[i].amount.toString();
+          originalExists = true;
+          break;
+        }
+      }
+
+      // Add the entry if it doesn't exist
+      if (!originalExists) {
+        _entries.add(TwoDEntry(number: number, amount: amount));
+        _entryAmountControllers.add(
+          TextEditingController(text: amount.toString()),
+        );
+      }
 
       // If R is toggled on, also add the reversed number (except for palindrome numbers like 11, 22, etc.)
       if (_isRToggled && number[0] != number[1]) {
         final reversedNumber = number[1] + number[0];
-        _entries.add(TwoDEntry(number: reversedNumber, amount: amount));
-        _entryAmountControllers.add(
-          TextEditingController(text: amount.toString()),
-        );
+        bool reversedExists = false;
+
+        // Check if the reversed number already exists
+        for (int i = 0; i < _entries.length; i++) {
+          if (_entries[i].number == reversedNumber) {
+            // Update the amount instead of adding new entry
+            _entries[i] = TwoDEntry(
+              number: reversedNumber,
+              amount: _entries[i].amount + amount,
+            );
+            // Update the controller as well
+            _entryAmountControllers[i].text = _entries[i].amount.toString();
+            reversedExists = true;
+            break;
+          }
+        }
+
+        // Add the reversed entry if it doesn't exist
+        if (!reversedExists) {
+          _entries.add(TwoDEntry(number: reversedNumber, amount: amount));
+          _entryAmountControllers.add(
+            TextEditingController(text: amount.toString()),
+          );
+        }
       }
 
       _updateTotalAmount();
@@ -401,11 +438,30 @@ class _TypeTwoDScreenState extends ConsumerState<TypeTwoDScreen> {
     // Add entries for all selected numbers
     setState(() {
       for (String number in selectedNumbers) {
-        _entries.add(TwoDEntry(number: number, amount: amount));
-        // Create a controller for each entry
-        _entryAmountControllers.add(
-          TextEditingController(text: amount.toString()),
-        );
+        // Check if the number already exists in the entries
+        bool numberExists = false;
+        for (int i = 0; i < _entries.length; i++) {
+          if (_entries[i].number == number) {
+            // Update the amount instead of adding new entry
+            _entries[i] = TwoDEntry(
+              number: number,
+              amount: _entries[i].amount + amount,
+            );
+            // Update the controller as well
+            _entryAmountControllers[i].text = _entries[i].amount.toString();
+            numberExists = true;
+            break;
+          }
+        }
+
+        // Add new entry if it doesn't exist
+        if (!numberExists) {
+          _entries.add(TwoDEntry(number: number, amount: amount));
+          // Create a controller for each entry
+          _entryAmountControllers.add(
+            TextEditingController(text: amount.toString()),
+          );
+        }
       }
 
       _updateTotalAmount();
