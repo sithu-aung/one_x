@@ -182,7 +182,7 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
         ],
       ),
       body: SafeArea(
-        child:homeDataValue.when(
+        child: homeDataValue.when(
           data:
               (homeData) => Column(
                 children: [
@@ -677,95 +677,6 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
       // Store parsed results directly in a list to preserve all entries including duplicates
       List<Map<String, dynamic>> result = [];
 
-      // Special handling for R formula inputs (both single and multiple numbers)
-      final rFormulaPattern = RegExp(
-        r'^([0-9๐-๙၀-၉.,*/|\s]+)([Rr@])([0-9๐-๙๐-๙]+)$',
-      );
-      if (rFormulaPattern.hasMatch(input)) {
-        print('R formula detected: $input');
-
-        final rFormulaMatch = rFormulaPattern.firstMatch(input);
-        if (rFormulaMatch != null) {
-          final numbersPart = rFormulaMatch.group(1) ?? "";
-          final amountPart = rFormulaMatch.group(3) ?? "";
-
-          print(
-            'R formula match - Numbers part: $numbersPart, Amount part: $amountPart',
-          );
-
-          // Parse amount
-          int processAmount = 0;
-          try {
-            String normalizedAmount = _normalizeNumber(amountPart);
-            normalizedAmount = normalizedAmount.replaceAll(',', '');
-            processAmount = int.parse(normalizedAmount);
-            print('Parsed amount for R formula: $processAmount');
-          } catch (e) {
-            print('Failed to parse amount from R formula: $e');
-            throw Exception('ထိုးငွေပမာဏ မှားယွင်းနေပါသည်');
-          }
-
-          // Check if numbers part contains delimiters
-          if (numbersPart.contains('.') ||
-              numbersPart.contains(',') ||
-              numbersPart.contains('*') ||
-              numbersPart.contains('/') ||
-              numbersPart.contains('|') ||
-              numbersPart.contains(' ')) {
-            // Split numbers by delimiters for multiple numbers
-            final RegExp numberSeparator = RegExp(r'[.,*/|\s]+');
-            final numberStrings = numbersPart.split(numberSeparator);
-            print('Split numbers into: $numberStrings');
-
-            // Process each number with the reverse formula
-            for (final numStr in numberStrings) {
-              if (numStr.trim().isEmpty) continue;
-
-              String normalizedNumber = _normalizeNumber(numStr.trim());
-              normalizedNumber = normalizedNumber.replaceAll(
-                RegExp(r'[^0-9]'),
-                '',
-              );
-
-              // Make sure it's a valid number and pad to 3 digits if needed
-              if (_isValid3DNumber(normalizedNumber)) {
-                final paddedNumber = _padTo3Digits(normalizedNumber);
-                // Process this number with the reverse formula
-                _processReverseFormula(paddedNumber, processAmount, result);
-                print('Processed 3D number with R formula: $paddedNumber');
-              }
-            }
-          } else {
-            // Single number case (like "123R500")
-            String normalizedNumber = _normalizeNumber(numbersPart);
-            normalizedNumber = normalizedNumber.replaceAll(
-              RegExp(r'[^0-9]'),
-              '',
-            );
-
-            // Make sure it's a valid number and pad to 3 digits if needed
-            if (_isValid3DNumber(normalizedNumber)) {
-              final paddedNumber = _padTo3Digits(normalizedNumber);
-              // Process this number with the reverse formula
-              _processReverseFormula(paddedNumber, processAmount, result);
-              print('Processed single 3D number with R formula: $paddedNumber');
-            }
-          }
-
-          // Update the parsed numbers and total amount
-          _parsedNumbers.addAll(result);
-          for (var entry in result) {
-            _totalAmount += (entry['amount'] as int).toDouble();
-          }
-
-          if (_parsedNumbers.isEmpty) {
-            throw Exception('နံပါတ်များကို မှန်ကန်စွာ ထည့်သွင်းပေးပါ');
-          }
-
-          return; // Skip regular parsing
-        }
-      }
-
       // Split by newlines for regular processing
       final lines = input.split('\n');
       print('Parsing ${lines.length} lines of input');
@@ -776,81 +687,9 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
 
         print('Processing line: $line');
 
-        // Check for multi-number R formula pattern on this line
-        final lineRFormulaPattern = RegExp(
-          r'^([0-9๐-๙၀-၉.,*/|\s]+)([Rr@])([0-9๐-๙၀-๙]+)$',
-        );
-        if (lineRFormulaPattern.hasMatch(line)) {
-          print('Line contains R formula: $line');
-
-          final rFormulaMatch = lineRFormulaPattern.firstMatch(line);
-          if (rFormulaMatch != null) {
-            final numbersPart = rFormulaMatch.group(1) ?? "";
-            final amountPart = rFormulaMatch.group(3) ?? "";
-
-            // Parse amount
-            int processAmount = 0;
-            try {
-              String normalizedAmount = _normalizeNumber(amountPart);
-              normalizedAmount = normalizedAmount.replaceAll(',', '');
-              processAmount = int.parse(normalizedAmount);
-              print('Parsed amount for R formula: $processAmount');
-            } catch (e) {
-              print('Failed to parse amount from R formula: $e');
-              continue; // Skip this line if we can't parse the amount
-            }
-
-            // Check if numbers part contains delimiters
-            if (numbersPart.contains('.') ||
-                numbersPart.contains(',') ||
-                numbersPart.contains('*') ||
-                numbersPart.contains('/') ||
-                numbersPart.contains('|') ||
-                numbersPart.contains(' ')) {
-              // Split numbers by delimiters
-              final RegExp numberSeparator = RegExp(r'[.,*/|\s]+');
-              final numberStrings = numbersPart.split(numberSeparator);
-              print('Split numbers into: $numberStrings');
-
-              // Process each number with the reverse formula
-              for (final numStr in numberStrings) {
-                if (numStr.trim().isEmpty) continue;
-
-                String normalizedNumber = _normalizeNumber(numStr.trim());
-                normalizedNumber = normalizedNumber.replaceAll(
-                  RegExp(r'[^0-9]'),
-                  '',
-                );
-
-                // Make sure it's a valid number and pad to 3 digits if needed
-                if (_isValid3DNumber(normalizedNumber)) {
-                  final paddedNumber = _padTo3Digits(normalizedNumber);
-                  // Process this number with the reverse formula
-                  _processReverseFormula(paddedNumber, processAmount, result);
-                  print('Processed 3D number with R formula: $paddedNumber');
-                }
-              }
-            } else {
-              // Single number case (like "123R500")
-              String normalizedNumber = _normalizeNumber(numbersPart);
-              normalizedNumber = normalizedNumber.replaceAll(
-                RegExp(r'[^0-9]'),
-                '',
-              );
-
-              // Make sure it's a valid number and pad to 3 digits if needed
-              if (_isValid3DNumber(normalizedNumber)) {
-                final paddedNumber = _padTo3Digits(normalizedNumber);
-                // Process this number with the reverse formula
-                _processReverseFormula(paddedNumber, processAmount, result);
-                print(
-                  'Processed single 3D number with R formula: $paddedNumber',
-                );
-              }
-            }
-
-            continue; // Skip regular processing for this line
-          }
+        // Check for R formula pattern first
+        if (_processRPattern(line, result)) {
+          continue; // Skip regular processing for this line
         }
 
         // Check for direct formula pattern first (e.g., "အပူး500", "AP700", "1ထိပ်1000")
@@ -859,45 +698,86 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
           continue; // Skip regular processing for this line
         }
 
-        // First, separate the line by common amount separators (=, -, :)
+        // Improved separator logic - check for =, -, : separators
         final RegExp amountSeparator = RegExp(r'[=\-:]');
-        final parts = line.split(amountSeparator);
 
-        if (parts.length >= 2) {
-          // Last part is assumed to be the amount
-          final amountStr = parts.last.trim();
+        // Check if any separator exists in the line
+        if (amountSeparator.hasMatch(line)) {
+          // Get the last part after the separator
+          final parts = line.split(amountSeparator);
 
-          // Fix: Properly extract the number part without the separator
-          final numbersPart = line.substring(0, line.indexOf(amountStr)).trim();
-          // Remove any trailing separators that might have been left
-          final cleanNumbersPart = numbersPart.replaceAll(
-            RegExp(r'[=\-:]+$'),
-            '',
-          );
+          if (parts.length >= 2) {
+            // Last part is assumed to be the amount
+            final amountStr = parts.last.trim();
 
-          print('Numbers part: $cleanNumbersPart, Amount part: $amountStr');
+            // Extract the number part
+            final numbersPart =
+                line.substring(0, line.lastIndexOf(amountStr) - 1).trim();
+            // Remove any trailing separators that might have been left
+            final cleanNumbersPart = numbersPart.replaceAll(
+              RegExp(r'[=\-:]+$'),
+              '',
+            );
 
-          // Convert amount from Myanmar to Arabic digits if needed
-          final normalizedAmountStr = _normalizeNumber(amountStr);
-          int? amount;
+            print('Numbers part: $cleanNumbersPart, Amount part: $amountStr');
 
-          try {
-            amount = int.parse(normalizedAmountStr.replaceAll(',', ''));
-            print('Parsed amount: $amount');
-          } catch (e) {
-            print('Failed to parse amount: $amountStr');
-            continue;
+            // Convert amount from Myanmar to Arabic digits if needed
+            final normalizedAmountStr = _normalizeNumber(amountStr);
+            int? amount;
+
+            try {
+              amount = int.parse(normalizedAmountStr.replaceAll(',', ''));
+              print('Parsed amount: $amount');
+            } catch (e) {
+              print('Failed to parse amount: $amountStr');
+              continue;
+            }
+
+            // Process the numbers part with separators
+            _processNumbersWithAmount(cleanNumbersPart, amount, result);
+          }
+        }
+        // Check for space separator format - e.g., "123 456 789 2000"
+        else if (line.contains(' ')) {
+          final parts = line.split(' ');
+
+          // Check if last part could be an amount
+          if (parts.length >= 2) {
+            final lastPart = parts.last.trim();
+            // Try to convert to a number to see if it's an amount
+            final normalizedLastPart = _normalizeNumber(lastPart);
+            int? amount;
+
+            try {
+              amount = int.parse(normalizedLastPart.replaceAll(',', ''));
+              print('Last part seems to be an amount: $amount');
+
+              // Reconstruct the numbers part (all except the last part)
+              final numbersPart = parts.sublist(0, parts.length - 1).join(' ');
+
+              // Process the numbers with this amount
+              _processNumbersWithAmount(numbersPart, amount, result);
+              continue; // Skip to next line
+            } catch (e) {
+              print(
+                'Last part is not an amount: $lastPart, treating all as numbers',
+              );
+              // If last part is not an amount, process the entire line as numbers with default amount
+            }
           }
 
-          // Process this line for numbers and add to the result list
-          _processLine(cleanNumbersPart, amount, result);
+          // If we get here, assume equal amounts for all numbers
+          _processNumbersWithEqualAmounts(line, result);
+        }
+        // No recognized separator, check if there's a mix of numbers and amounts
+        else {
+          // Try to parse the whole line as a single number
+          _processSingleNumberOrFormula(line, result);
         }
       }
 
-      // Update _parsedNumbers with all entries from result
+      // Update the parsed numbers
       _parsedNumbers.addAll(result);
-
-      // Calculate total amount
       for (var entry in result) {
         _totalAmount += (entry['amount'] as int).toDouble();
       }
@@ -907,6 +787,177 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
       }
     } catch (e) {
       throw Exception('ကော်ပီကူးထိုးရာတွင် အမှားရှိနေပါသည်: ${e.toString()}');
+    }
+  }
+
+  // New helper method to process R pattern
+  bool _processRPattern(String line, List<Map<String, dynamic>> result) {
+    // Check for R formula pattern (e.g., "123R500")
+    final rPattern = RegExp(r'^([0-9๐-๙၀-၉]+)([Rr@])([0-9๐-๙၀-၉]+)$');
+
+    if (rPattern.hasMatch(line)) {
+      final match = rPattern.firstMatch(line);
+      if (match != null) {
+        final numberStr = _normalizeNumber(match.group(1) ?? "");
+        final amountStr = _normalizeNumber(match.group(3) ?? "");
+
+        try {
+          final amount = int.parse(amountStr.replaceAll(',', ''));
+
+          // If it's a valid 3D number, process it with the reverse formula
+          if (_isValid3DNumber(numberStr)) {
+            final paddedNumber = _padTo3Digits(numberStr);
+            _processReverseFormula(paddedNumber, amount, result);
+            return true;
+          }
+        } catch (e) {
+          print('Failed to parse amount from R formula: $e');
+        }
+      }
+    }
+
+    // Check for multiple numbers with R formula (e.g., "123.456R500")
+    final multiNumberRPattern = RegExp(r'^(.+?)([Rr@])([0-9๐-๙၀-၉]+)$');
+
+    if (multiNumberRPattern.hasMatch(line)) {
+      final match = multiNumberRPattern.firstMatch(line);
+      if (match != null) {
+        final numbersPart = match.group(1) ?? "";
+        final amountStr = _normalizeNumber(match.group(3) ?? "");
+
+        // Check if numbers part contains separators
+        if (numbersPart.contains('.') ||
+            numbersPart.contains(',') ||
+            numbersPart.contains('*') ||
+            numbersPart.contains('/') ||
+            numbersPart.contains('|') ||
+            numbersPart.contains(' ')) {
+          try {
+            final amount = int.parse(amountStr.replaceAll(',', ''));
+
+            // Split by separators and process each number
+            final RegExp numberSeparator = RegExp(r'[.,*/|\s]+');
+            final numberStrings = numbersPart.split(numberSeparator);
+
+            for (final numStr in numberStrings) {
+              if (numStr.trim().isEmpty) continue;
+
+              String normalizedNumber = _normalizeNumber(numStr.trim());
+              normalizedNumber = normalizedNumber.replaceAll(
+                RegExp(r'[^0-9]'),
+                '',
+              );
+
+              if (_isValid3DNumber(normalizedNumber)) {
+                final paddedNumber = _padTo3Digits(normalizedNumber);
+                _processReverseFormula(paddedNumber, amount, result);
+              }
+            }
+
+            return true;
+          } catch (e) {
+            print('Failed to parse amount from multi-number R formula: $e');
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // New helper method to process numbers with an amount
+  void _processNumbersWithAmount(
+    String numbersPart,
+    int amount,
+    List<Map<String, dynamic>> result,
+  ) {
+    // Split the numbers by common separators
+    final RegExp numberSeparator = RegExp(r'[.,*/|\s]+');
+    final numberStrings = numbersPart.split(numberSeparator);
+
+    print(
+      'Processing numbers with amount $amount: ${numberStrings.length} numbers found',
+    );
+
+    for (final numStr in numberStrings) {
+      if (numStr.trim().isEmpty) continue;
+
+      String normalizedNumber = _normalizeNumber(numStr.trim());
+      normalizedNumber = normalizedNumber.replaceAll(RegExp(r'[^0-9]'), '');
+
+      if (_isValid3DNumber(normalizedNumber)) {
+        final paddedNumber = _padTo3Digits(normalizedNumber);
+        result.add({'number': paddedNumber, 'amount': amount});
+        print('Added number $paddedNumber with amount $amount');
+      }
+    }
+  }
+
+  // New helper method to process numbers with equal amounts
+  void _processNumbersWithEqualAmounts(
+    String line,
+    List<Map<String, dynamic>> result,
+  ) {
+    // Check if we can find an amount in the line
+    int? amount;
+    final amountMatch = RegExp(r'([0-9๐-๙,]+)$').firstMatch(line);
+
+    if (amountMatch != null) {
+      final amountStr = _normalizeNumber(amountMatch.group(1) ?? "");
+      try {
+        amount = int.parse(amountStr.replaceAll(',', ''));
+        print('Found amount at end of line: $amount');
+
+        // Remove the amount part from the line for number processing
+        line = line.substring(0, line.lastIndexOf(amountStr)).trim();
+      } catch (e) {
+        print('Failed to parse amount at end of line, using default');
+        amount = 100; // Default amount if not found
+      }
+    } else {
+      amount = 100; // Default amount if no amount is found
+    }
+
+    // Process the remaining line as numbers
+    final RegExp numberSeparator = RegExp(r'[.,*/|\s]+');
+    final numberStrings = line.split(numberSeparator);
+
+    for (final numStr in numberStrings) {
+      if (numStr.trim().isEmpty) continue;
+
+      String normalizedNumber = _normalizeNumber(numStr.trim());
+      normalizedNumber = normalizedNumber.replaceAll(RegExp(r'[^0-9]'), '');
+
+      if (_isValid3DNumber(normalizedNumber)) {
+        final paddedNumber = _padTo3Digits(normalizedNumber);
+        result.add({'number': paddedNumber, 'amount': amount});
+        print('Added number $paddedNumber with equal amount $amount');
+      }
+    }
+  }
+
+  // New helper method to process a single number or formula
+  void _processSingleNumberOrFormula(
+    String line,
+    List<Map<String, dynamic>> result,
+  ) {
+    // Check if there's a formula indicator
+    if (_hasFormula(line)) {
+      print('Formula detected in single item: $line');
+      // Use the existing formula processing
+      _processFormulaLine(line, result);
+      return;
+    }
+
+    // Try to normalize and validate as a 3D number
+    String normalizedNumber = _normalizeNumber(line);
+    normalizedNumber = normalizedNumber.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (_isValid3DNumber(normalizedNumber)) {
+      final paddedNumber = _padTo3Digits(normalizedNumber);
+      // Use default amount since none was specified
+      result.add({'number': paddedNumber, 'amount': 100});
+      print('Added single number $paddedNumber with default amount 100');
     }
   }
 
@@ -1060,90 +1111,6 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
     return numbers;
   }
 
-  // Process a line to extract numbers and their amounts
-  void _processLine(
-    String line,
-    int amount,
-    List<Map<String, dynamic>> result,
-  ) {
-    // Check for number+R+amount format without separators (e.g., "123R500")
-    RegExpMatch? reverseWithAmount = RegExp(
-      r'([0-9๐-๙၀-၉]+)[Rr@]([0-9๐-๙၀-၉]+)',
-    ).firstMatch(line);
-    if (reverseWithAmount != null) {
-      final numberStr = _normalizeNumber(reverseWithAmount.group(1) ?? '');
-      final amountStr = _normalizeNumber(reverseWithAmount.group(2) ?? '');
-
-      // Parse the amount from the formula
-      final parsedAmount = int.tryParse(amountStr.replaceAll(',', ''));
-      if (parsedAmount != null) {
-        // Pad the number to 3 digits if needed
-        final paddedNumber = _padTo3Digits(numberStr);
-        _processReverseFormula(paddedNumber, parsedAmount, result);
-        return;
-      }
-    }
-
-    // Check if we have a formula in the line
-    if (_hasFormula(line)) {
-      print('Formula detected in line: $line');
-      _processFormulaInLine(line, amount, result);
-      return;
-    }
-
-    // If not a whole-line formula, split by separators and process each part
-    final RegExp numberSeparator = RegExp(r'[.,*/|\s]+');
-    final numberStrings = line.split(numberSeparator);
-    print('Split input into ${numberStrings.length} parts: $numberStrings');
-
-    for (final numStr in numberStrings) {
-      if (numStr.trim().isEmpty) continue;
-
-      // Check if this individual number has a reverse indicator
-      final individualHasReverse = RegExp(
-        r'([0-9๐-๙၀-၉]+)[Rr@]$',
-      ).hasMatch(numStr.trim());
-
-      if (individualHasReverse) {
-        print('Individual number has reverse formula: $numStr');
-        // Extract the number part
-        final numPart = RegExp(
-          r'([0-9๐-๙၀-၉]+)',
-        ).firstMatch(numStr.trim())?.group(1);
-        if (numPart != null) {
-          final normalizedNum = _normalizeNumber(numPart);
-
-          // Pad to 3 digits if needed
-          final paddedNumber = _padTo3Digits(normalizedNum);
-
-          // Process this as a reverse formula to generate all permutations
-          _processReverseFormula(paddedNumber, amount, result);
-        }
-        continue;
-      }
-
-      // Regular number without formula
-      final normalizedNumber = _normalizeNumber(numStr.trim());
-
-      // Remove any remaining non-digit characters
-      final cleanNormalizedNumber = normalizedNumber.replaceAll(
-        RegExp(r'[^0-9]'),
-        '',
-      );
-
-      // Check if it's a valid Myanmar or Arabic number
-      final isValid = RegExp(r'^[0-9๐-๙၀-၉]+$').hasMatch(numStr.trim());
-      if (!isValid) continue;
-
-      // Validate it's a 3-digit number or can be padded to 3 digits
-      if (_isValid3DNumber(cleanNormalizedNumber)) {
-        final paddedNumber = _padTo3Digits(cleanNormalizedNumber);
-        result.add({'number': paddedNumber, 'amount': amount});
-        print('Added 3-digit number: $paddedNumber with amount: $amount');
-      }
-    }
-  }
-
   // Helper method to pad numbers to 3 digits
   String _padTo3Digits(String number) {
     if (number.length == 1) {
@@ -1156,219 +1123,19 @@ class _Copy3DNumberScreenState extends ConsumerState<Copy3DNumberScreen> {
 
   // Check if text contains a formula pattern
   bool _hasFormula(String text) {
+    // More comprehensive pattern checking for formulas
     return RegExp(
-      r'[Rr@]|[0-9๐-๙၀-၉]+(T|ထိပ်|ထိပ်စီး|ရှေ့)|[0-9๐-๙၀-၉]+(M|အလယ်)|[0-9๐-๙၀-၉]+(N|နောက်|နောက်ပိတ်|ပိတ်)|AP|ap|အပူး|ပူး|SP|sp|စုံပူး|စပ|MP|mp|မပူး|မပ',
+      r'[Rr@]|' // R formula indicators
+      r'[0-9๐-๙၀-၉]+(T|ထိပ်|ထိပ်စီး|ရှေ့)|' // Head/Top formula indicators
+      r'[0-9๐-๙၀-၉]+(M|အလယ်)|' // Middle formula indicators
+      r'[0-9๐-๙၀-၉]+(N|နောက်|နောက်ပိတ်|ပိတ်)|' // Tail formula indicators
+      r'AP|ap|အပူး|ပူး|' // All pairs formula indicators
+      r'SP|sp|စုံပူး|စပ|' // Even pairs formula indicators
+      r'MP|mp|မပူး|မပ', // Odd pairs formula indicators
     ).hasMatch(text);
   }
 
-  // Process a formula found within a line
-  void _processFormulaInLine(
-    String line,
-    int amount,
-    List<Map<String, dynamic>> result,
-  ) {
-    // Check for reverse formula
-    if (RegExp(r'[Rr@]').hasMatch(line)) {
-      print('Reverse formula detected in: $line');
-
-      // Try different patterns to match the reverse formula
-      // First, check for pattern like "123R500" (number + R + amount)
-      RegExpMatch? formulaWithAmount = RegExp(
-        r'([0-9๐-๙၀-၉]+)[Rr@]([0-9๐-๙၀-၉]+)',
-      ).firstMatch(line);
-      if (formulaWithAmount != null) {
-        final numberStr = _normalizeNumber(formulaWithAmount.group(1) ?? '');
-        final amountStr = _normalizeNumber(formulaWithAmount.group(2) ?? '');
-
-        // Parse the amount from the formula
-        final parsedAmount =
-            int.tryParse(amountStr.replaceAll(',', '')) ?? amount;
-
-        // Process the reverse formula with this amount
-        _processReverseFormula(numberStr, parsedAmount, result);
-        return;
-      }
-
-      // If not found, look for the regular pattern (number + R)
-      RegExpMatch? formulaParts = RegExp(
-        r'([0-9๐-๙၀-၉]+)[Rr@]',
-      ).firstMatch(line);
-      if (formulaParts != null && formulaParts.group(1) != null) {
-        final numberStr = _normalizeNumber(formulaParts.group(1)!);
-        _processReverseFormula(numberStr, amount, result);
-      }
-      return;
-    }
-
-    // Check for head/top formula with amount pattern (e.g., "1T500")
-    RegExpMatch? headWithAmount = RegExp(
-      r'([0-9๐-๙၀-၉]+)(T|ထိပ်|ထိပ်စီး|ရှေ့)([0-9๐-๙၀-၉]+)',
-    ).firstMatch(line);
-    if (headWithAmount != null) {
-      String digit = _normalizeNumber(headWithAmount.group(1) ?? "");
-      String amountStr = _normalizeNumber(headWithAmount.group(3) ?? "");
-      int parsedAmount = int.tryParse(amountStr.replaceAll(',', '')) ?? amount;
-
-      if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
-        for (int i = 0; i <= 9; i++) {
-          for (int j = 0; j <= 9; j++) {
-            result.add({'number': '$digit$i$j', 'amount': parsedAmount});
-          }
-        }
-      }
-      return;
-    }
-
-    // Check for regular head/top formula
-    RegExpMatch? match = RegExp(
-      r'([0-9๐-๙၀-၉]+)(T|ထိပ်|ထိပ်စီး|ရှေ့)',
-    ).firstMatch(line);
-    if (match != null) {
-      String digit = _normalizeNumber(match.group(1) ?? "");
-      if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
-        for (int i = 0; i <= 9; i++) {
-          for (int j = 0; j <= 9; j++) {
-            result.add({'number': '$digit$i$j', 'amount': amount});
-          }
-        }
-      }
-      return;
-    }
-
-    // Check for middle formula with amount pattern (e.g., "1M500")
-    RegExpMatch? middleWithAmount = RegExp(
-      r'([0-9๐-๙၀-၉]+)(M|အလယ်)([0-9๐-๙၀-၉]+)',
-    ).firstMatch(line);
-    if (middleWithAmount != null) {
-      String digit = _normalizeNumber(middleWithAmount.group(1) ?? "");
-      String amountStr = _normalizeNumber(middleWithAmount.group(3) ?? "");
-      int parsedAmount = int.tryParse(amountStr.replaceAll(',', '')) ?? amount;
-
-      if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
-        for (int i = 0; i <= 9; i++) {
-          for (int j = 0; j <= 9; j++) {
-            result.add({'number': '$i$digit$j', 'amount': parsedAmount});
-          }
-        }
-      }
-      return;
-    }
-
-    // Check for regular middle formula
-    match = RegExp(r'([0-9๐-๙၀-၉]+)(M|အလယ်)').firstMatch(line);
-    if (match != null) {
-      String digit = _normalizeNumber(match.group(1) ?? "");
-      if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
-        for (int i = 0; i <= 9; i++) {
-          for (int j = 0; j <= 9; j++) {
-            result.add({'number': '$i$digit$j', 'amount': amount});
-          }
-        }
-      }
-      return;
-    }
-
-    // Check for tail formula with amount pattern (e.g., "1N500")
-    RegExpMatch? tailWithAmount = RegExp(
-      r'([0-9๐-๙၀-၉]+)(N|နောက်|နောက်ပိတ်|ပိတ်)([0-9๐-๙၀-၉]+)',
-    ).firstMatch(line);
-    if (tailWithAmount != null) {
-      String digit = _normalizeNumber(tailWithAmount.group(1) ?? "");
-      String amountStr = _normalizeNumber(tailWithAmount.group(3) ?? "");
-      int parsedAmount = int.tryParse(amountStr.replaceAll(',', '')) ?? amount;
-
-      if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
-        for (int i = 0; i <= 9; i++) {
-          for (int j = 0; j <= 9; j++) {
-            result.add({'number': '$i$j$digit', 'amount': parsedAmount});
-          }
-        }
-      }
-      return;
-    }
-
-    // Check for regular tail formula
-    match = RegExp(r'([0-9๐-๙၀-၉]+)(N|နောက်|နောက်ပိတ်|ပိတ်)').firstMatch(line);
-    if (match != null) {
-      String digit = _normalizeNumber(match.group(1) ?? "");
-      if (digit.length == 1 && RegExp(r'[0-9]').hasMatch(digit)) {
-        for (int i = 0; i <= 9; i++) {
-          for (int j = 0; j <= 9; j++) {
-            result.add({'number': '$i$j$digit', 'amount': amount});
-          }
-        }
-      }
-      return;
-    }
-
-    // All Pairs with amount pattern (e.g., "AP500")
-    RegExpMatch? apWithAmount = RegExp(
-      r'(AP|ap|အပူး|ပူး)([0-9๐-๙၀-၉]+)',
-    ).firstMatch(line);
-    if (apWithAmount != null) {
-      String amountStr = _normalizeNumber(apWithAmount.group(2) ?? "");
-      int parsedAmount = int.tryParse(amountStr.replaceAll(',', '')) ?? amount;
-
-      for (int i = 0; i <= 9; i++) {
-        result.add({'number': '$i$i$i', 'amount': parsedAmount});
-      }
-      return;
-    }
-
-    // Regular All Pairs formula
-    if (RegExp(r'AP|ap|အပူး|ပူး').hasMatch(line)) {
-      for (int i = 0; i <= 9; i++) {
-        result.add({'number': '$i$i$i', 'amount': amount});
-      }
-      return;
-    }
-
-    // Even Pairs with amount pattern (e.g., "SP500")
-    RegExpMatch? spWithAmount = RegExp(
-      r'(SP|sp|စုံပူး|စပ)([0-9๐-๙၀-၉]+)',
-    ).firstMatch(line);
-    if (spWithAmount != null) {
-      String amountStr = _normalizeNumber(spWithAmount.group(2) ?? "");
-      int parsedAmount = int.tryParse(amountStr.replaceAll(',', '')) ?? amount;
-
-      for (int i = 0; i <= 8; i += 2) {
-        result.add({'number': '$i$i$i', 'amount': parsedAmount});
-      }
-      return;
-    }
-
-    // Regular Even Pairs formula
-    if (RegExp(r'SP|sp|စုံပူး|စပ').hasMatch(line)) {
-      for (int i = 0; i <= 8; i += 2) {
-        result.add({'number': '$i$i$i', 'amount': amount});
-      }
-      return;
-    }
-
-    // Odd Pairs with amount pattern (e.g., "MP500")
-    RegExpMatch? mpWithAmount = RegExp(
-      r'(MP|mp|မပူး|မပ)([0-9๐-๙၀-၉]+)',
-    ).firstMatch(line);
-    if (mpWithAmount != null) {
-      String amountStr = _normalizeNumber(mpWithAmount.group(2) ?? "");
-      int parsedAmount = int.tryParse(amountStr.replaceAll(',', '')) ?? amount;
-
-      for (int i = 1; i <= 9; i += 2) {
-        result.add({'number': '$i$i$i', 'amount': parsedAmount});
-      }
-      return;
-    }
-
-    // Regular Odd Pairs formula
-    if (RegExp(r'MP|mp|မပူး|မပ').hasMatch(line)) {
-      for (int i = 1; i <= 9; i += 2) {
-        result.add({'number': '$i$i$i', 'amount': amount});
-      }
-      return;
-    }
-  }
-
-  // New helper method to process reverse formula and generate all permutations
+  // Helper method to process reverse formula and generate all permutations
   void _processReverseFormula(
     String numberStr,
     int amount,
