@@ -305,27 +305,15 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'BeT',
+            Text(
+              '1xKing',
               style: TextStyle(
-                color: Color(0xFFE53935),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Text(
-              'MM',
-              style: TextStyle(
-                color: Color(0xFFE53935),
+                color: AppTheme.primaryColor,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ],
-        ),
-        const Text(
-          'www.betmm.net',
-          style: TextStyle(color: Colors.grey, fontSize: 12),
         ),
       ],
     );

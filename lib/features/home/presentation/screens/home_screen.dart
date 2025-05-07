@@ -171,7 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                         ),
                         Text(
-                          'Version 1.1.2',
+                          'Version 1.1.3',
                           style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],
@@ -374,24 +374,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _buildBankLogo('assets/images/kbz_pay.png'),
                     const SizedBox(width: 12),
                     _buildBankLogo('assets/images/wave_money.png'),
-                    const SizedBox(width: 12),
-                    _buildBankLogo('assets/images/aya_bank.png'),
-                    const SizedBox(width: 12),
-                    _buildBankLogo('assets/images/aya_pay.png'),
-                    const SizedBox(width: 12),
-                    _buildBankLogo('assets/images/ok_dollar.png'),
+                    // const SizedBox(width: 12),
+                    // _buildBankLogo('assets/images/aya_bank.png'),
+                    // const SizedBox(width: 12),
+                    // _buildBankLogo('assets/images/aya_pay.png'),
+                    // const SizedBox(width: 12),
+                    // _buildBankLogo('assets/images/ok_dollar.png'),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
-                child: Row(
-                  children: [_buildBankLogo('assets/images/cb_pay.png')],
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(
+              //     horizontal: 16.0,
+              //     vertical: 8.0,
+              //   ),
+              //   child: Row(
+              //     children: [_buildBankLogo('assets/images/cb_pay.png')],
+              //   ),
+              // ),
               const SizedBox(height: 16),
             ],
           ),
