@@ -8,6 +8,9 @@ import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
 import 'package:one_x/features/auth/presentation/screens/login_screen.dart';
 import 'package:one_x/features/home/presentation/screens/home_screen.dart';
 import 'package:one_x/core/utils/secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'features/learning/presentation/screens/learning_page.dart';
 
 // Global key for navigation
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -102,25 +105,53 @@ class MainApp extends ConsumerStatefulWidget {
 }
 
 class _MainAppState extends ConsumerState<MainApp> {
+  bool? _isLearning;
+  bool _checkingLearning = true;
+
   @override
   void initState() {
     super.initState();
-
-    // Set initial theme and auth state on next frame
-    Future.microtask(() {
+    Future.microtask(() async {
       // Set initial theme if available
       if (widget.initialTheme != null) {
         final themeType = _stringToThemeType(widget.initialTheme!);
         ref.read(themeProvider.notifier).setTheme(themeType);
       }
-
       // Set initial auth state
       if (widget.isAuthenticated) {
         ref.read(authProvider.notifier).setAuthenticated();
       } else {
         ref.read(authProvider.notifier).setUnauthenticated();
       }
+      // Check is_learning flag
+      await _checkLearningFlag();
     });
+  }
+
+  Future<void> _checkLearningFlag() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.jsonbin.io/v3/b/681e1c4d8561e97a50109cdd'),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final isLearning = data['record']?['is_learning'] == true;
+        setState(() {
+          _isLearning = isLearning;
+          _checkingLearning = false;
+        });
+      } else {
+        setState(() {
+          _isLearning = false;
+          _checkingLearning = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLearning = false;
+        _checkingLearning = false;
+      });
+    }
   }
 
   // Helper method to convert string to ThemeType
@@ -135,6 +166,22 @@ class _MainAppState extends ConsumerState<MainApp> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final themeState = ref.watch(themeProvider);
+
+    if (_checkingLearning) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Colors.black,
+          body: Center(child: CircularProgressIndicator(color: Colors.white)),
+        ),
+      );
+    }
+    if (_isLearning == true) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: const LearningPage(),
+      );
+    }
 
     return KeyedSubtree(
       key: ValueKey(themeState.restartKey),
