@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/quiz_questions.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 
 class LearningPage extends StatefulWidget {
   const LearningPage({super.key});
@@ -57,7 +58,10 @@ class _LearningPageState extends State<LearningPage> {
   void _logout(BuildContext context, WidgetRef ref) async {
     await ref.read(authProvider.notifier).logout();
     if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:one_x/core/constants/app_constants.dart';
 import 'package:one_x/core/providers/theme_provider.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
@@ -124,7 +125,7 @@ class _MainAppState extends ConsumerState<MainApp> {
         ref.read(authProvider.notifier).setUnauthenticated();
       }
       // Check is_learning flag
-      await _checkLearningFlag();
+      await _checkIsLearning();
     });
   }
 
@@ -136,6 +137,32 @@ class _MainAppState extends ConsumerState<MainApp> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final isLearning = data['record']?['is_learning'] == true;
+        setState(() {
+          _isLearning = isLearning;
+          _checkingLearning = false;
+        });
+      } else {
+        setState(() {
+          _isLearning = false;
+          _checkingLearning = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLearning = false;
+        _checkingLearning = false;
+      });
+    }
+  }
+
+  Future<void> _checkIsLearning() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/api/flag-check'),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final isLearning = data['data'] == true;
         setState(() {
           _isLearning = isLearning;
           _checkingLearning = false;
