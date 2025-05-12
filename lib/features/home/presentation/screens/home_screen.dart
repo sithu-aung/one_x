@@ -32,6 +32,10 @@ import 'package:one_x/shared/widgets/profile_avatar.dart';
 import 'package:marquee/marquee.dart';
 import 'dart:async';
 import 'package:one_x/core/utils/global_event_bus.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../../../main.dart' show rootNavigatorKey;
 
 class HomeScreen extends ConsumerStatefulWidget {
   final int? initialTabIndex;
@@ -47,6 +51,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final PageController _pageController = PageController();
   int _currentNavIndex = 0;
   StreamSubscription? _unauthorizedSubscription;
+  bool _checkedVersion = false;
 
   @override
   void initState() {
@@ -72,6 +77,86 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         _logout();
       }
     });
+
+    // Version check
+    _checkAppVersion();
+  }
+
+  Future<void> _checkAppVersion() async {
+    // if (_checkedVersion) return;
+    // _checkedVersion = true;
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/api/flag-check'),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final serverVersion = data['version']?.toString() ?? AppConstants.appVersion;
+        final currentVersion = AppConstants.appVersion;
+        if (_isVersionGreater(serverVersion, currentVersion)) {
+          print('serverVersion: $serverVersion');
+          print('currentVersion: $currentVersion');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showUpdateDialog(serverVersion);
+          });
+        }
+      }
+    } catch (e) {
+      // Ignore version check errors
+    }
+  }
+
+  bool _isVersionGreater(String server, String current) {
+    final serverParts = server.split('.').map(int.parse).toList();
+    final currentParts = current.split('.').map(int.parse).toList();
+    for (int i = 0; i < serverParts.length; i++) {
+      if (i >= currentParts.length) return true;
+      if (serverParts[i] > currentParts[i]) return true;
+      if (serverParts[i] < currentParts[i]) return false;
+    }
+    return serverParts.length > currentParts.length;
+  }
+
+  void _showUpdateDialog(String newVersion) {
+    showDialog(
+      context: rootNavigatorKey.currentContext!,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.system_update, color: Colors.indigo, size: 28),
+                SizedBox(width: 8),
+                Text('Update Available'),
+              ],
+            ),
+            content: Text(
+              'A new version ($newVersion) of the app is available. Please update to continue enjoying the latest features and improvements.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  const url =
+                      'https://play.google.com/store/apps/details?id=com.mm.one_x';
+                  if (await canLaunch(url)) {
+                    await launch(
+                      url,
+                      forceSafariVC: false,
+                      forceWebView: false,
+                    );
+                  }
+                },
+                child: Row(
+                  children: [
+                    Icon(Icons.open_in_new, color: Colors.green),
+                    SizedBox(width: 6),
+                    Text('Update Now'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+    );
   }
 
   void _startAutoScroll() {

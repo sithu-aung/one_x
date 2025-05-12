@@ -203,7 +203,7 @@ class _MainAppState extends ConsumerState<MainApp> {
         ),
       );
     }
-    if (_isLearning == true) {
+    if (_isLearning != true) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         home: const LearningPage(),

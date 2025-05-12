@@ -118,4 +118,7 @@ class AppConstants {
   static const String unknownErrorMessage =
       'An unknown error occurred. Please try again.';
   static const String invalidCredentialsMessage = 'Invalid email or password.';
+
+  // App Version
+  static const String appVersion = '1.1.5';
 }
