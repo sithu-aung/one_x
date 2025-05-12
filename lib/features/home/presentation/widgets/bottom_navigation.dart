@@ -22,7 +22,13 @@ class BottomNavigation extends StatelessWidget {
     final bool isDarkTheme = AppTheme.backgroundColor.computeLuminance() < 0.5;
 
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 0, 20, 10),
+      margin: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).size.height * 0.06,
+      ),
       height: 70,
       decoration: BoxDecoration(
         color: AppTheme.cardColor,

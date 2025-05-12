@@ -1332,19 +1332,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       // Use rootNavigator to ensure we're using the top-most navigator
       if (mounted) {
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).pushNamedAndRemoveUntil('/', (route) => false);
+        Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
       }
     } catch (e) {
       // If we encounter an error during logout, ensure we still redirect to login
       print('Error during logout: $e');
       if (mounted) {
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).pushNamedAndRemoveUntil('/', (route) => false);
+        Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
       }
     }
   }

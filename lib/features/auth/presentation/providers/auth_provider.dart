@@ -172,13 +172,12 @@ class AuthNotifier extends StateNotifier<AuthStateData> {
 
       state = state.copyWith(state: AuthState.loading);
 
+      // Only clear local data, no API call
       await _authRepository.logout();
 
       state = state.copyWith(state: AuthState.unauthenticated, user: null);
     } catch (e) {
-      // Even if logout API fails, we should still log the user out locally
-      // The logout() method in the repository already handles clearing storage
-      // in the finally block, so we just need to update our state
+      // Even if logout fails, we should still log the user out locally
       state = state.copyWith(state: AuthState.unauthenticated, user: null);
     }
   }

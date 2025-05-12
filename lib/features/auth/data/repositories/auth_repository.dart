@@ -118,14 +118,7 @@ class AuthRepository {
 
   // Logout user
   Future<void> logout() async {
-    try {
-      // Call logout API
-      await _apiService.post(AppConstants.logoutEndpoint);
-    } catch (e) {
-      // Ignore errors during logout
-    } finally {
-      // Clear local storage regardless of API success
-      await _storageService.clearAllData();
-    }
+    // Only clear local storage, do not call logout API
+    await _storageService.clearAllData();
   }
 }
