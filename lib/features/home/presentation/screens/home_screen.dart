@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:one_x/core/theme/app_theme.dart';
 import 'package:one_x/core/theme/app_theme.dart' as theme show ThemeType;
@@ -11,7 +10,6 @@ import 'package:one_x/features/payment/presentation/screens/payment_page.dart';
 import 'package:one_x/features/profile/presentation/screens/profile_screen.dart';
 import 'package:one_x/features/profile/presentation/screens/terms_condition_screen.dart';
 import 'package:one_x/features/profile/presentation/screens/privacy_policy_screen.dart';
-import 'package:one_x/features/settings/presentation/screens/theme_selection_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:one_x/features/home/presentation/widgets/bottom_navigation.dart';
 import 'package:one_x/features/tickets/presentation/screens/winning_record_screen.dart';
@@ -51,7 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final PageController _pageController = PageController();
   int _currentNavIndex = 0;
   StreamSubscription? _unauthorizedSubscription;
-  bool _checkedVersion = false;
+  final bool _checkedVersion = false;
 
   @override
   void initState() {
@@ -79,7 +77,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
 
     // Version check
-    _checkAppVersion();
+    _checkAppVersionBin();
+
+    //_checkAppVersion();
   }
 
   Future<void> _checkAppVersion() async {
@@ -91,7 +91,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final serverVersion = data['version']?.toString() ?? AppConstants.appVersion;
+        final serverVersion =
+            data['version']?.toString() ?? AppConstants.appVersion;
+        print('serverVersion: $serverVersion');
+        final currentVersion = AppConstants.appVersion;
+        if (_isVersionGreater(serverVersion, currentVersion)) {
+          print('serverVersion: $serverVersion');
+          print('currentVersion: $currentVersion');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showUpdateDialog(serverVersion);
+          });
+        }
+      }
+    } catch (e) {
+      // Ignore version check errors
+    }
+  }
+
+  Future<void> _checkAppVersionBin() async {
+    // if (_checkedVersion) return;
+    // _checkedVersion = true;
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.jsonbin.io/v3/b/681e1c4d8561e97a50109cdd'),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final serverVersion =
+            data['record']?['version']?.toString() ?? AppConstants.appVersion;
+        print('serverVersion: $serverVersion');
         final currentVersion = AppConstants.appVersion;
         if (_isVersionGreater(serverVersion, currentVersion)) {
           print('serverVersion: $serverVersion');
@@ -130,28 +158,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 Text('Update Available'),
               ],
             ),
-            content: Text(
-              'A new version ($newVersion) of the app is available. Please update to continue enjoying the latest features and improvements.',
+            content: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              child: Text(
+                'App Version အသစ် ($newVersion) ရယူရန် \'Update Now\' ကို နှိပ်ပါ',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.black),
+              ),
             ),
             actions: [
-              TextButton(
-                onPressed: () async {
-                  const url =
-                      'https://play.google.com/store/apps/details?id=com.mm.one_x';
-                  if (await canLaunch(url)) {
-                    await launch(
-                      url,
-                      forceSafariVC: false,
-                      forceWebView: false,
-                    );
-                  }
-                },
-                child: Row(
-                  children: [
-                    Icon(Icons.open_in_new, color: Colors.green),
-                    SizedBox(width: 6),
-                    Text('Update Now'),
-                  ],
+              Center(
+                child: TextButton(
+                  onPressed: () async {
+                    const url =
+                        'https://play.google.com/store/apps/details?id=com.mm.one_x';
+                    if (await canLaunch(url)) {
+                      await launch(
+                        url,
+                        forceSafariVC: false,
+                        forceWebView: false,
+                      );
+                    }
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.open_in_new, size: 24, color: Colors.green),
+                      SizedBox(width: 6),
+                      Text(
+                        'Update Now',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -256,7 +300,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                         ),
                         Text(
-                          'Version 1.1.5',
+                          'Version 1.1.8',
                           style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],

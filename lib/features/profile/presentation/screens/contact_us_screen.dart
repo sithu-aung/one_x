@@ -14,16 +14,6 @@ class ContactUsScreen extends ConsumerStatefulWidget {
 }
 
 class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
-  final bool _isLoading = true;
-  String? _errorMessage;
-  ContactResponse? _contactResponse;
-
-  @override
-  void initState() {
-    super.initState();
-    // Data will be loaded through provider
-  }
-
   // Launch phone call
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
@@ -59,166 +49,362 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
     }
   }
 
-  // Launch Facebook
-  Future<void> _openFacebook(String fbId) async {
+  // Launch Telegram
+  Future<void> _openTelegram(String telegramNumber) async {
     try {
-      // Try fb:// scheme first (for app)
-      final Uri fbAppUri = Uri.parse("fb://profile/$fbId");
-      if (await canLaunchUrl(fbAppUri)) {
-        await launchUrl(fbAppUri);
+      // Remove leading + or other non-numeric characters
+      final formattedNumber = telegramNumber.replaceAll(RegExp(r'[^\d]'), '');
+
+      // Try app scheme first
+      final Uri telegramUri = Uri.parse("tg://resolve?phone=$formattedNumber");
+      if (await canLaunchUrl(telegramUri)) {
+        await launchUrl(telegramUri);
       } else {
-        // Fall back to https link for browser
-        final Uri browserUri = Uri.parse("https://www.facebook.com/$fbId");
+        // Fall back to web link
+        final Uri browserUri = Uri.parse("https://t.me/$formattedNumber");
         if (await canLaunchUrl(browserUri)) {
           await launchUrl(browserUri, mode: LaunchMode.externalApplication);
         } else {
-          _showSnackBar('Could not open Facebook');
+          _showSnackBar('Could not open Telegram');
         }
+      }
+    } catch (e) {
+      _showSnackBar('Error opening Telegram: $e');
+    }
+  }
+
+  // Launch Facebook
+  Future<void> _openFacebook(String fbUrl) async {
+    try {
+      final Uri uri = Uri.parse(fbUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        _showSnackBar('Could not open Facebook');
       }
     } catch (e) {
       _showSnackBar('Error opening Facebook: $e');
     }
   }
 
-  // Launch WhatsApp
-  Future<void> _openWhatsApp(String phoneNumber) async {
+  // Launch TikTok
+  Future<void> _openTikTok(String tiktokUrl) async {
     try {
-      // Format the phone number (remove any non-numeric characters)
-      final formattedNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
-
-      // WhatsApp deep link
-      final Uri whatsappUri = Uri.parse(
-        "whatsapp://send?phone=$formattedNumber",
-      );
-      if (await canLaunchUrl(whatsappUri)) {
-        await launchUrl(whatsappUri);
+      final Uri uri = Uri.parse(tiktokUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        // Fall back to web link
-        final Uri browserUri = Uri.parse("https://wa.me/$formattedNumber");
-        if (await canLaunchUrl(browserUri)) {
-          await launchUrl(browserUri, mode: LaunchMode.externalApplication);
-        } else {
-          _showSnackBar('Could not open WhatsApp');
-        }
+        _showSnackBar('Could not open TikTok');
       }
     } catch (e) {
-      _showSnackBar('Error opening WhatsApp: $e');
+      _showSnackBar('Error opening TikTok: $e');
     }
   }
 
   // Copy to clipboard
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    _showSnackBar('Copied to clipboard: $text');
+    _showSnackBar('Copied to clipboard');
   }
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final contactsAsync = ref.watch(contactsProvider);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        title: const Text('Contact Us'),
+        title: const Text('ဆက်သွယ်ရန်'),
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => Navigator.of(context).pop(),
         ),
         elevation: 0,
       ),
       body: SafeArea(
-        child:contactsAsync.when(
+        child: contactsAsync.when(
           data: (contactResponse) {
             if (contactResponse.contacts == null) {
-              return const Center(
-                child: Text('No contact information available'),
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.contact_support_outlined,
+                      size: 64,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No contact information available',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
               );
             }
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Phone section
-                  if (contactResponse.contacts?.phone != null &&
-                      contactResponse.contacts!.phone!.isNotEmpty)
-                    _buildContactSection(
-                      title: 'Phone',
-                      icon: Icons.phone,
-                      iconColor: Colors.green,
-                      contacts: contactResponse.contacts!.phone!,
-                      onTap: (contact) => _makePhoneCall(contact.contact ?? ''),
-                      onLongPress:
-                          (contact) => _copyToClipboard(contact.contact ?? ''),
-                    ),
+                  // Text(
+                  //   'ကျွန်ုပ်တို့နှင့် ဆက်သွယ်ပါ',
+                  //   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  //     fontWeight: FontWeight.bold,
+                  //     color: Theme.of(context).colorScheme.onSurface,
+                  //   ),
+                  // ),
+                  // const SizedBox(height: 8),
+                  // Text(
+                  //   'သင့်အတွက် အဆင်ပြေသည့် နည်းလမ်းဖြင့် ဆက်သွယ်ပါ',
+                  //   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  //     color: Theme.of(
+                  //       context,
+                  //     ).colorScheme.onSurface.withOpacity(0.7),
+                  //   ),
+                  // ),
+                  // const SizedBox(height: 24),
 
-                  // Viber section
-                  if (contactResponse.contacts?.viber != null &&
-                      contactResponse.contacts!.viber!.isNotEmpty)
-                    _buildContactSection(
-                      title: 'Viber',
-                      icon: Icons.message,
-                      iconColor: Colors.purple,
-                      contacts: contactResponse.contacts!.viber!,
-                      onTap: (contact) => _openViber(contact.contact ?? ''),
-                      onLongPress:
-                          (contact) => _copyToClipboard(contact.contact ?? ''),
-                    ),
+                  // Contact cards grid
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isTablet = constraints.maxWidth > 600;
+                      final crossAxisCount = isTablet ? 2 : 1;
 
-                  // Facebook section
-                  if (contactResponse.contacts?.facebook != null &&
-                      contactResponse.contacts!.facebook!.isNotEmpty)
-                    _buildContactSection(
-                      title: 'Facebook',
-                      icon: Icons.facebook,
-                      iconColor: Colors.blue,
-                      contacts: contactResponse.contacts!.facebook!,
-                      onTap: (contact) => _openFacebook(contact.contact ?? ''),
-                      onLongPress:
-                          (contact) => _copyToClipboard(contact.contact ?? ''),
-                    ),
+                      return Wrap(
+                        spacing: 16,
+                        runSpacing: 16,
+                        children: [
+                          // Phone
+                          if (contactResponse.contacts?.phone != null &&
+                              contactResponse.contacts!.phone!.data != null &&
+                              contactResponse.contacts!.phone!.data!.isNotEmpty)
+                            SizedBox(
+                              width:
+                                  isTablet
+                                      ? (constraints.maxWidth - 16) / 2
+                                      : constraints.maxWidth,
+                              child: _buildContactCard(
+                                title: 'Phone',
+                                icon: contactResponse.contacts!.phone!.icon,
+                                fallbackIcon: Icons.phone_rounded,
+                                color: Colors.green,
+                                contacts:
+                                    contactResponse.contacts!.phone!.data!,
+                                onTap:
+                                    (contact) =>
+                                        _makePhoneCall(contact.contact ?? ''),
+                                onLongPress:
+                                    (contact) =>
+                                        _copyToClipboard(contact.contact ?? ''),
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
 
-                  // WhatsApp section
-                  if (contactResponse.contacts?.whatsApp != null &&
-                      contactResponse.contacts!.whatsApp!.isNotEmpty)
-                    _buildContactSection(
-                      title: 'WhatsApp',
-                      icon: Icons.message,
-                      iconColor: const Color(0xFF25D366), // WhatsApp green color
-                      contacts: contactResponse.contacts!.whatsApp!,
-                      onTap: (contact) => _openWhatsApp(contact.contact ?? ''),
-                      onLongPress:
-                          (contact) => _copyToClipboard(contact.contact ?? ''),
-                    ),
+                          // Viber
+                          if (contactResponse.contacts?.viber != null &&
+                              contactResponse.contacts!.viber!.data != null &&
+                              contactResponse.contacts!.viber!.data!.isNotEmpty)
+                            SizedBox(
+                              width:
+                                  isTablet
+                                      ? (constraints.maxWidth - 16) / 2
+                                      : constraints.maxWidth,
+                              child: _buildContactCard(
+                                title: 'Viber',
+                                icon: contactResponse.contacts!.viber!.icon,
+                                fallbackIcon: Icons.message_rounded,
+                                color: const Color(0xFF7360F2),
+                                contacts:
+                                    contactResponse.contacts!.viber!.data!,
+                                onTap:
+                                    (contact) =>
+                                        _openViber(contact.contact ?? ''),
+                                onLongPress:
+                                    (contact) =>
+                                        _copyToClipboard(contact.contact ?? ''),
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+
+                          // Telegram
+                          if (contactResponse.contacts?.telegram != null &&
+                              contactResponse.contacts!.telegram!.data !=
+                                  null &&
+                              contactResponse
+                                  .contacts!
+                                  .telegram!
+                                  .data!
+                                  .isNotEmpty)
+                            SizedBox(
+                              width:
+                                  isTablet
+                                      ? (constraints.maxWidth - 16) / 2
+                                      : constraints.maxWidth,
+                              child: _buildContactCard(
+                                title: 'Telegram',
+                                icon: contactResponse.contacts!.telegram!.icon,
+                                fallbackIcon: Icons.telegram_rounded,
+                                color: const Color(0xFF0088CC),
+                                contacts:
+                                    contactResponse.contacts!.telegram!.data!,
+                                onTap:
+                                    (contact) =>
+                                        _openTelegram(contact.contact ?? ''),
+                                onLongPress:
+                                    (contact) =>
+                                        _copyToClipboard(contact.contact ?? ''),
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+
+                          // Facebook
+                          if (contactResponse.contacts?.facebook != null &&
+                              contactResponse.contacts!.facebook!.data !=
+                                  null &&
+                              contactResponse
+                                  .contacts!
+                                  .facebook!
+                                  .data!
+                                  .isNotEmpty)
+                            SizedBox(
+                              width:
+                                  isTablet
+                                      ? (constraints.maxWidth - 16) / 2
+                                      : constraints.maxWidth,
+                              child: _buildContactCard(
+                                title: 'Facebook',
+                                icon: contactResponse.contacts!.facebook!.icon,
+                                fallbackIcon: Icons.facebook_rounded,
+                                color: const Color(0xFF1877F2),
+                                contacts:
+                                    contactResponse.contacts!.facebook!.data!,
+                                onTap:
+                                    (contact) =>
+                                        _openFacebook(contact.contact ?? ''),
+                                onLongPress:
+                                    (contact) =>
+                                        _copyToClipboard(contact.contact ?? ''),
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+
+                          // TikTok
+                          if (contactResponse.contacts?.tiktok != null &&
+                              contactResponse.contacts!.tiktok!.isNotEmpty)
+                            SizedBox(
+                              width:
+                                  isTablet
+                                      ? (constraints.maxWidth - 16) / 2
+                                      : constraints.maxWidth,
+                              child: _buildContactCard(
+                                title: 'TikTok',
+                                icon: null,
+                                fallbackIcon: Icons.music_note_rounded,
+                                color: Colors.black,
+                                contacts: contactResponse.contacts!.tiktok!,
+                                onTap:
+                                    (contact) =>
+                                        _openTikTok(contact.contact ?? ''),
+                                onLongPress:
+                                    (contact) =>
+                                        _copyToClipboard(contact.contact ?? ''),
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading:
+              () => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Loading contacts...',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           error:
               (error, stack) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(
+                      Icons.error_outline_rounded,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
                     Text(
-                      'Error: $error',
-                      style: TextStyle(
+                      'Something went wrong',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Theme.of(context).colorScheme.error,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
+                    const SizedBox(height: 8),
+                    Text(
+                      error.toString(),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
                       onPressed: () => ref.refresh(contactsProvider),
-                      child: const Text('Retry'),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Retry'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -228,100 +414,142 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
     );
   }
 
-  Widget _buildContactSection({
+  Widget _buildContactCard({
     required String title,
-    required IconData icon,
-    required Color iconColor,
+    String? icon,
+    required IconData fallbackIcon,
+    required Color color,
     required List<ContactData> contacts,
     required Function(ContactData) onTap,
     required Function(ContactData) onLongPress,
+    required bool isDarkMode,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
+    final contact = contacts.first; // Using first contact for cleaner UI
+    final isPhoneOrViber = title == 'Phone' || title == 'Viber';
+    final displayText =
+        isPhoneOrViber && contact.contact != null
+            ? '+95 ${contact.contact!.substring(2)}'
+            : contact.contact ?? '';
+
+    return Card(
+      elevation: isDarkMode ? 2 : 0,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color:
+              isDarkMode
+                  ? Colors.transparent
+                  : Theme.of(context).dividerColor.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: () => onTap(contact),
+        onLongPress: () => onLongPress(contact),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: iconColor),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.titleLarge?.color,
-                ),
+              Row(
+                children: [
+                  // Icon container
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child:
+                          icon != null && icon.isNotEmpty
+                              ? Image.network(
+                                icon,
+                                width: 28,
+                                height: 28,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    fallbackIcon,
+                                    color: color,
+                                    size: 28,
+                                  );
+                                },
+                              )
+                              : Icon(fallbackIcon, color: color, size: 28),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Title and subtitle
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          displayText,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Action icon
+                  Icon(
+                    title == 'Phone'
+                        ? Icons.call_rounded
+                        : Icons.arrow_forward_ios_rounded,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.4),
+                    size: 20,
+                  ),
+                ],
               ),
+              if (contacts.length > 1) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '+${contacts.length - 1} more',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
-        ...contacts.map(
-          (contact) => Card(
-            elevation: 2,
-            margin: const EdgeInsets.only(bottom: 12),
-            child: InkWell(
-              onTap: () => onTap(contact),
-              onLongPress: () => onLongPress(contact),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            contact.contact ?? '',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium?.color,
-                            ),
-                          ),
-                          if (contact.category?.name != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                contact.category!.name!,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.color,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    CircleAvatar(
-                      backgroundColor: iconColor.withOpacity(0.1),
-                      child: Icon(
-                        title == 'Phone'
-                            ? Icons.call
-                            : title == 'Viber'
-                            ? Icons.chat
-                            : title == 'WhatsApp'
-                            ? Icons.chat_bubble
-                            : Icons.facebook,
-                        color: iconColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
+      ),
     );
   }
 }

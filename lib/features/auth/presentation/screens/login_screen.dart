@@ -485,15 +485,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                     ),
 
                                     // Forgot Password link
-                                    GestureDetector(
-                                      onTap: _forgotPassword,
-                                      child: customText(
-                                        'Forget Password?',
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: AppTheme.accentColor,
-                                      ),
-                                    ),
+                                    // GestureDetector(
+                                    //   onTap: _forgotPassword,
+                                    //   child: customText(
+                                    //     'Forget Password?',
+                                    //     fontSize: 14,
+                                    //     fontWeight: FontWeight.w500,
+                                    //     color: AppTheme.accentColor,
+                                    //   ),
+                                    // ),
                                   ],
                                 ),
                                 const SizedBox(height: 20),

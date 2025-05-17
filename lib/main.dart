@@ -125,10 +125,12 @@ class _MainAppState extends ConsumerState<MainApp> {
         ref.read(authProvider.notifier).setUnauthenticated();
       }
       // Check is_learning flag
-      await _checkIsLearning();
+      await _checkLearningFlag();
+      // await _checkIsLearning();
     });
   }
 
+  // Bin Version
   Future<void> _checkLearningFlag() async {
     try {
       final response = await http.get(

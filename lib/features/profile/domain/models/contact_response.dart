@@ -18,36 +18,24 @@ class ContactResponse {
 }
 
 class Contacts {
-  List<ContactData>? phone;
-  List<ContactData>? viber;
-  List<ContactData>? facebook;
-  List<ContactData>? whatsApp;
+  ContactGroup? phone;
+  ContactGroup? viber;
+  ContactGroup? telegram;
+  ContactGroup? facebook;
+  List<ContactData>? tiktok;
 
-  Contacts({this.phone, this.viber, this.facebook});
+  Contacts({this.phone, this.viber, this.telegram, this.facebook, this.tiktok});
 
   Contacts.fromJson(Map<String, dynamic> json) {
-    if (json['Phone'] != null) {
-      phone = <ContactData>[];
-      json['Phone'].forEach((v) {
-        phone!.add(ContactData.fromJson(v));
-      });
-    }
-    if (json['Viber'] != null) {
-      viber = <ContactData>[];
-      json['Viber'].forEach((v) {
-        viber!.add(ContactData.fromJson(v));
-      });
-    }
-    if (json['Facebook'] != null) {
-      facebook = <ContactData>[];
-      json['Facebook'].forEach((v) {
-        facebook!.add(ContactData.fromJson(v));
-      });
-    }
-    if (json['WhatsApp'] != null) {
-      whatsApp = <ContactData>[];
-      json['WhatsApp'].forEach((v) {
-        whatsApp!.add(ContactData.fromJson(v));
+    phone = json['Phone'] != null ? ContactGroup.fromJson(json['Phone']) : null;
+    viber = json['Viber'] != null ? ContactGroup.fromJson(json['Viber']) : null;
+    telegram = json['Telegram'] != null ? ContactGroup.fromJson(json['Telegram']) : null;
+    facebook = json['Facebook'] != null ? ContactGroup.fromJson(json['Facebook']) : null;
+    
+    if (json['TikTok'] != null) {
+      tiktok = <ContactData>[];
+      json['TikTok'].forEach((v) {
+        tiktok!.add(ContactData.fromJson(v));
       });
     }
   }
@@ -55,17 +43,46 @@ class Contacts {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     if (phone != null) {
-      data['Phone'] = phone!.map((v) => v.toJson()).toList();
+      data['Phone'] = phone!.toJson();
     }
     if (viber != null) {
-      data['Viber'] = viber!.map((v) => v.toJson()).toList();
+      data['Viber'] = viber!.toJson();
+    }
+    if (telegram != null) {
+      data['Telegram'] = telegram!.toJson();
     }
     if (facebook != null) {
-      data['Facebook'] = facebook!.map((v) => v.toJson()).toList();
+      data['Facebook'] = facebook!.toJson();
     }
-    if (whatsApp != null) {
-      data['WhatsApp'] = whatsApp!.map((v) => v.toJson()).toList();
+    if (tiktok != null) {
+      data['TikTok'] = tiktok!.map((v) => v.toJson()).toList();
     }
+    return data;
+  }
+}
+
+class ContactGroup {
+  List<ContactData>? data;
+  String? icon;
+
+  ContactGroup({this.data, this.icon});
+
+  ContactGroup.fromJson(Map<String, dynamic> json) {
+    if (json['data'] != null) {
+      data = <ContactData>[];
+      json['data'].forEach((v) {
+        data!.add(ContactData.fromJson(v));
+      });
+    }
+    icon = json['icon'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (this.data != null) {
+      data['data'] = this.data!.map((v) => v.toJson()).toList();
+    }
+    data['icon'] = icon;
     return data;
   }
 }
@@ -120,8 +137,8 @@ class Category {
   String? name;
   String? slug;
   String? imageLocation;
-  Null createdAt;
-  Null updatedAt;
+  String? createdAt;
+  String? updatedAt;
 
   Category({
     this.id,
