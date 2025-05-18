@@ -19,7 +19,7 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
     final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
     try {
       if (await canLaunchUrl(callUri)) {
-        await launchUrl(callUri);
+        await launchUrl(callUri, mode: LaunchMode.externalApplication);
       } else {
         _showSnackBar('Could not make a call to $phoneNumber');
       }
@@ -34,7 +34,7 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
       // For Viber, we try both the viber:// and the market:// schemes
       final Uri viberUri = Uri.parse("viber://chat?number=$viberNumber");
       if (await canLaunchUrl(viberUri)) {
-        await launchUrl(viberUri);
+        await launchUrl(viberUri, mode: LaunchMode.externalApplication);
       } else {
         // Try opening the link in browser as a fallback
         final Uri browserUri = Uri.parse("https://viber.com/");
@@ -58,7 +58,7 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
       // Try app scheme first
       final Uri telegramUri = Uri.parse("tg://resolve?phone=$formattedNumber");
       if (await canLaunchUrl(telegramUri)) {
-        await launchUrl(telegramUri);
+        await launchUrl(telegramUri, mode: LaunchMode.externalApplication);
       } else {
         // Fall back to web link
         final Uri browserUri = Uri.parse("https://t.me/$formattedNumber");
