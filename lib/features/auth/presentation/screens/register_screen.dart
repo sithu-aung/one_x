@@ -497,11 +497,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           const SizedBox(height: 20),
 
                           // Referral ID section
-                          customText('Referral ID', fontSize: 14),
+                          customText('မိတ်ဆက်ကုဒ်', fontSize: 14),
                           const SizedBox(height: 10),
                           _buildTextField(
                             controller: _referralIdController,
-                            hintText: 'Referral ID',
+                            hintText: 'မိတ်ဆက်ကုဒ်',
                             prefixIcon: Symbols.person,
                             iconColor: AppTheme.primaryColor,
                           ),

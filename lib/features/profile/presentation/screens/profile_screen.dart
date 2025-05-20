@@ -8,6 +8,7 @@ import 'package:one_x/features/profile/application/profile_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:one_x/core/constants/app_constants.dart';
 import 'package:one_x/shared/widgets/profile_avatar.dart';
+import 'package:flutter/services.dart';
 
 // Convert to StatefulConsumerWidget for state management with access to ref
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -158,13 +159,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
             // Account Information section
             _buildSectionHeader('Account Information'),
-            _buildInfoItem('UserID', user?.userKey ?? '2356fb18'),
-            _buildInfoItem('Birth Date', user?.dateOfBirth ?? 'April 12, 1997'),
-            _buildInfoItem(
-              'Joined Date',
-              user?.createdAtHuman ?? 'Sept 10, 2024',
-            ),
-            _buildInfoItem('User Email', user?.email ?? 'aungaung@gmail.com'),
+            _buildInfoItem('UserID', user?.userKey ?? '-'),
+            _buildInfoItem('Birth Date', user?.dateOfBirth ?? '-'),
+            _buildInfoItem('Joined Date', user?.createdAtHuman ?? '-'),
+            _buildInfoItem('User Email', user?.email ?? '-'),
 
             // Password field (tappable)
             GestureDetector(
@@ -258,8 +256,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             // Contact Information section
             _buildSectionHeader('Contact Information'),
             _buildInfoItem('Phone', user?.phone ?? '-'),
-            _buildInfoItem('Viber Phone', user?.hiddenPhone ?? '-'),
-            _buildInfoItem('Referal ID', user?.myReferral ?? '-'),
+            _buildInfoItem('Hidden Phone', user?.hiddenPhone ?? '-'),
+            // Copiable referral code
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  // Label
+                  Text(
+                    'မိတ်ဆက်ကုဒ်',
+                    style: TextStyle(color: AppTheme.textColor, fontSize: 16),
+                  ),
+                  const Spacer(),
+
+                  // Value
+                  InkWell(
+                    onTap:
+                        user?.myReferral != null &&
+                                user.myReferral.toString().isNotEmpty
+                            ? () => _copyToClipboard(user.myReferral.toString())
+                            : null,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      child: Text(
+                        user?.myReferral ?? '-',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppTheme.textSecondaryColor,
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             _buildInfoItem('Address', user?.address ?? '-'),
 
             // User Balance information
@@ -493,6 +531,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         );
       },
     );
+  }
+
+  // Copy to clipboard helper
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    if (mounted && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Copied to clipboard'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }
 
