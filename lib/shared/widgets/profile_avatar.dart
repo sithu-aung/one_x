@@ -116,8 +116,12 @@ class ProfileAvatar extends ConsumerWidget {
   Widget _buildDefaultAvatar(BuildContext context) {
     return CircleAvatar(
       radius: radius,
-      backgroundImage: const AssetImage('assets/images/avatar.png'),
-      backgroundColor: Colors.grey.shade200,
+      backgroundColor: Colors.grey.shade300,
+      child: Icon(
+        Icons.person,
+        size: radius * 1.2,
+        color: Colors.grey.shade600,
+      ),
     );
   }
 
@@ -146,7 +150,7 @@ extension ProfileRefreshExtension on WidgetRef {
     read(profileRefreshProvider.notifier).state++;
 
     // Refresh the actual data providers
-    refresh(userProfileProvider);
-    refresh(homeDataProvider);
+    invalidate(userProfileProvider);
+    invalidate(homeDataProvider);
   }
 }

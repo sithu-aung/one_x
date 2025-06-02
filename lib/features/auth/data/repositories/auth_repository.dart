@@ -64,7 +64,7 @@ class AuthRepository {
   }
 
   // Register user
-  Future<void> register({
+  Future<Map<String, dynamic>> register({
     required String name,
     required String phone,
     required String dateOfBirth,
@@ -73,21 +73,106 @@ class AuthRepository {
     required String passwordConfirmation,
     String? referral,
   }) async {
-    await _apiService.publicPost(
-      AppConstants.registerEndpoint,
-      body: {
-        'name': name,
-        'phone': phone,
-        'date_of_birth': dateOfBirth,
-        'policy': policy ? 1 : 0,
-        'password': password,
-        'password_confirmation': passwordConfirmation,
-        'referral': referral ?? '',
-      },
-    );
+    try {
+      print('=== REGISTER API CALL ===');
+      print('Endpoint: ${AppConstants.registerEndpoint}');
+      print('Request Body: {');
+      print('  name: $name');
+      print('  phone: $phone');
+      print('  date_of_birth: $dateOfBirth');
+      print('  policy: ${policy ? 1 : 0}');
+      print('  referral: ${referral ?? ''}');
+      print('  password: [HIDDEN]');
+      print('  password_confirmation: [HIDDEN]');
+      print('}');
+      
+      final response = await _apiService.publicPost(
+        AppConstants.registerEndpoint,
+        body: {
+          'name': name,
+          'phone': phone,
+          'date_of_birth': dateOfBirth,
+          'policy': policy ? 1 : 0,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+          'referral': referral ?? '',
+        },
+        returnStatusCode: true,
+      );
 
-    // Backend returns success message only, not auth data
-    // User needs to login after registration
+      print('=== REGISTER API RESPONSE ===');
+      print('Status Code: ${response['statusCode']}');
+      print('Response Data: ${response['data']}');
+      
+      // Check for success status code
+      if (response['statusCode'] >= 200 && response['statusCode'] < 300) {
+        // Check if response contains an error field (treat as error even with 200 status)
+        if (response['data'] != null && response['data']['error'] != null) {
+          final errorMessage = response['data']['error'];
+          print('Registration Error (200 with error field): $errorMessage');
+          
+          return {
+            'success': false,
+            'statusCode': response['statusCode'],
+            'message': errorMessage,
+          };
+        }
+        
+        final successMessage = response['data']?['message'] ?? 'Registration successful';
+        print('Registration Success: $successMessage');
+        
+        return {
+          'success': true,
+          'statusCode': response['statusCode'],
+          'message': successMessage,
+        };
+      }
+
+      // Handle 422 validation errors specially
+      if (response['statusCode'] == 422) {
+        final errors = response['data']?['errors'] as Map<String, dynamic>?;
+        if (errors != null && errors.isNotEmpty) {
+          List<String> errorMessages = [];
+          
+          errors.forEach((field, messages) {
+            if (messages is List && messages.isNotEmpty) {
+              // Add all messages for this field
+              for (var message in messages) {
+                errorMessages.add(message.toString());
+              }
+            } else if (messages is String) {
+              errorMessages.add(messages);
+            }
+          });
+          
+          final combinedMessage = errorMessages.join('\n');
+          print('Validation Errors: $combinedMessage');
+          
+          return {
+            'success': false,
+            'statusCode': response['statusCode'],
+            'message': combinedMessage,
+          };
+        }
+      }
+
+      // Return error result with status code
+      final errorMessage = response['data']?['message'] ?? 'Registration failed';
+      print('Registration Error: $errorMessage');
+      
+      return {
+        'success': false,
+        'statusCode': response['statusCode'],
+        'message': errorMessage,
+      };
+    } catch (e) {
+      print('=== REGISTER API EXCEPTION ===');
+      print('Exception Type: ${e.runtimeType}');
+      print('Exception: $e');
+      
+      // Re-throw to preserve error details for the provider
+      rethrow;
+    }
   }
 
   // Health check - get user profile

@@ -280,8 +280,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         customText(
-                          '1xKing အကောင့် မရှိသေးဘူးလား?',
-                          fontSize: 14,
+                          'အကောင့် မရှိသေးဘူးလား?',
+                          fontSize: 13,
                           color:
                               AppTheme.backgroundColor == Colors.white
                                   ? Colors.black

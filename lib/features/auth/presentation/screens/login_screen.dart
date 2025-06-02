@@ -565,13 +565,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              customText(
-                                '1xKing အကောင့် မရှိသေးဘူးလား?',
-                                fontSize: 14,
-                                color:
-                                    AppTheme.backgroundColor == Colors.white
-                                        ? Colors.black
-                                        : Colors.white,
+                              GestureDetector(
+                                onTap: _register,
+                                child: customText(
+                                  'အကောင့် မရှိသေးဘူးလား?',
+                                  fontSize: 13,
+                                  color:
+                                      AppTheme.backgroundColor == Colors.white
+                                          ? Colors.black
+                                          : Colors.white,
+                                ),
                               ),
                               TextButton(
                                 onPressed: _register,

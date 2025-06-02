@@ -77,9 +77,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
 
     // Version check
-    _checkAppVersionBin();
+   // _checkAppVersionBin();
 
-    //_checkAppVersion();
+    _checkAppVersion();
   }
 
   Future<void> _checkAppVersion() async {
@@ -300,7 +300,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                         ),
                         Text(
-                          'Version 1.2.0',
+                          'Version 1.2.3',
                           style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],

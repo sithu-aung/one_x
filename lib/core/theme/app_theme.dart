@@ -195,7 +195,7 @@ class AppTheme {
 
   // Create Burmese text style
   static TextStyle burmeseTextStyle({
-    double fontSize = 14.0,
+    double? fontSize,
     FontWeight fontWeight = FontWeight.w400,
     Color? color,
     double letterSpacing = 0.3,
@@ -295,7 +295,7 @@ class AppTheme {
       fontFamilyFallback: const ['Pyidaungsu'],
       scaffoldBackgroundColor: backgroundColor,
       cardColor: cardColor,
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardColor,
         elevation: currentTheme.backgroundColor == Colors.white ? 8 : 0,
         shadowColor: Colors.black.withOpacity(0.2),
@@ -311,83 +311,98 @@ class AppTheme {
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
           fontWeight: FontWeight.bold,
+          fontSize: 57, // Base size for display large
         ),
         displayMedium: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
           fontWeight: FontWeight.bold,
+          fontSize: 45, // Base size for display medium
         ),
         displaySmall: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
           fontWeight: FontWeight.bold,
+          fontSize: 36, // Base size for display small
         ),
         headlineLarge: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
           fontWeight: FontWeight.w600,
+          fontSize: 32, // Base size for headline large
         ),
         headlineMedium: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
           fontWeight: FontWeight.w600,
+          fontSize: 28, // Base size for headline medium
         ),
         headlineSmall: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
           fontWeight: FontWeight.w600,
+          fontSize: 24, // Base size for headline small
         ),
         titleLarge: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
           fontWeight: FontWeight.w600,
+          fontSize: 22, // Base size for title large
         ),
         titleMedium: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
+          fontSize: 16, // Base size for title medium
         ),
         titleSmall: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
+          fontSize: 14, // Base size for title small
         ),
         bodyLarge: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
+          fontSize: 16, // Base size for body large
         ),
         bodyMedium: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
+          fontSize: 14, // Base size for body medium
         ),
         bodySmall: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
+          fontSize: 12, // Base size for body small
         ),
         labelLarge: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
           fontWeight: FontWeight.w500,
+          fontSize: 14, // Base size for label large
         ),
         labelMedium: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
+          fontSize: 12, // Base size for label medium
         ),
         labelSmall: TextStyle(
           color: textColor,
           fontFamily: 'Roboto',
           fontFamilyFallback: const ['Pyidaungsu'],
+          fontSize: 11, // Base size for label small
         ),
       ),
       appBarTheme: AppBarTheme(

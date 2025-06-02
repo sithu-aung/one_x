@@ -50,7 +50,11 @@ class PaymentDetailPage extends StatelessWidget {
                 radius: 50,
                 backgroundColor:
                     isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
-                backgroundImage: const AssetImage('assets/images/avatar.png'),
+                child: Icon(
+                  Icons.person,
+                  size: 60,
+                  color: isDarkMode ? Colors.grey.shade600 : Colors.grey.shade500,
+                ),
               ),
               const SizedBox(height: 16),
               Text(

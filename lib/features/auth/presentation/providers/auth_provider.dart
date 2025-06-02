@@ -140,11 +140,13 @@ class AuthNotifier extends StateNotifier<AuthStateData> {
   }
 
   // Register
-  Future<void> register(RegisterFormData formData) async {
+  Future<Map<String, dynamic>> register(RegisterFormData formData) async {
+    print('=== AUTH PROVIDER REGISTER ===');
     try {
-      state = state.copyWith(state: AuthState.loading);
+      state = state.copyWith(state: AuthState.loading, errorMessage: null);
 
-      await _authRepository.register(
+      print('Calling repository register method...');
+      final result = await _authRepository.register(
         name: formData.nameController.text,
         phone: formData.phoneController.text,
         dateOfBirth: formData.dateOfBirth,
@@ -154,13 +156,71 @@ class AuthNotifier extends StateNotifier<AuthStateData> {
         referral: formData.referralController?.text,
       );
 
-      // After successful registration, user needs to login
-      state = state.copyWith(state: AuthState.unauthenticated);
+      print('Repository result: $result');
+
+      if (result['success']) {
+        // After successful registration, user needs to login
+        state = state.copyWith(state: AuthState.unauthenticated, errorMessage: null);
+        print('Registration successful, state updated to unauthenticated');
+      } else {
+        // Store the error message in state
+        final errorMessage = result['message'];
+        print('Registration failed with message: $errorMessage');
+        state = state.copyWith(
+          state: AuthState.error,
+          errorMessage: errorMessage,
+        );
+      }
+
+      return result;
     } catch (e) {
+      print('=== AUTH PROVIDER REGISTER EXCEPTION ===');
+      print('Exception Type: ${e.runtimeType}');
+      print('Exception: $e');
+      
+      // Extract error message from ApiException if available
+      String errorMessage = e.toString();
+      if (e is ApiException) {
+        print('ApiException detected');
+        print('Status Code: ${e.statusCode}');
+        print('Message: ${e.message}');
+        print('Errors: ${e.errors}');
+        
+        errorMessage = e.message;
+        
+        // Parse validation errors for 422 responses
+        if (e.statusCode == 422 && e.errors != null) {
+          List<String> errorMessages = [];
+          e.errors!.forEach((field, messages) {
+            if (messages is List) {
+              for (var message in messages) {
+                errorMessages.add('$field: ${message.toString()}');
+              }
+            } else if (messages is String) {
+              errorMessages.add('$field: $messages');
+            }
+          });
+          if (errorMessages.isNotEmpty) {
+            errorMessage = errorMessages.join('\n');
+            print('Parsed validation errors: $errorMessage');
+          }
+        }
+      }
+      
+      // Store the error message
       state = state.copyWith(
         state: AuthState.error,
-        errorMessage: e.toString(),
+        errorMessage: errorMessage,
       );
+      
+      print('Returning error result with message: $errorMessage');
+      
+      // Return error result
+      return {
+        'success': false,
+        'statusCode': 0,
+        'message': errorMessage,
+      };
     }
   }
 
@@ -295,3 +355,4 @@ class RegisterFormData {
     );
   }
 }
+

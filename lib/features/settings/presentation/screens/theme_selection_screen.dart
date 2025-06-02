@@ -66,7 +66,7 @@ class ThemeSelectionScreen extends ConsumerWidget {
           'Logout',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 16.sp,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -220,7 +220,7 @@ class ThemeSelectionScreen extends ConsumerWidget {
                             'App Preview',
                             style: TextStyle(
                               color: theme.textColor,
-                              fontSize: 12.sp,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -256,7 +256,7 @@ class ThemeSelectionScreen extends ConsumerWidget {
                                     'Button',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 10.sp,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -277,7 +277,7 @@ class ThemeSelectionScreen extends ConsumerWidget {
                                     'Card',
                                     style: TextStyle(
                                       color: theme.textColor,
-                                      fontSize: 10.sp,
+                                      fontSize: 10,
                                     ),
                                   ),
                                 ),
@@ -338,7 +338,7 @@ class ThemeSelectionScreen extends ConsumerWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 10.sp,
+              fontSize: 10,
               color: AppTheme.textSecondaryColor,
             ),
             textAlign: TextAlign.center,

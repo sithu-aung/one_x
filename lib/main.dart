@@ -125,8 +125,8 @@ class _MainAppState extends ConsumerState<MainApp> {
         ref.read(authProvider.notifier).setUnauthenticated();
       }
       // Check is_learning flag
-      await _checkLearningFlag();
-      // await _checkIsLearning();
+     // await _checkLearningFlag();
+       await _checkIsLearning();
     });
   }
 
@@ -216,7 +216,7 @@ class _MainAppState extends ConsumerState<MainApp> {
       key: ValueKey(themeState.restartKey),
       child: ScreenUtilInit(
         designSize: const Size(390, 844),
-        minTextAdapt: true,
+        minTextAdapt: false,
         splitScreenMode: true,
         builder: (context, child) {
           return MaterialApp(

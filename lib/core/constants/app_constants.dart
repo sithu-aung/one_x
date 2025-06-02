@@ -120,5 +120,5 @@ class AppConstants {
   static const String invalidCredentialsMessage = 'Invalid email or password.';
 
   // App Version
-  static const String appVersion = '1.2.0';
+  static const String appVersion = '1.2.3';
 }

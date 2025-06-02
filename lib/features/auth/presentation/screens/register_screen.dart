@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:one_x/core/theme/app_theme.dart';
-import 'package:one_x/core/utils/api_service.dart';
 import 'package:one_x/features/auth/presentation/providers/auth_provider.dart';
 import 'package:one_x/features/auth/presentation/screens/login_screen.dart';
-import 'package:one_x/features/home/presentation/screens/home_screen.dart';
 import 'package:one_x/features/profile/presentation/screens/terms_condition_screen.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -122,11 +119,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _register() async {
+    print('=== REGISTER SCREEN - _register() ===');
+
     // Validate form
     if (_nameController.text.isEmpty ||
         _phoneController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
+      print('Validation failed: empty fields');
       setState(() {
         _errorMessage = "Please fill all required fields";
       });
@@ -134,6 +134,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
+      print('Validation failed: password mismatch');
       setState(() {
         _errorMessage = "Passwords do not match";
       });
@@ -141,6 +142,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     if (!_agreedToTerms) {
+      print('Validation failed: terms not agreed');
       setState(() {
         _errorMessage = "Please agree to the terms and conditions";
       });
@@ -153,6 +155,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     try {
+      print('Getting auth notifier...');
       final authNotifier = ref.read(authProvider.notifier);
 
       // Create a RegisterFormData object to bind form data
@@ -170,37 +173,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         agreedToTerms: _agreedToTerms,
       );
 
-      // Pass the form data to the register method
-      await authNotifier.register(formData);
+      print('Form data created, calling register...');
 
-      // Check auth state after registration attempt
-      final authState = ref.read(authProvider);
-      if (authState.state == AuthState.authenticated) {
-        // Navigate to home screen
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
-        }
-      } else if (authState.state == AuthState.error) {
-        setState(() {
-          _errorMessage = authState.errorMessage;
-        });
-        showGlobalErrorDialog(
-          _errorMessage == "ApiException: Validation errors (Status code: 422)"
-              ? "Existing Account. Please try with different name or phone number"
-              : _errorMessage!,
-        );
-        authNotifier.clearError();
-      } else {
-        // Registration successful but not logged in yet
-        // Show a success message and redirect to login
+      // Pass the form data to the register method and get the result
+      final result = await authNotifier.register(formData);
+
+      print('Register result: $result');
+
+      if (result['success']) {
+        // Registration successful - show success message and redirect to login
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Registration successful. Please login.'),
+            SnackBar(
+              content: const Text('Registration successful. Please login.'),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           );
 
@@ -209,44 +201,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         }
-      }
-    } catch (e) {
-      print('Registration error: ${e.toString()}');
+      } else {
+        // Registration failed - show error message from the API
+        final errorMessage = result['message'] ?? 'Registration failed';
 
-      // Handle API errors, particularly validation errors
-      if (e is ApiException) {
-        // Store the error message for debugging
-        print('API Exception - Status Code: ${e.statusCode}');
-        print('API Exception - Message: ${e.message}');
-        print('API Exception - Errors: ${e.errors}');
-
-        String errorMessage = e.message;
-
-        // Parse validation errors from a 422 response
-        if (e.statusCode == 422 && e.errors != null) {
-          try {
-            // Extract all error messages and join them
-            List<String> errorMessages = [];
-
-            e.errors!.forEach((field, messages) {
-              if (messages is List) {
-                for (var message in messages) {
-                  errorMessages.add('$field: ${message.toString()}');
-                }
-              } else if (messages is String) {
-                errorMessages.add('$field: $messages');
-              }
-            });
-
-            errorMessage = errorMessages.join('\n');
-            print('Parsed validation errors: $errorMessage');
-          } catch (parseError) {
-            print('Error parsing validation errors: $parseError');
-            // Keep the original error message if parsing fails
-          }
-        }
-
-        // Ensure we're mounted before showing the SnackBar
         if (mounted) {
           // Get the ScaffoldMessengerState
           final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -254,7 +212,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           // Hide any existing SnackBars
           scaffoldMessenger.hideCurrentSnackBar();
 
-          // Show the error in a SnackBar with longer duration
+          // Show the error in a SnackBar
           scaffoldMessenger.showSnackBar(
             SnackBar(
               content: Text(
@@ -271,37 +229,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
           );
         }
-      } else {
-        // For non-API exceptions
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString()),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 5),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
+      }
+    } catch (e) {
+      // Unexpected errors that weren't caught by the provider
+      print('Unexpected registration error: ${e.toString()}');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An unexpected error occurred. Please try again.'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } finally {
       setState(() {
         _isLoading = false;
-        _errorMessage = null; // Clear the error message beneath the button
       });
     }
-  }
-
-  static void showGlobalErrorDialog(String message) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.red,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
   }
 
   void _navigateToLogin() {
@@ -740,8 +687,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         customText(
-                          '1xKing အကောင့်ရှိပြီးသားလား? ',
-                          fontSize: 14,
+                          'အကောင့်ရှိပြီးသားလား? ',
+                          fontSize: 13,
                           color:
                               AppTheme.backgroundColor == Colors.white
                                   ? Colors.black

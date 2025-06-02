@@ -219,6 +219,11 @@ class ApiService {
     bool showValidationToast = true,
   }) async {
     try {
+      print('=== PUBLIC POST REQUEST ===');
+      print('URL: ${AppConstants.baseUrl}$endpoint');
+      print('Headers: $_publicHeaders');
+      print('Body: ${body != null ? jsonEncode(body) : null}');
+      
       final response = await _httpClient
           .post(
             Uri.parse('${AppConstants.baseUrl}$endpoint'),
@@ -227,6 +232,11 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 30));
 
+      print('=== PUBLIC POST RESPONSE ===');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      print('Response Headers: ${response.headers}');
+
       // If returnStatusCode is true, return both status code and data
       if (returnStatusCode) {
         // For successful responses
@@ -234,19 +244,24 @@ class ApiService {
           if (response.body.isEmpty) {
             return {'statusCode': response.statusCode, 'data': null};
           }
+          final decodedData = jsonDecode(response.body);
+          print('Decoded success data: $decodedData');
           return {
             'statusCode': response.statusCode,
-            'data': jsonDecode(response.body),
+            'data': decodedData,
           };
         }
         // For error responses
         else {
           try {
+            final decodedData = jsonDecode(response.body);
+            print('Decoded error data: $decodedData');
             return {
               'statusCode': response.statusCode,
-              'data': jsonDecode(response.body),
+              'data': decodedData,
             };
           } catch (e) {
+            print('Failed to decode error response: $e');
             return {
               'statusCode': response.statusCode,
               'data': {'message': response.reasonPhrase ?? 'Unknown error'},
