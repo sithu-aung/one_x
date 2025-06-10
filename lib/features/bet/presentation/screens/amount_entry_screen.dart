@@ -51,6 +51,7 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
   int _totalAmount = 0;
   final Map<int, TextEditingController> _controllers = {};
   late ScaffoldMessengerState _scaffoldMessenger;
+  bool _isProcessing = false;
 
   @override
   void didChangeDependencies() {
@@ -709,6 +710,13 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () async {
+                          // Prevent double click
+                          if (_isProcessing) return;
+                          
+                          setState(() {
+                            _isProcessing = true;
+                          });
+                          
                           // Filter out items with empty amounts
                           List<BetItem> validBetItems =
                               _betItems
@@ -796,6 +804,11 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
                                     duration: const Duration(seconds: 3),
                                   ),
                                 );
+                                
+                                // Reset processing flag
+                                setState(() {
+                                  _isProcessing = false;
+                                });
                                 return;
                               }
 
@@ -855,6 +868,11 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
                                     ),
                                   );
                                 }
+                                
+                                // Reset processing flag on error
+                                setState(() {
+                                  _isProcessing = false;
+                                });
                               }
                             }
                           } else {
@@ -867,6 +885,11 @@ class _AmountEntryScreenState extends ConsumerState<AmountEntryScreen> {
                                 duration: Duration(seconds: 2),
                               ),
                             );
+                            
+                            // Reset processing flag
+                            setState(() {
+                              _isProcessing = false;
+                            });
                           }
                         },
                         child: Container(

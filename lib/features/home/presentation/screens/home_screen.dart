@@ -300,7 +300,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                         ),
                         Text(
-                          'Version 1.2.3',
+                          'Version 1.2.4',
                           style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],
