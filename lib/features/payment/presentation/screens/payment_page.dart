@@ -158,7 +158,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                             child: Column(
                               children: [
                                 Text(
-                                  'Available balance',
+                                  'လက်ကျန်ငွေ',
                                   style: TextStyle(
                                     fontSize: 15,
                                     color: Colors.white,
@@ -260,7 +260,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                               Expanded(
                                 child: _buildActionButton(
                                   icon: Icons.add,
-                                  label: 'Top Up',
+                                  label: 'ငွေသွင်း',
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -280,7 +280,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                               Expanded(
                                 child: _buildActionButton(
                                   icon: Icons.arrow_downward,
-                                  label: 'Withdraw',
+                                  label: 'ငွေထုတ်',
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -301,7 +301,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                               Expanded(
                                 child: _buildActionButton(
                                   icon: Icons.receipt_long,
-                                  label: 'Record',
+                                  label: 'မှတ်တမ်း',
                                   onTap: () {
                                     // Load transactions before navigating to record page
                                     ref

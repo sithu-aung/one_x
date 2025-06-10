@@ -167,7 +167,7 @@ class _TransactionHistoryScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Available balance',
+                        'လက်ကျန်ငွေ',
                         style: TextStyle(
                           color: textColor,
                           fontSize: 16,
