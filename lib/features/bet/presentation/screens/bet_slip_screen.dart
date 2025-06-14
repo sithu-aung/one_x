@@ -777,7 +777,10 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
           print('Checking permissions...');
           bool permissionGranted = await _checkAndRequestPermissions();
           print('Permission granted: $permissionGranted');
-          if (!permissionGranted) {
+          
+          // For Android 10+, we might still proceed even if permission appears denied
+          // because saver_gallery handles it internally
+          if (!permissionGranted && Platform.isIOS) {
             _showErrorMessage('Permission denied. Cannot save screenshot.');
             setState(() {
               _isSaving = false;
@@ -791,143 +794,88 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
               'BetMM_Ticket_${DateTime.now().millisecondsSinceEpoch}.png';
           print('File name: $fileName');
 
-          // Use platform-specific options
-          final Map<String, dynamic> options = {
-            'fileName': fileName,
-            'quality': 100,
-            'skipIfExists': false,
-          };
-
-          // Add platform-specific options
-          if (Platform.isAndroid) {
-            options['androidRelativePath'] = "Pictures/BetMM";
-          } else if (Platform.isIOS) {
-            // iOS specific options can be added here if needed
-          }
-
-          print('SaverGallery options: $options');
-
           try {
-            // First try to save as PNG
-            final result = await SaverGallery.saveImage(
+            // Simplified save approach - let saver_gallery handle the details
+            dynamic result;
+            
+            // For all platforms, use the standard saveImage method
+            print('Saving image to gallery...');
+            result = await SaverGallery.saveImage(
               imageBytes,
               fileName: fileName,
               quality: 100,
-              androidRelativePath: "Pictures/BetMM",
               skipIfExists: false,
+              androidRelativePath: Platform.isAndroid ? "Pictures/BetMM" : null,
             );
 
             print('SaverGallery result: $result (${result.runtimeType})');
 
-            // Check if save was successful - using toString() for SaveResult objects
-            if (result.toString().contains('isSuccess: true')) {
-              print('Image saved successfully');
-              _showSuccessMessage('Ticket saved to gallery successfully');
-            } else if (result == true) {
-              // For backward compatibility with boolean results
-              print('Image saved successfully (boolean result)');
-              _showSuccessMessage('Ticket saved to gallery successfully');
-            } else {
-              print('Failed to save image as PNG. Result: $result');
-
-              // If PNG fails, try JPEG as fallback
-              print('Attempting to save as JPEG instead...');
-              final jpegResult = await SaverGallery.saveImage(
-                imageBytes,
-                fileName: fileName.replaceAll('.png', '.jpg'),
-                quality: 90,
-                androidRelativePath: "Pictures/BetMM",
-                skipIfExists: false,
-              );
-
-              print('JPEG save result: $jpegResult');
-
-              // Check success with same pattern
-              if (jpegResult.toString().contains('isSuccess: true')) {
-                print('Image saved as JPEG successfully');
-                _showSuccessMessage('Ticket saved to gallery successfully');
-              } else if (jpegResult == true) {
-                print('Image saved as JPEG successfully (boolean result)');
-                _showSuccessMessage('Ticket saved to gallery successfully');
-              } else {
-                // Try one last approach - save to app directory first, then move to gallery
-                print('Trying alternative save method...');
-                final tempDir = await getTemporaryDirectory();
-                final tempFile = File('${tempDir.path}/$fileName');
-                await tempFile.writeAsBytes(imageBytes);
-                print('Saved to temp file: ${tempFile.path}');
-
-                if (await tempFile.exists()) {
-                  print('Temp file exists, attempting to move to gallery');
-                  final moveResult = await SaverGallery.saveFile(
-                    filePath: tempFile.path,
-                    fileName: fileName,
-                    androidRelativePath: "Pictures/BetMM",
-                    skipIfExists: false,
-                  );
-
-                  print('Move result: $moveResult');
-
-                  // Check success with same pattern
-                  if (moveResult.toString().contains('isSuccess: true')) {
-                    print('File successfully moved to gallery');
-                    _showSuccessMessage('Ticket saved to gallery successfully');
-                  } else if (moveResult == true) {
-                    print(
-                      'File successfully moved to gallery (boolean result)',
-                    );
-                    _showSuccessMessage('Ticket saved to gallery successfully');
-                  } else {
-                    print('Failed to move file to gallery');
-                    _showErrorMessage('Failed to save ticket to gallery.');
-                  }
-                } else {
-                  print('Failed to create temp file');
-                  _showErrorMessage('Failed to save ticket to gallery');
-                }
+            // Handle different types of results
+            bool saveSuccess = false;
+            
+            // The plugin returns a SaveResult object, check if it's successful
+            if (result != null) {
+              final resultStr = result.toString();
+              print('Result string: $resultStr');
+              
+              // Check for success indicators
+              if (resultStr.contains('isSuccess: true') || 
+                  resultStr.contains('true') ||
+                  (result is bool && result == true)) {
+                saveSuccess = true;
               }
             }
-          } catch (saveError, saveStackTrace) {
-            print('Error during SaverGallery.saveImage: $saveError');
-            print('Save stack trace: $saveStackTrace');
 
-            // Try alternative method if first attempt fails
-            try {
-              print('Trying alternative saving method after error...');
+            if (saveSuccess) {
+              print('Image saved successfully');
+              _showSuccessMessage('Ticket saved to gallery successfully');
+            } else {
+              print('Save failed. Result: $result');
+              
+              // Try alternative method using temp file
+              print('Trying alternative save method...');
               final tempDir = await getTemporaryDirectory();
               final tempFile = File('${tempDir.path}/$fileName');
               await tempFile.writeAsBytes(imageBytes);
-              print('Saved to temp file after error: ${tempFile.path}');
-
-              final moveResult = await SaverGallery.saveFile(
+              
+              // Try saving the file directly
+              final altResult = await SaverGallery.saveFile(
                 filePath: tempFile.path,
                 fileName: fileName,
-                androidRelativePath: "Pictures/BetMM",
                 skipIfExists: false,
+                androidRelativePath: Platform.isAndroid ? "Pictures/BetMM" : null,
               );
-
-              print('Alternative save result: $moveResult');
-
-              if (moveResult.toString().contains('isSuccess: true')) {
+              
+              print('Alternative save result: $altResult');
+              
+              // Clean up temp file
+              try {
+                await tempFile.delete();
+              } catch (_) {}
+              
+              final altResultStr = altResult.toString();
+              if (altResultStr.contains('isSuccess: true') || 
+                  altResultStr.contains('true') ||
+                  (altResult is bool && altResult == true)) {
                 _showSuccessMessage('Ticket saved to gallery successfully');
-              } else if (moveResult == true) {
-                _showSuccessMessage(
-                  'Ticket saved to gallery successfully (boolean result)',
-                );
               } else {
-                _showErrorMessage(
-                  'Failed to save ticket to gallery: $saveError',
-                );
+                _showErrorMessage('Failed to save ticket to gallery. Please check permissions.');
               }
-            } catch (fallbackError) {
-              print('Fallback save method also failed: $fallbackError');
-              _showErrorMessage('Failed to save ticket: $saveError');
+            }
+          } catch (saveError) {
+            print('Error during save: $saveError');
+            
+            // If it's a permission error, show appropriate message
+            if (saveError.toString().toLowerCase().contains('permission')) {
+              _showErrorMessage('Permission denied. Please grant storage permission in settings.');
+              _showPermissionPermanentlyDeniedDialog();
+            } else {
+              _showErrorMessage('Failed to save ticket: ${saveError.toString()}');
             }
           }
-        } catch (e, stackTrace) {
+        } catch (e) {
           print('Error saving to gallery: $e');
-          print('Stack trace: $stackTrace');
-          _showErrorMessage('Error saving to gallery: $e');
+          _showErrorMessage('Error saving to gallery: ${e.toString()}');
         }
       } else {
         print('Screenshot capture failed - imageBytes is null');
@@ -950,92 +898,151 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
 
     if (Platform.isAndroid) {
       print('Checking Android permissions...');
-      // For Android 13+ (SDK 33+), we need to request specific permissions
-      if (await _isAndroid13OrHigher()) {
+      
+      // Get Android SDK version
+      final androidInfo = await _getAndroidSdkVersion();
+      print('Android SDK version: $androidInfo');
+      
+      // For Android 13+ (API 33+), we need to check media permissions
+      if (androidInfo >= 33) {
         print('Android 13+ detected. Checking photos permission...');
         var photosStatus = await Permission.photos.status;
         print('Photos permission status: $photosStatus');
+        
         if (!photosStatus.isGranted) {
           print('Requesting photos permission...');
           photosStatus = await Permission.photos.request();
           print('Photos permission after request: $photosStatus');
-          return photosStatus.isGranted;
+          
+          if (photosStatus.isPermanentlyDenied) {
+            print('Photos permission permanently denied');
+            _showPermissionPermanentlyDeniedDialog();
+            return false;
+          }
         }
+        
+        // For Android 13+, also check if we need READ_MEDIA_IMAGES
+        if (!photosStatus.isGranted) {
+          // Try with storage permission as fallback
+          var storageStatus = await Permission.storage.status;
+          if (!storageStatus.isGranted) {
+            storageStatus = await Permission.storage.request();
+          }
+          // Even if denied, let saver_gallery try as it might handle it internally
+          return true;
+        }
+        
+        return photosStatus.isGranted;
+      } else if (androidInfo >= 29) {
+        // For Android 10-12 (API 29-32), saver_gallery handles permissions internally
+        print('Android 10-12 detected. SaverGallery handles permissions internally.');
+        // Still check storage permission just in case
+        var storageStatus = await Permission.storage.status;
+        if (!storageStatus.isGranted && !storageStatus.isRestricted) {
+          print('Requesting storage permission...');
+          storageStatus = await Permission.storage.request();
+        }
+        // Return true regardless as saver_gallery should handle it
         return true;
       } else {
-        // For older Android versions, request storage permissions
-        print('Android <13 detected. Checking storage permission...');
+        // For Android 9 and below, we need storage permission
+        print('Android 9 or below detected. Checking storage permission...');
         var storageStatus = await Permission.storage.status;
         print('Storage permission status: $storageStatus');
+        
         if (!storageStatus.isGranted) {
           print('Requesting storage permission...');
           storageStatus = await Permission.storage.request();
           print('Storage permission after request: $storageStatus');
-          return storageStatus.isGranted;
+          
+          if (storageStatus.isPermanentlyDenied) {
+            print('Storage permission permanently denied');
+            _showPermissionPermanentlyDeniedDialog();
+            return false;
+          }
         }
-        return true;
+        
+        return storageStatus.isGranted;
       }
     } else if (Platform.isIOS) {
       print('Checking iOS permissions...');
-      // For iOS, handle simulator detection
-      if (_isIosSimulator()) {
-        print('iOS simulator detected, bypassing permissions check');
-        // Return true for simulators to avoid permission issues
-        return true;
-      }
-
+      
       // For iOS, we need photos permission
       print('Checking iOS photos permissions...');
-      // First try photosAddOnly which is less intrusive
+      
+      // First check the current status
+      var photosStatus = await Permission.photos.status;
       var addOnlyStatus = await Permission.photosAddOnly.status;
+      
+      print('Photos permission status: $photosStatus');
       print('Photos add-only permission status: $addOnlyStatus');
-      if (addOnlyStatus.isDenied) {
-        print('Requesting photos add-only permission...');
-        addOnlyStatus = await Permission.photosAddOnly.request();
-        print('Photos add-only permission after request: $addOnlyStatus');
-      }
-
-      if (addOnlyStatus.isGranted || addOnlyStatus.isLimited) {
-        print('Photos add-only permission granted or limited');
+      
+      // If we already have some permission, return true
+      if (photosStatus.isGranted || photosStatus.isLimited || 
+          addOnlyStatus.isGranted || addOnlyStatus.isLimited) {
+        print('Photos permission already granted');
         return true;
       }
-
-      // If that fails, try full photos permission
-      print('Trying full photos permission...');
-      var photosStatus = await Permission.photos.status;
-      print('Full photos permission status: $photosStatus');
-      if (photosStatus.isDenied) {
-        print('Requesting full photos permission...');
-        photosStatus = await Permission.photos.request();
-        print('Full photos permission after request: $photosStatus');
-      }
-
-      // If permanently denied, show settings dialog
-      if (photosStatus.isPermanentlyDenied) {
+      
+      // If permanently denied, show dialog
+      if (photosStatus.isPermanentlyDenied || addOnlyStatus.isPermanentlyDenied) {
         print('Photos permission permanently denied, showing dialog');
         _showPermissionPermanentlyDeniedDialog();
         return false;
       }
-
-      print(
-        'Final iOS permission state: ${photosStatus.isGranted || photosStatus.isLimited}',
-      );
+      
+      // Request permission - try add-only first as it's less intrusive
+      print('Requesting photos add-only permission...');
+      addOnlyStatus = await Permission.photosAddOnly.request();
+      print('Photos add-only permission after request: $addOnlyStatus');
+      
+      if (addOnlyStatus.isGranted || addOnlyStatus.isLimited) {
+        return true;
+      }
+      
+      // If add-only didn't work, try full photos permission
+      print('Requesting full photos permission...');
+      photosStatus = await Permission.photos.request();
+      print('Full photos permission after request: $photosStatus');
+      
+      if (photosStatus.isPermanentlyDenied) {
+        _showPermissionPermanentlyDeniedDialog();
+        return false;
+      }
+      
       return photosStatus.isGranted || photosStatus.isLimited;
     }
 
     print('Unsupported platform for permissions check');
     return false;
   }
-
-  // Check if running on iOS simulator
-  bool _isIosSimulator() {
-    final bool isSimulator =
-        Platform.isIOS &&
-        !Platform.environment.containsKey('SIMULATOR_DEVICE_NAME') &&
-        !Platform.environment.containsKey('SIMULATOR_RUNTIME_VERSION');
-    print('iOS simulator check: $isSimulator');
-    print('iOS environment: ${Platform.environment}');
-    return isSimulator;
+  
+  // Helper method to get Android SDK version
+  Future<int> _getAndroidSdkVersion() async {
+    if (Platform.isAndroid) {
+      try {
+        // Try to parse SDK version from operatingSystemVersion
+        final osVersion = Platform.operatingSystemVersion;
+        // Extract SDK version from string like "Android 13 (API 33)"
+        final match = RegExp(r'API (\d+)').firstMatch(osVersion);
+        if (match != null) {
+          return int.parse(match.group(1)!);
+        }
+        
+        // Fallback: try to get version number from beginning
+        final versionMatch = RegExp(r'Android (\d+)').firstMatch(osVersion);
+        if (versionMatch != null) {
+          final androidVersion = int.parse(versionMatch.group(1)!);
+          // Convert Android version to API level (rough estimate)
+          // Android 10 = API 29, Android 11 = API 30, etc.
+          return androidVersion + 19;
+        }
+      } catch (e) {
+        print('Error parsing Android version: $e');
+      }
+    }
+    // Default to API 28 (Android 9) if we can't determine
+    return 28;
   }
 
   // Show dialog when permissions are permanently denied
@@ -1065,24 +1072,6 @@ class _BetSlipScreenState extends ConsumerState<BetSlipScreen> {
         );
       },
     );
-  }
-
-  // Helper function to check if device is running Android 13 or higher
-  Future<bool> _isAndroid13OrHigher() async {
-    if (Platform.isAndroid) {
-      final osVersion = Platform.operatingSystemVersion;
-      print('Android OS version: $osVersion');
-      try {
-        final versionNumber = int.parse(osVersion.split(' ').first);
-        print('Parsed Android version: $versionNumber');
-        return versionNumber >= 13;
-      } catch (e) {
-        print('Error parsing Android version: $e');
-        // If we can't parse the version, assume it's not Android 13+
-        return false;
-      }
-    }
-    return false;
   }
 
   void _showSuccessMessage(String message) {
@@ -1145,7 +1134,6 @@ class ZigzagPainter extends CustomPainter {
     // Create small triangular cuts for the zigzag edge
     final double triangleWidth =
         width / 25; // More triangles for a smoother edge
-    final double triangleHeight = height;
 
     if (isTop) {
       // Start from bottom-left for top zigzag
